@@ -89,6 +89,16 @@
   .hidden { display: none !important; }
   .notes { white-space: pre-wrap; }
   a { color: var(--accent); word-break: break-word; }
+  .home { display: grid; gap: 14px; margin-top: 8px; }
+  @media (min-width: 600px) { .home { grid-template-columns: 1fr 1fr; } }
+  .cat {
+    display: flex; align-items: center; gap: 18px; width: 100%; text-align: left;
+    padding: 28px 22px; border-radius: 16px; font-family: Georgia, serif; font-size: 1.35rem; font-weight: 600;
+  }
+  .cat .e { font-size: 2.4rem; line-height: 1; }
+  .cat .s { display: block; margin-top: 4px; font: 400 .9rem/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--muted); }
+  .cat:active { transform: scale(.98); }
+  select { appearance: none; -webkit-appearance: none; }
 </style>
 </head>
 <body>
@@ -115,8 +125,27 @@
     <div id="authMsg" class="msg hidden"></div>
   </section>
 
+  <!-- Etusivu -->
+  <section id="homeView" class="hidden">
+    <div id="homeMsg" class="msg hidden"></div>
+    <div class="home">
+      <button class="cat card" data-cat="arkiruoka">
+        <span class="e">🥘</span><span>Arkiruoka<span class="s" id="cnt_arkiruoka"></span></span>
+      </button>
+      <button class="cat card" data-cat="viikonloppuherkut">
+        <span class="e">🍷</span><span>Viikonloppuherkut<span class="s" id="cnt_viikonloppuherkut"></span></span>
+      </button>
+    </div>
+    <div class="actions" style="justify-content:space-between;align-items:center">
+      <button class="link" data-cat="">Kaikki reseptit →</button>
+      <button class="primary" id="newHomeBtn">+ Uusi resepti</button>
+    </div>
+  </section>
+
   <!-- Lista -->
   <section id="listView" class="hidden">
+    <button class="link" id="homeBtn">← Etusivu</button>
+    <h2 id="listTitle" style="margin:6px 0 14px">Kaikki reseptit</h2>
     <div class="search">
       <input id="q" type="search" placeholder="Hae nimellä tai aineksella…" autocomplete="off">
       <button class="primary" id="newBtn">+ Uusi</button>
@@ -139,6 +168,12 @@
       <h2 id="editTitle">Uusi resepti</h2>
       <label for="f_title">Nimi *</label>
       <input id="f_title" required maxlength="200">
+      <label for="f_category">Kategoria</label>
+      <select id="f_category">
+        <option value="arkiruoka">🥘 Arkiruoka</option>
+        <option value="viikonloppuherkut">🍷 Viikonloppuherkut</option>
+        <option value="">Ei kategoriaa</option>
+      </select>
       <label for="f_description">Lyhyt kuvaus</label>
       <input id="f_description">
       <div class="row">
@@ -175,7 +210,10 @@
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = (id) => document.getElementById(id);
 
+  const CATS = { arkiruoka: "Arkiruoka", viikonloppuherkut: "Viikonloppuherkut" };
   let recipes = [];
+  let currentCat = null;
+  let returnView = "listView";
   let activeTag = null;
   let editingId = null;
   let signupMode = false;
@@ -187,7 +225,7 @@
   const asText = (v) => (typeof v === "string" ? v : v && (v.text || [v.amount, v.unit, v.name].filter(Boolean).join(" ")));
 
   function show(view) {
-    for (const v of ["authView", "listView", "detailView", "editView"]) $(v).classList.toggle("hidden", v !== view);
+    for (const v of ["authView", "homeView", "listView", "detailView", "editView"]) $(v).classList.toggle("hidden", v !== view);
     $("logoutBtn").classList.toggle("hidden", view === "authView");
     window.scrollTo(0, 0);
   }
@@ -245,23 +283,51 @@
   });
 
   // ---------- Lista ----------
-  async function loadRecipes() {
-    show("listView");
-    msg($("listMsg"), "Ladataan…");
+  async function loadRecipes(view) {
+    view = view === "listView" ? "listView" : "homeView";
+    show(view);
+    msg($("homeMsg"), "Ladataan…");
     const { data, error } = await sb.from("recipes").select("*").order("title");
-    if (error) { msg($("listMsg"), "Reseptien lataus epäonnistui: " + error.message, true); return; }
+    if (error) { show("homeView"); msg($("homeMsg"), "Reseptien lataus epäonnistui: " + error.message, true); return; }
     recipes = data;
-    msg($("listMsg"), recipes.length ? "" :
+    msg($("homeMsg"), recipes.length ? "" :
       "Ei reseptejä vielä. Jos tunnuksesi on uusi, pyydä että sähköpostisi lisätään perheen listalle.");
-    renderList();
+    renderHome();
+    if (view === "listView") renderList();
   }
 
+  // ---------- Etusivu ----------
+  function renderHome() {
+    for (const c of Object.keys(CATS)) {
+      const n = recipes.filter((r) => (r.tags || []).includes(c)).length;
+      $("cnt_" + c).textContent = n + (n === 1 ? " resepti" : " reseptiä");
+    }
+  }
+  function openCategory(cat) {
+    currentCat = cat || null;
+    activeTag = null;
+    $("q").value = "";
+    $("listTitle").textContent = currentCat ? CATS[currentCat] : "Kaikki reseptit";
+    show("listView");
+    renderList();
+  }
+  $("homeView").onclick = (e) => {
+    const b = e.target.closest("[data-cat]");
+    if (b) openCategory(b.dataset.cat);
+  };
+  $("newHomeBtn").onclick = () => { currentCat = null; returnView = "homeView"; openEditor(null); };
+  $("homeBtn").onclick = () => { renderHome(); show("homeView"); };
+
+  // ---------- Lista ----------
   function renderList() {
     const q = $("q").value.trim().toLowerCase();
-    const tags = [...new Set(recipes.flatMap((r) => r.tags || []))].sort((a, b) => a.localeCompare(b, "fi"));
+    const base = currentCat ? recipes.filter((r) => (r.tags || []).includes(currentCat)) : recipes;
+    const tags = [...new Set(base.flatMap((r) => r.tags || []))]
+      .filter((t) => !CATS[t]).sort((a, b) => a.localeCompare(b, "fi"));
     $("tagChips").innerHTML = tags.map((t) =>
       `<button class="chip ${t === activeTag ? "on" : ""}" data-tag="${esc(t)}">${esc(t)}</button>`).join("");
-    const shown = recipes.filter((r) => {
+    msg($("listMsg"), base.length ? "" : "Tässä kategoriassa ei ole vielä reseptejä.");
+    const shown = base.filter((r) => {
       if (activeTag && !(r.tags || []).includes(activeTag)) return false;
       if (!q) return true;
       const hay = [r.title, r.description, ...(r.ingredients || []).map(asText), ...(r.tags || [])].join(" ").toLowerCase();
@@ -270,8 +336,8 @@
     $("list").innerHTML = shown.map((r) => `
       <button class="item card" data-id="${r.id}">
         <div class="t">${esc(r.title)}</div>
-        <div class="m">${[r.prep_minutes ? r.prep_minutes + " min" : "", (r.tags || []).join(", ")].filter(Boolean).map(esc).join(" · ")}</div>
-      </button>`).join("") || (recipes.length ? `<p class="muted center">Ei osumia.</p>` : "");
+        <div class="m">${[r.prep_minutes ? r.prep_minutes + " min" : "", (r.tags || []).filter((t) => !CATS[t]).join(", ")].filter(Boolean).map(esc).join(" · ")}</div>
+      </button>`).join("") || (base.length ? `<p class="muted center">Ei osumia.</p>` : "");
   }
 
   $("q").oninput = renderList;
@@ -280,7 +346,7 @@
     activeTag = activeTag === t.dataset.tag ? null : t.dataset.tag; renderList();
   };
   $("list").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) openRecipe(b.dataset.id); };
-  $("newBtn").onclick = () => openEditor(null);
+  $("newBtn").onclick = () => { returnView = "listView"; openEditor(null); };
 
   // ---------- Resepti ----------
   function openRecipe(id) {
@@ -309,7 +375,7 @@
       if (!confirm(`Poistetaanko "${r.title}"?`)) return;
       const { error } = await sb.from("recipes").delete().eq("id", r.id);
       if (error) return alert("Poisto epäonnistui: " + error.message);
-      loadRecipes();
+      loadRecipes("listView");
     };
     show("detailView");
   }
@@ -325,14 +391,20 @@
     $("f_prep").value = r?.prep_minutes || "";
     $("f_ingredients").value = (r?.ingredients || []).map(asText).join("\n");
     $("f_instructions").value = (r?.instructions || []).map(asText).join("\n");
-    $("f_tags").value = (r?.tags || []).join(", ");
+    $("f_category").value = r
+      ? (Object.keys(CATS).find((c) => (r.tags || []).includes(c)) || "")
+      : (currentCat || "arkiruoka");
+    $("f_tags").value = (r?.tags || []).filter((t) => !CATS[t]).join(", ");
     $("f_source").value = r?.source || "";
     $("f_image").value = r?.image_url || "";
     $("f_notes").value = r?.notes || "";
     msg($("editMsg"), "");
     show("editView");
   }
-  $("cancelBtn").onclick = () => (editingId ? openRecipe(editingId) : show("listView"));
+  $("cancelBtn").onclick = () => {
+    if (editingId) return openRecipe(editingId);
+    if (returnView === "homeView") { renderHome(); show("homeView"); } else { show("listView"); renderList(); }
+  };
 
   $("editForm").onsubmit = async (e) => {
     e.preventDefault();
@@ -344,7 +416,10 @@
       prep_minutes: num($("f_prep").value),
       ingredients: lines($("f_ingredients").value),
       instructions: lines($("f_instructions").value),
-      tags: [...new Set($("f_tags").value.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean))],
+      tags: [...new Set([
+        ...($("f_category").value ? [$("f_category").value] : []),
+        ...$("f_tags").value.split(",").map((t) => t.trim().toLowerCase()).filter((t) => t && !CATS[t]),
+      ])],
       source: $("f_source").value.trim() || null,
       image_url: $("f_image").value.trim() || null,
       notes: $("f_notes").value.trim() || null,
