@@ -45,7 +45,10 @@
   .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 16px; }
   h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; margin: 0; font-weight: 600; }
-  h1 button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; text-align: left; }
+  h1 button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; text-align: left; white-space: nowrap; }
+  header h1 { flex: none; }
+  header > div { flex: 1; min-width: 0; }
+  header .link { white-space: nowrap; padding: 4px 6px; }
   .item .side { flex: 0 1 auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px; max-width: 50%; min-width: 0; }
   .item .side .menu-badge { flex: 0 1 auto; min-width: 0; max-width: 100%; }
   .item .star { flex: none; font-size: 1.15rem; line-height: 1; }
@@ -118,6 +121,21 @@
   .dhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .dhead .menu-badge { margin-top: 4px; }
   .group-title { font-family: Georgia, serif; font-size: 1.15rem; font-style: italic; margin: 18px 0 8px; color: var(--ink); }
+  button.menu-badge { background: none; font-family: Georgia, serif; padding: 3px 8px; font-size: .82rem; border-color: var(--accent); cursor: pointer; }
+  button.group-title { display: block; background: none; border: none; padding: 0; cursor: pointer; text-align: left; }
+  .mpage { position: relative; width: 100%; overflow: hidden; border-radius: 6px; box-shadow: 0 1px 8px rgba(0,0,0,.15); background: #F4EBDB; }
+  .mpage iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; }
+  .menu-title { font-family: Georgia, serif; font-style: italic; font-size: 1.2rem; }
+  .stars { color: var(--accent); letter-spacing: 1px; white-space: nowrap; flex: none; }
+  .starpick { display: flex; gap: 2px; }
+  .starpick button { font-size: 1.9rem; line-height: 1; padding: 4px 6px; border: none; background: none; color: var(--line); min-width: 44px; min-height: 44px; }
+  .starpick button.on { color: var(--accent); }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 16px 0 0; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+  .rating-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .rating-box .card { padding: 12px 14px; }
+  .lbl { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
   .urow { padding: 14px 16px; }
   .urow .em { font-weight: 600; word-break: break-all; }
   .urow .st { color: var(--muted); font-size: .88rem; margin-top: 2px; }
@@ -162,7 +180,13 @@
         <span class="e">🥘</span><span>Arkiruoka<span class="s" id="cnt_arkiruoka"></span></span>
       </button>
       <button class="cat card" data-cat="viikonloppuherkut">
-        <span class="e">🍷</span><span>Viikonloppuherkut<span class="s" id="cnt_viikonloppuherkut"></span></span>
+        <span class="e">🥂</span><span>Viikonloppuherkut<span class="s" id="cnt_viikonloppuherkut"></span></span>
+      </button>
+      <button class="cat card" data-nav="menus">
+        <span class="e">📜</span><span>Menut<span class="s" id="cnt_menus"></span></span>
+      </button>
+      <button class="cat card" data-nav="wines">
+        <span class="e">🍷</span><span>Viinit<span class="s" id="cnt_wines"></span></span>
       </button>
     </div>
     <div class="actions" style="justify-content:space-between;align-items:center">
@@ -235,6 +259,99 @@
     </form>
   </section>
 
+  <!-- Menut -->
+  <section id="menusView" class="hidden">
+    <button class="link" data-home="1">← Etusivu</button>
+    <h2 style="margin:6px 0 14px">Menut</h2>
+    <div class="list" id="menusList"></div>
+  </section>
+
+  <!-- Yksi menu -->
+  <section id="menuView" class="hidden">
+    <button class="link" id="menuBackBtn">← Menut</button>
+    <div id="menuHead" style="margin-bottom:12px"></div>
+    <div class="chips primary" id="menuTabs"></div>
+    <div id="menuPages"></div>
+    <h3>Menun reseptit</h3>
+    <div class="list" id="menuRecipes"></div>
+  </section>
+
+  <!-- Viinit -->
+  <section id="winesView" class="hidden">
+    <button class="link" data-home="1">← Etusivu</button>
+    <h2 style="margin:6px 0 14px">Viinit</h2>
+    <div class="search">
+      <input id="wq" type="search" placeholder="Hae viiniä, tuottajaa, rypälettä…" autocomplete="off">
+      <button class="primary" id="newWineBtn">+ Uusi</button>
+    </div>
+    <div class="chips primary" id="wineChips"></div>
+    <div id="wineMsg" class="msg hidden"></div>
+    <div class="list" id="wineList"></div>
+  </section>
+
+  <!-- Yksi viini -->
+  <section id="wineView" class="hidden">
+    <button class="link" id="wineBackBtn">← Viinit</button>
+    <article class="card" id="wineDetail"></article>
+  </section>
+
+  <!-- Viinilomake -->
+  <section id="wineEditView" class="hidden">
+    <button class="link" id="wineCancelBtn">← Peruuta</button>
+    <form id="wineForm" class="card">
+      <h2 id="wineEditTitle">Uusi viini</h2>
+      <label for="w_name">Viinin nimi *</label>
+      <input id="w_name" required maxlength="200" placeholder="esim. Barolo">
+      <div class="row">
+        <div><label for="w_producer">Tuottaja</label><input id="w_producer"></div>
+        <div><label for="w_vintage">Vuosikerta</label><input id="w_vintage" type="number" min="1800" max="2100" inputmode="numeric"></div>
+      </div>
+      <div class="row">
+        <div><label for="w_type">Tyyppi</label>
+          <select id="w_type">
+            <option value="">–</option>
+            <option value="punainen">Punainen</option>
+            <option value="valkoinen">Valkoinen</option>
+            <option value="rosé">Rosé</option>
+            <option value="kuohuviini">Kuohuviini</option>
+            <option value="jälkiruokaviini">Jälkiruokaviini</option>
+            <option value="muu">Muu</option>
+          </select>
+        </div>
+        <div><label for="w_grapes">Rypäle(et)</label><input id="w_grapes" placeholder="esim. Nebbiolo"></div>
+      </div>
+      <div class="row">
+        <div><label for="w_region">Alue</label><input id="w_region" placeholder="esim. Piemonte"></div>
+        <div><label for="w_country">Maa</label><input id="w_country" placeholder="esim. Italia"></div>
+      </div>
+      <div class="row">
+        <div><label for="w_drunk">Juotu</label><input id="w_drunk" type="date"></div>
+        <div><label for="w_price">Hinta (€)</label><input id="w_price" inputmode="decimal" placeholder="esim. 24,90"></div>
+      </div>
+      <label for="w_occasion">Missä tai millä kertaa</label>
+      <input id="w_occasion" placeholder="esim. Lapponia alla piemontese -illallinen">
+      <h3>Arvio lähteestä</h3>
+      <div class="row">
+        <div><label for="w_src_rating">Arvio</label><input id="w_src_rating" placeholder="esim. 93/100 tai 4,2/5"></div>
+        <div><label for="w_src_name">Lähde</label><input id="w_src_name" placeholder="esim. Vivino, Alko"></div>
+      </div>
+      <label for="w_src_url">Linkki arvioon</label>
+      <input id="w_src_url" type="url" placeholder="https://…">
+      <h3>Oma arvio</h3>
+      <div class="starpick" id="w_stars" role="group" aria-label="Oma arvio, 1–5 tähteä"></div>
+      <label for="w_own_notes">Omat muistiinpanot</label>
+      <textarea id="w_own_notes" style="min-height:90px" placeholder="Miltä maistui, sopiko ruoalle, ostaisinko uudelleen…"></textarea>
+      <label for="w_desc">Kuvaus (tuoksu, maku)</label>
+      <textarea id="w_desc" style="min-height:90px"></textarea>
+      <label for="w_food">Ruokapari</label>
+      <input id="w_food">
+      <label for="w_image">Kuvan osoite</label>
+      <input id="w_image" type="url" placeholder="https://…">
+      <div class="actions"><button class="primary" type="submit" id="wineSaveBtn">Tallenna</button></div>
+      <div id="wineEditMsg" class="msg err hidden"></div>
+    </form>
+  </section>
+
   <!-- Käyttäjien hallinta -->
   <section id="adminView" class="hidden">
     <button class="link" id="adminBackBtn">← Etusivu</button>
@@ -292,7 +409,8 @@
   const asText = (v) => (typeof v === "string" ? v : v && (v.text || [v.amount, v.unit, v.name].filter(Boolean).join(" ")));
 
   function show(view) {
-    for (const v of ["authView", "homeView", "listView", "detailView", "editView", "adminView"]) $(v).classList.toggle("hidden", v !== view);
+    for (const v of ["authView", "homeView", "listView", "detailView", "editView", "adminView",
+                     "menusView", "menuView", "winesView", "wineView", "wineEditView"]) $(v).classList.toggle("hidden", v !== view);
     $("logoutBtn").classList.toggle("hidden", view === "authView");
     $("adminBtn").classList.toggle("hidden", view === "authView" || view === "adminView" || !isAdmin);
     window.scrollTo(0, 0);
@@ -356,9 +474,8 @@
   async function checkAdmin() {
     const { data } = await sb.rpc("am_i_admin");
     isAdmin = data === true;
-    const visible = !$("homeView").classList.contains("hidden") || !$("listView").classList.contains("hidden")
-      || !$("detailView").classList.contains("hidden") || !$("editView").classList.contains("hidden");
-    $("adminBtn").classList.toggle("hidden", !(isAdmin && visible));
+    const hide = !isAdmin || !$("authView").classList.contains("hidden") || !$("adminView").classList.contains("hidden");
+    $("adminBtn").classList.toggle("hidden", hide);
   }
 
   async function loadUsers() {
@@ -430,6 +547,7 @@
       "Ei reseptejä vielä. Jos tunnuksesi on uusi, pyydä että sähköpostisi lisätään perheen listalle.");
     renderHome();
     if (view === "listView") renderList();
+    loadExtras();
   }
 
   // ---------- Etusivu ----------
@@ -438,6 +556,9 @@
       const n = recipes.filter((r) => (r.tags || []).includes(c)).length;
       $("cnt_" + c).textContent = n + (n === 1 ? " resepti" : " reseptiä");
     }
+    const nm = allMenus().length, nw = wines.length;
+    $("cnt_menus").textContent = nm + (nm === 1 ? " menu" : " menua");
+    $("cnt_wines").textContent = nw + (nw === 1 ? " viini" : " viiniä");
   }
   function openCategory(cat) {
     currentCat = cat || null;
@@ -450,9 +571,14 @@
     renderList();
   }
   $("homeView").onclick = (e) => {
+    const n = e.target.closest("[data-nav]");
+    if (n) return n.dataset.nav === "menus" ? openMenus() : openWines();
     const b = e.target.closest("[data-cat]");
     if (b) openCategory(b.dataset.cat);
   };
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-home]")) { renderHome(); show("homeView"); }
+  });
   $("newHomeBtn").onclick = () => { currentCat = null; returnView = "homeView"; openEditor(null); };
   $("homeBtn").onclick = () => { renderHome(); show("homeView"); };
   $("titleBtn").onclick = () => {
@@ -489,31 +615,34 @@
       return hay.includes(q);
     });
 
-    const item = (r, grouped) => {
-      const menu = grouped ? null : menuOf(r);
-      const top = (r.tags || []).includes("top");
-      const meta = [r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
-        .filter(Boolean).map(esc).join(" · ");
-      return `<button class="item card" data-id="${r.id}">
-        <div class="body"><div class="t">${esc(r.title)}</div><div class="m">${meta}</div></div>
-        ${menu || top ? `<div class="side">
-          ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
-          ${top ? `<span class="star" role="img" aria-label="Top-listalla">⭐</span>` : ""}
-        </div>` : ""}
-      </button>`;
-    };
     const empty = base.length ? `<p class="muted center">Ei osumia.</p>` : "";
 
     if (activePrimary === "@menu") {
       const groups = new Map();
       for (const r of shown) { const m = menuOf(r); if (!groups.has(m)) groups.set(m, []); groups.get(m).push(r); }
-      const rank = (r) => { const i = COURSE_ORDER.findIndex((c) => (r.tags || []).includes(c)); return i < 0 ? 99 : i; };
       $("list").innerHTML = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], "fi")).map(([m, rs]) =>
-        `<div class="group-title">🍽 ${esc(m)}</div><div class="list">${rs.sort((a, b) => rank(a) - rank(b)).map((r) => item(r, true)).join("")}</div>`
+        `<button class="group-title" data-openmenu="${esc(m)}">🍽 ${esc(m)} <span class="muted" style="font-style:normal;font-size:.85rem">· avaa menu ›</span></button>
+         <div class="list">${rs.sort(byCourse).map((r) => recipeItem(r, true)).join("")}</div>`
       ).join("") || empty;
     } else {
-      $("list").innerHTML = shown.map((r) => item(r)).join("") || empty;
+      $("list").innerHTML = shown.map((r) => recipeItem(r)).join("") || empty;
     }
+  }
+
+  const courseRank = (r) => { const i = COURSE_ORDER.findIndex((c) => (r.tags || []).includes(c)); return i < 0 ? 99 : i; };
+  const byCourse = (a, b) => courseRank(a) - courseRank(b);
+  function recipeItem(r, hideMenu) {
+    const menu = hideMenu ? null : menuOf(r);
+    const top = (r.tags || []).includes("top");
+    const meta = [r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
+      .filter(Boolean).map(esc).join(" · ");
+    return `<button class="item card" data-id="${r.id}">
+      <div class="body"><div class="t">${esc(r.title)}</div><div class="m">${meta}</div></div>
+      ${menu || top ? `<div class="side">
+        ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
+        ${top ? `<span class="star" role="img" aria-label="Top-listalla">⭐</span>` : ""}
+      </div>` : ""}
+    </button>`;
   }
 
   $("primaryChips").onclick = (e) => {
@@ -527,12 +656,17 @@
     const t = e.target.closest("[data-tag]"); if (!t) return;
     activeTag = activeTag === t.dataset.tag ? null : t.dataset.tag; renderList();
   };
-  $("list").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) openRecipe(b.dataset.id); };
+  $("list").onclick = (e) => {
+    const m = e.target.closest("[data-openmenu]"); if (m) return openMenu(m.dataset.openmenu);
+    const b = e.target.closest("[data-id]"); if (b) openRecipe(b.dataset.id);
+  };
   $("newBtn").onclick = () => { returnView = "listView"; openEditor(null); };
 
   // ---------- Resepti ----------
-  function openRecipe(id) {
+  let detailReturn = "list";
+  function openRecipe(id, from) {
     const r = recipes.find((x) => x.id === id); if (!r) return;
+    if (from !== "keep") detailReturn = from || "list";
     const img = safeUrl(r.image_url);
     const src = r.source ? (safeUrl(r.source) ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>` : esc(r.source)) : "";
     const menu = menuOf(r);
@@ -541,7 +675,7 @@
       ${img ? `<img class="hero" src="${esc(img)}" alt="">` : ""}
       <div class="dhead">
         <h2>${esc(r.title)}</h2>
-        ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
+        ${menu ? `<button class="menu-badge" data-openmenu="${esc(menu)}" aria-label="Avaa menu ${esc(menu)}">${esc(menu)}</button>` : ""}
       </div>
       ${r.description ? `<p class="muted" style="margin:4px 0">${esc(r.description)}</p>` : ""}
       <div class="meta">
@@ -564,9 +698,11 @@
       const { data, error } = await sb.from("recipes").update({ tags }).eq("id", r.id).select().single();
       if (error) { $("topBtn").disabled = false; return alert("Tallennus epäonnistui: " + error.message); }
       recipes[recipes.findIndex((x) => x.id === r.id)] = data;
-      openRecipe(r.id);
+      openRecipe(r.id, "keep");
     };
     $("editBtn").onclick = () => openEditor(r);
+    const mb = $("detail").querySelector("[data-openmenu]");
+    if (mb) mb.onclick = () => openMenu(mb.dataset.openmenu);
     $("delBtn").onclick = async () => {
       if (!confirm(`Poistetaanko "${r.title}"?`)) return;
       const { error } = await sb.from("recipes").delete().eq("id", r.id);
@@ -575,7 +711,220 @@
     };
     show("detailView");
   }
-  $("backBtn").onclick = () => { show("listView"); renderList(); };
+  $("backBtn").onclick = () => {
+    if (detailReturn === "menu" && currentMenuName) return openMenu(currentMenuName);
+    show("listView"); renderList();
+  };
+
+  // ---------- Menut ----------
+  let menus = [];
+  let wines = [];
+  let currentMenuName = null;
+  const pageCache = {};
+
+  async function loadExtras() {
+    const [m, w] = await Promise.all([
+      sb.from("menus").select("id,name,subtitle,description,sort").order("sort").order("name"),
+      loadWines(true),
+    ]);
+    if (!m.error) menus = m.data;
+    renderHome();
+  }
+  async function loadWines(silent) {
+    const res = await sb.from("wines").select("*")
+      .order("drunk_on", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
+    if (!res.error) wines = res.data;
+    else if (!silent) msg($("wineMsg"), "Viinien lataus epäonnistui: " + res.error.message, true);
+    return res;
+  }
+
+  // Menut-taulun menut + reseptien menu-tageista löytyvät menut
+  function allMenus() {
+    const list = menus.map((m) => ({ ...m }));
+    for (const n of new Set(recipes.map(menuOf).filter(Boolean)))
+      if (!list.some((m) => m.name === n)) list.push({ id: null, name: n });
+    return list;
+  }
+
+  function openMenus() {
+    const ms = allMenus();
+    $("menusList").innerHTML = ms.map((m) => {
+      const n = recipes.filter((r) => menuOf(r) === m.name).length;
+      return `<button class="item card" data-menu="${esc(m.name)}">
+        <div class="body"><div class="t menu-title">${esc(m.name)}</div>
+        <div class="m">${esc([m.subtitle, n + (n === 1 ? " resepti" : " reseptiä")].filter(Boolean).join(" · "))}</div></div>
+        <span class="muted" aria-hidden="true" style="font-size:1.4rem">›</span>
+      </button>`;
+    }).join("") || `<p class="muted">Ei vielä menuja. Menun voi antaa reseptille reseptilomakkeessa.</p>`;
+    show("menusView");
+  }
+  $("menusList").onclick = (e) => { const b = e.target.closest("[data-menu]"); if (b) openMenu(b.dataset.menu); };
+  $("menuBackBtn").onclick = openMenus;
+
+  async function openMenu(name) {
+    const m = allMenus().find((x) => x.name === name); if (!m) return;
+    currentMenuName = name;
+    $("menuHead").innerHTML = `<h2 class="menu-title" style="font-size:1.7rem;margin:6px 0 2px">${esc(m.name)}</h2>
+      ${m.subtitle ? `<div class="muted">${esc(m.subtitle)}</div>` : ""}
+      ${m.description ? `<div class="muted" style="font-style:italic">${esc(m.description)}</div>` : ""}`;
+    const rs = recipes.filter((r) => menuOf(r) === name).sort(byCourse);
+    $("menuRecipes").innerHTML = rs.map((r) => recipeItem(r, true)).join("") || `<p class="muted">Ei reseptejä.</p>`;
+    $("menuTabs").innerHTML = "";
+    $("menuPages").innerHTML = m.id ? `<p class="muted">Ladataan menukorttia…</p>` : "";
+    show("menuView");
+    if (!m.id) return;
+    let pages = pageCache[m.id];
+    if (!pages) {
+      const { data, error } = await sb.from("menu_pages").select("id,kind,title,html,width,height,sort").eq("menu_id", m.id).order("sort");
+      if (error) { $("menuPages").innerHTML = `<div class="msg err">Menukortin lataus epäonnistui: ${esc(error.message)}</div>`; return; }
+      pages = pageCache[m.id] = data;
+    }
+    if (currentMenuName === name) renderMenuPage(pages, 0);
+  }
+  $("menuRecipes").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) openRecipe(b.dataset.id, "menu"); };
+
+  function renderMenuPage(pages, idx) {
+    $("menuTabs").innerHTML = pages.length > 1
+      ? pages.map((p, i) => `<button class="chip ${i === idx ? "on" : ""}" data-page="${i}">${esc(p.title)}</button>`).join("") : "";
+    $("menuTabs").onclick = (e) => { const b = e.target.closest("[data-page]"); if (b) renderMenuPage(pages, +b.dataset.page); };
+    const p = pages[idx];
+    // sandbox="": menusivun HTML ei voi ajaa skriptejä eikä päästä keittokirjan tietoihin
+    $("menuPages").innerHTML = p ? `<div class="mpage" data-w="${p.width}" data-h="${p.height}">
+      <iframe sandbox="" referrerpolicy="no-referrer" title="${esc(p.title)}"
+        style="width:${p.width}px;height:${p.height}px" srcdoc="${esc(p.html)}"></iframe></div>` : "";
+    fitPages();
+  }
+  function fitPages() {
+    document.querySelectorAll(".mpage").forEach((w) => {
+      const s = w.clientWidth / +w.dataset.w;
+      w.style.height = Math.round(+w.dataset.h * s) + "px";
+      w.querySelector("iframe").style.transform = `scale(${s})`;
+    });
+  }
+  window.addEventListener("resize", fitPages);
+
+  // ---------- Viinit ----------
+  const WTYPES = { "punainen": "Punainen", "valkoinen": "Valkoinen", "rosé": "Rosé", "kuohuviini": "Kuohuviini", "jälkiruokaviini": "Jälkiruokaviini", "muu": "Muu" };
+  let wineType = null;
+  let editingWineId = null;
+  let wineStars = 0;
+  const starsTxt = (n) => n ? "★".repeat(n) + "☆".repeat(5 - n) : "";
+  const fmtDate = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("fi-FI") : "";
+
+  async function openWines() {
+    wineType = null; $("wq").value = "";
+    renderWines(); show("winesView");
+    await loadWines(); renderWines();
+  }
+  function renderWines() {
+    const types = Object.keys(WTYPES).filter((k) => wines.some((w) => w.wine_type === k));
+    $("wineChips").innerHTML = types.length > 1
+      ? [["", "Kaikki"], ...types.map((k) => [k, WTYPES[k]])].map(([k, l]) =>
+          `<button class="chip ${(wineType || "") === k ? "on" : ""}" data-wtype="${esc(k)}">${esc(l)}</button>`).join("") : "";
+    const q = $("wq").value.trim().toLowerCase();
+    const shown = wines.filter((w) => (!wineType || w.wine_type === wineType) &&
+      (!q || [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.occasion, w.own_notes, w.description]
+        .join(" ").toLowerCase().includes(q)));
+    msg($("wineMsg"), wines.length ? "" : "Viinikirja on vielä tyhjä. Lisää ensimmäinen viini + Uusi -napista.");
+    $("wineList").innerHTML = shown.map((w) => `<button class="item card" data-wine="${w.id}">
+      <div class="body">
+        <div class="t">${esc(w.name)}${w.vintage ? ` <span class="muted" style="font-weight:400">${w.vintage}</span>` : ""}</div>
+        <div class="m">${esc([w.producer, WTYPES[w.wine_type], w.region || w.country, w.drunk_on ? "juotu " + fmtDate(w.drunk_on) : ""].filter(Boolean).join(" · "))}</div>
+      </div>
+      ${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}
+    </button>`).join("") || (wines.length ? `<p class="muted center">Ei osumia.</p>` : "");
+  }
+  $("wq").oninput = renderWines;
+  $("wineChips").onclick = (e) => { const b = e.target.closest("[data-wtype]"); if (b) { wineType = b.dataset.wtype || null; renderWines(); } };
+  $("wineList").onclick = (e) => { const b = e.target.closest("[data-wine]"); if (b) openWine(b.dataset.wine); };
+  $("newWineBtn").onclick = () => openWineEditor(null);
+  $("wineBackBtn").onclick = () => { renderWines(); show("winesView"); };
+
+  function openWine(id) {
+    const w = wines.find((x) => x.id === id); if (!w) return;
+    const img = safeUrl(w.image_url), srcUrl = safeUrl(w.source_url);
+    const row = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
+    const price = w.price != null ? Number(w.price).toLocaleString("fi-FI", { style: "currency", currency: "EUR" }) : "";
+    $("wineDetail").innerHTML = `
+      ${img ? `<img class="hero" src="${esc(img)}" alt="">` : ""}
+      <h2>${esc(w.name)}${w.vintage ? ` <span class="muted" style="font-weight:400">${w.vintage}</span>` : ""}</h2>
+      ${w.producer ? `<div class="muted">${esc(w.producer)}</div>` : ""}
+      <div class="rating-box">
+        <div class="card"><div class="lbl">Oma arvio</div>
+          <div class="stars" style="font-size:1.35rem;margin-top:4px">${w.own_rating ? starsTxt(w.own_rating) : "–"}</div></div>
+        <div class="card"><div class="lbl">Arvio${w.source_name ? " · " + esc(w.source_name) : ""}</div>
+          <div style="font-size:1.2rem;margin-top:4px">${w.source_rating ? esc(w.source_rating) : "–"}</div>
+          ${srcUrl ? `<a href="${esc(srcUrl)}" target="_blank" rel="noopener" style="font-size:.85rem">Avaa arvio</a>` : ""}</div>
+      </div>
+      <dl class="kv">
+        ${row("Tyyppi", WTYPES[w.wine_type])}${row("Rypäle", w.grapes)}
+        ${row("Alue", [w.region, w.country].filter(Boolean).join(", "))}
+        ${row("Juotu", fmtDate(w.drunk_on))}${row("Missä", w.occasion)}${row("Hinta", price)}${row("Ruokapari", w.food_pairing)}
+      </dl>
+      ${w.own_notes ? `<h3>Omat muistiinpanot</h3><p class="notes">${esc(w.own_notes)}</p>` : ""}
+      ${w.description ? `<h3>Kuvaus</h3><p class="notes">${esc(w.description)}</p>` : ""}
+      <div class="actions"><button id="wEditBtn">Muokkaa</button><button id="wDelBtn" class="danger">Poista</button></div>`;
+    $("wEditBtn").onclick = () => openWineEditor(w);
+    $("wDelBtn").onclick = async () => {
+      if (!confirm(`Poistetaanko "${w.name}"?`)) return;
+      const { error } = await sb.from("wines").delete().eq("id", w.id);
+      if (error) return alert("Poisto epäonnistui: " + error.message);
+      wines = wines.filter((x) => x.id !== w.id); renderHome(); renderWines(); show("winesView");
+    };
+    show("wineView");
+  }
+
+  function renderStarPick() {
+    $("w_stars").innerHTML = [1, 2, 3, 4, 5].map((n) =>
+      `<button type="button" class="${n <= wineStars ? "on" : ""}" data-star="${n}" aria-pressed="${n <= wineStars}" aria-label="${n} tähteä">★</button>`).join("");
+  }
+  $("w_stars").onclick = (e) => {
+    const b = e.target.closest("[data-star]"); if (!b) return;
+    const n = +b.dataset.star; wineStars = wineStars === n ? 0 : n; renderStarPick();
+  };
+
+  const WFIELDS = { w_name: "name", w_producer: "producer", w_vintage: "vintage", w_type: "wine_type", w_grapes: "grapes",
+    w_region: "region", w_country: "country", w_drunk: "drunk_on", w_price: "price", w_occasion: "occasion",
+    w_src_rating: "source_rating", w_src_name: "source_name", w_src_url: "source_url", w_own_notes: "own_notes",
+    w_desc: "description", w_food: "food_pairing", w_image: "image_url" };
+
+  function openWineEditor(w) {
+    editingWineId = w ? w.id : null;
+    $("wineEditTitle").textContent = w ? "Muokkaa viiniä" : "Uusi viini";
+    for (const [id, col] of Object.entries(WFIELDS)) {
+      let v = w ? w[col] : "";
+      if (col === "price" && v != null && v !== "") v = String(v).replace(".", ",");
+      $(id).value = v ?? "";
+    }
+    wineStars = w?.own_rating || 0; renderStarPick();
+    msg($("wineEditMsg"), "");
+    show("wineEditView");
+  }
+  $("wineCancelBtn").onclick = () => editingWineId ? openWine(editingWineId) : (renderWines(), show("winesView"));
+
+  $("wineForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const row = {};
+    for (const [id, col] of Object.entries(WFIELDS)) row[col] = $(id).value.trim() || null;
+    row.vintage = row.vintage ? parseInt(row.vintage, 10) : null;
+    if (row.price) {
+      const p = parseFloat(row.price.replace(/\s/g, "").replace(",", "."));
+      if (isNaN(p)) return msg($("wineEditMsg"), "Tarkista hinta, esim. 24,90", true);
+      row.price = p;
+    }
+    row.own_rating = wineStars || null;
+    $("wineSaveBtn").disabled = true;
+    const q = editingWineId
+      ? sb.from("wines").update(row).eq("id", editingWineId).select().single()
+      : sb.from("wines").insert(row).select().single();
+    const { data, error } = await q;
+    $("wineSaveBtn").disabled = false;
+    if (error) return msg($("wineEditMsg"), "Tallennus epäonnistui: " + error.message, true);
+    await loadWines(true);
+    if (!wines.some((x) => x.id === data.id)) wines.unshift(data);
+    renderHome();
+    openWine(data.id);
+  };
 
   // ---------- Lomake ----------
   function openEditor(r) {
@@ -602,7 +951,7 @@
     show("editView");
   }
   $("cancelBtn").onclick = () => {
-    if (editingId) return openRecipe(editingId);
+    if (editingId) return openRecipe(editingId, "keep");
     if (returnView === "homeView") { renderHome(); show("homeView"); } else { show("listView"); renderList(); }
   };
 
@@ -636,7 +985,7 @@
     const i = recipes.findIndex((x) => x.id === data.id);
     if (i >= 0) recipes[i] = data; else recipes.push(data);
     recipes.sort((a, b) => a.title.localeCompare(b.title, "fi"));
-    openRecipe(data.id);
+    openRecipe(data.id, editingId ? "keep" : "list");
   };
 
   // ---------- Käynnistys ----------
