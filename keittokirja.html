@@ -99,13 +99,23 @@
   .cat .s { display: block; margin-top: 4px; font: 400 .9rem/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--muted); }
   .cat:active { transform: scale(.98); }
   select { appearance: none; -webkit-appearance: none; }
+  .urow { padding: 14px 16px; }
+  .urow .em { font-weight: 600; word-break: break-all; }
+  .urow .st { color: var(--muted); font-size: .88rem; margin-top: 2px; }
+  .badge { display: inline-block; font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--chip); margin-left: 6px; vertical-align: middle; }
+  .badge.warn { background: var(--accent); color: var(--accent-ink); }
+  .urow .actions { margin-top: 10px; }
+  .urow .actions button { padding: 7px 12px; font-size: .9rem; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1>🍲 Keittokirja</h1>
-    <button id="logoutBtn" class="link hidden">Kirjaudu ulos</button>
+    <div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end">
+      <button id="adminBtn" class="link hidden">⚙️ Hallinta</button>
+      <button id="logoutBtn" class="link hidden">Kirjaudu ulos</button>
+    </div>
   </header>
 
   <!-- Kirjautuminen -->
@@ -198,6 +208,24 @@
       <div id="editMsg" class="msg err hidden"></div>
     </form>
   </section>
+
+  <!-- Käyttäjien hallinta -->
+  <section id="adminView" class="hidden">
+    <button class="link" id="adminBackBtn">← Etusivu</button>
+    <h2 style="margin:6px 0 4px">Käyttäjien hallinta</h2>
+    <p class="muted" style="margin:0 0 14px">Vain listalla olevat näkevät reseptit. Uusi jäsen luo itse tunnuksen keittokirjan kirjautumissivulla samalla sähköpostilla.</p>
+    <form id="addUserForm" class="card">
+      <label for="u_email" style="margin-top:0">Lisää perheenjäsen</label>
+      <input id="u_email" type="email" autocomplete="off" placeholder="nimi@esimerkki.fi" required>
+      <label style="display:flex;align-items:center;gap:8px;color:var(--ink)">
+        <input type="checkbox" id="u_admin" style="width:auto;margin:0"> Admin-oikeudet (voi hallita käyttäjiä)
+      </label>
+      <div class="actions" style="margin-top:12px"><button class="primary" type="submit" id="addUserBtn">Lisää</button></div>
+    </form>
+    <div id="adminMsg" class="msg hidden"></div>
+    <h3>Käyttäjät</h3>
+    <div class="list" id="userList"></div>
+  </section>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -214,6 +242,8 @@
   let recipes = [];
   let currentCat = null;
   let returnView = "listView";
+  let isAdmin = false;
+  let myEmail = "";
   let activeTag = null;
   let editingId = null;
   let signupMode = false;
@@ -225,8 +255,9 @@
   const asText = (v) => (typeof v === "string" ? v : v && (v.text || [v.amount, v.unit, v.name].filter(Boolean).join(" ")));
 
   function show(view) {
-    for (const v of ["authView", "homeView", "listView", "detailView", "editView"]) $(v).classList.toggle("hidden", v !== view);
+    for (const v of ["authView", "homeView", "listView", "detailView", "editView", "adminView"]) $(v).classList.toggle("hidden", v !== view);
     $("logoutBtn").classList.toggle("hidden", view === "authView");
+    $("adminBtn").classList.toggle("hidden", view === "authView" || view === "adminView" || !isAdmin);
     window.scrollTo(0, 0);
   }
   function msg(el, text, isErr) {
@@ -278,9 +309,77 @@
 
   sb.auth.onAuthStateChange((_evt, session) => {
     // setTimeout: Supabase-kutsuja ei pidä tehdä suoraan tämän callbackin sisällä
-    if (session) { if (!recipes.length) setTimeout(loadRecipes, 0); }
-    else { recipes = []; show("authView"); }
+    if (session) {
+      myEmail = (session.user?.email || "").toLowerCase();
+      if (!recipes.length) setTimeout(() => { loadRecipes(); checkAdmin(); }, 0);
+    } else { recipes = []; isAdmin = false; myEmail = ""; show("authView"); }
   });
+
+  // ---------- Käyttäjien hallinta ----------
+  async function checkAdmin() {
+    const { data } = await sb.rpc("am_i_admin");
+    isAdmin = data === true;
+    const visible = !$("homeView").classList.contains("hidden") || !$("listView").classList.contains("hidden")
+      || !$("detailView").classList.contains("hidden") || !$("editView").classList.contains("hidden");
+    $("adminBtn").classList.toggle("hidden", !(isAdmin && visible));
+  }
+
+  async function loadUsers() {
+    show("adminView");
+    $("userList").innerHTML = `<p class="muted">Ladataan…</p>`;
+    const { data, error } = await sb.rpc("admin_list_users");
+    if (error) { $("userList").innerHTML = ""; return msg($("adminMsg"), "Käyttäjien lataus epäonnistui: " + error.message, true); }
+    const fmt = (d) => d ? new Date(d).toLocaleString("fi-FI", { day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+    $("userList").innerHTML = data.map((u) => {
+      const me = u.email === myEmail;
+      const status = !u.on_list ? "Luonut tunnuksen, mutta ei ole perheen listalla"
+        : !u.registered ? "Ei ole vielä luonut tunnusta"
+        : !u.confirmed ? "Odottaa sähköpostivahvistusta"
+        : u.last_sign_in ? "Viimeksi kirjautunut " + fmt(u.last_sign_in) : "Tunnus luotu";
+      const e = esc(u.email);
+      const buttons = !u.on_list
+        ? `<button class="primary" data-act="grant" data-email="${e}">Anna pääsy</button>`
+        : me ? `<span class="muted" style="font-size:.88rem">Tämä olet sinä</span>`
+        : `<button data-act="${u.is_admin ? "unadmin" : "admin"}" data-email="${e}">${u.is_admin ? "Poista admin" : "Tee adminiksi"}</button>
+           <button class="danger" data-act="remove" data-email="${e}">Poista pääsy</button>`;
+      return `<div class="card urow">
+        <div class="em">${e}${u.is_admin ? `<span class="badge">admin</span>` : ""}${!u.on_list ? `<span class="badge warn">ei pääsyä</span>` : ""}</div>
+        <div class="st">${esc(status)}</div>
+        <div class="actions">${buttons}</div>
+      </div>`;
+    }).join("") || `<p class="muted">Ei käyttäjiä.</p>`;
+  }
+
+  async function adminCall(fn, args, okText) {
+    msg($("adminMsg"), "");
+    const { error } = await sb.rpc(fn, args);
+    if (error) return msg($("adminMsg"), "Virhe: " + error.message, true);
+    msg($("adminMsg"), okText);
+    loadUsers();
+  }
+
+  $("adminBtn").onclick = () => { msg($("adminMsg"), ""); loadUsers(); };
+  $("adminBackBtn").onclick = () => { renderHome(); show("homeView"); };
+
+  $("addUserForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const email = $("u_email").value.trim().toLowerCase();
+    $("addUserBtn").disabled = true;
+    await adminCall("admin_add_member", { p_email: email, p_admin: $("u_admin").checked },
+      `${email} lisätty. Hän voi nyt luoda tunnuksen keittokirjan kirjautumissivulla.`);
+    $("addUserBtn").disabled = false;
+    if (!$("adminMsg").classList.contains("err")) { $("u_email").value = ""; $("u_admin").checked = false; }
+  };
+
+  $("userList").onclick = (e) => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const email = b.dataset.email;
+    if (b.dataset.act === "grant") adminCall("admin_add_member", { p_email: email, p_admin: false }, `${email} sai pääsyn.`);
+    if (b.dataset.act === "admin") adminCall("admin_set_admin", { p_email: email, p_admin: true }, `${email} on nyt admin.`);
+    if (b.dataset.act === "unadmin") adminCall("admin_set_admin", { p_email: email, p_admin: false }, `${email} ei ole enää admin.`);
+    if (b.dataset.act === "remove" && confirm(`Poistetaanko käyttäjän ${email} pääsy keittokirjaan?`))
+      adminCall("admin_remove_member", { p_email: email }, `${email} poistettu listalta.`);
+  };
 
   // ---------- Lista ----------
   async function loadRecipes(view) {
