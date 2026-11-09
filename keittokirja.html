@@ -99,6 +99,21 @@
   .cat .s { display: block; margin-top: 4px; font: 400 .9rem/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--muted); }
   .cat:active { transform: scale(.98); }
   select { appearance: none; -webkit-appearance: none; }
+  .search button { flex: none; white-space: nowrap; }
+  .chips.primary { margin-bottom: 10px; }
+  .chips.primary .chip { padding: 7px 14px; font-size: .92rem; border-color: var(--line); background: var(--card); }
+  .chips.primary .chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .chip.ghost { background: transparent !important; border: 1px dashed var(--line) !important; color: var(--muted) !important; }
+  .chip.ghost.on { border-style: solid !important; color: var(--ink) !important; }
+  .item { display: flex; align-items: center; gap: 12px; }
+  .item .body { flex: 1; min-width: 0; }
+  .menu-badge {
+    flex: none; max-width: 45%; font-family: Georgia, serif; font-style: italic; font-size: .82rem; line-height: 1.25;
+    color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 3px 8px; text-align: center;
+  }
+  .dhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .dhead .menu-badge { margin-top: 4px; }
+  .group-title { font-family: Georgia, serif; font-size: 1.15rem; font-style: italic; margin: 18px 0 8px; color: var(--ink); }
   .urow { padding: 14px 16px; }
   .urow .em { font-weight: 600; word-break: break-all; }
   .urow .st { color: var(--muted); font-size: .88rem; margin-top: 2px; }
@@ -160,14 +175,15 @@
       <input id="q" type="search" placeholder="Hae nimellä tai aineksella…" autocomplete="off">
       <button class="primary" id="newBtn">+ Uusi</button>
     </div>
-    <div class="chips" id="tagChips"></div>
+    <div class="chips primary" id="primaryChips"></div>
+    <div class="chips hidden" id="tagChips"></div>
     <div id="listMsg" class="msg hidden"></div>
     <div class="list" id="list"></div>
   </section>
 
   <!-- Resepti -->
   <section id="detailView" class="hidden">
-    <button class="link" id="backBtn">← Kaikki reseptit</button>
+    <button class="link" id="backBtn">← Takaisin</button>
     <article class="card" id="detail"></article>
   </section>
 
@@ -184,6 +200,12 @@
         <option value="viikonloppuherkut">🍷 Viikonloppuherkut</option>
         <option value="">Ei kategoriaa</option>
       </select>
+      <label for="f_menu">Menu (valinnainen)</label>
+      <input id="f_menu" list="menuList" autocomplete="off" placeholder="esim. Lapponia alla piemontese">
+      <datalist id="menuList"></datalist>
+      <label style="display:flex;align-items:center;gap:8px;color:var(--ink)">
+        <input type="checkbox" id="f_top" style="width:auto;margin:0"> ⭐ Top-listalla
+      </label>
       <label for="f_description">Lyhyt kuvaus</label>
       <input id="f_description">
       <div class="row">
@@ -239,6 +261,17 @@
   const $ = (id) => document.getElementById(id);
 
   const CATS = { arkiruoka: "Arkiruoka", viikonloppuherkut: "Viikonloppuherkut" };
+  // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu.
+  const PRIMARY = {
+    arkiruoka: [["top", "⭐ Top-lista"], ["kana", "Kana"], ["nauta", "Nauta"], ["kasvis", "Kasvis"]],
+    viikonloppuherkut: [["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
+  };
+  const COURSE_ORDER = ["alkuruoka", "illallinen", "makeat"];
+  const isMeta = (t) => !!CATS[t] || t === "top" || t.startsWith("menu:");
+  const menuOf = (r) => { const t = (r.tags || []).find((x) => x.startsWith("menu:")); return t ? t.slice(5) : null; };
+  const plainTags = (r) => (r.tags || []).filter((t) => !isMeta(t));
+  let activePrimary = null;
+  let showTags = false;
   let recipes = [];
   let currentCat = null;
   let returnView = "listView";
@@ -405,6 +438,8 @@
   function openCategory(cat) {
     currentCat = cat || null;
     activeTag = null;
+    activePrimary = null;
+    showTags = false;
     $("q").value = "";
     $("listTitle").textContent = currentCat ? CATS[currentCat] : "Kaikki reseptit";
     show("listView");
@@ -421,24 +456,60 @@
   function renderList() {
     const q = $("q").value.trim().toLowerCase();
     const base = currentCat ? recipes.filter((r) => (r.tags || []).includes(currentCat)) : recipes;
-    const tags = [...new Set(base.flatMap((r) => r.tags || []))]
-      .filter((t) => !CATS[t]).sort((a, b) => a.localeCompare(b, "fi"));
+
+    // Päärajaukset + Tagit-nappi
+    const prim = PRIMARY[currentCat] || [];
+    $("primaryChips").innerHTML =
+      (prim.length ? [["", "Kaikki"], ...prim] : []).map(([k, label]) =>
+        `<button class="chip ${(activePrimary || "") === k ? "on" : ""}" data-prim="${esc(k)}">${esc(label)}</button>`).join("") +
+      `<button class="chip ghost ${showTags ? "on" : ""}" data-tagtoggle="1" aria-expanded="${showTags}">🏷 Tagit${activeTag ? " · " + esc(activeTag) : ""} ${showTags ? "▴" : "▾"}</button>`;
+
+    // Pikatagit (piilossa oletuksena)
+    const tags = [...new Set(base.flatMap(plainTags))].sort((a, b) => a.localeCompare(b, "fi"));
+    $("tagChips").classList.toggle("hidden", !showTags);
     $("tagChips").innerHTML = tags.map((t) =>
       `<button class="chip ${t === activeTag ? "on" : ""}" data-tag="${esc(t)}">${esc(t)}</button>`).join("");
+
     msg($("listMsg"), base.length ? "" : "Tässä kategoriassa ei ole vielä reseptejä.");
     const shown = base.filter((r) => {
-      if (activeTag && !(r.tags || []).includes(activeTag)) return false;
+      const tg = r.tags || [];
+      if (activePrimary === "@menu" && !menuOf(r)) return false;
+      if (activePrimary && activePrimary !== "@menu" && !tg.includes(activePrimary)) return false;
+      if (activeTag && !tg.includes(activeTag)) return false;
       if (!q) return true;
-      const hay = [r.title, r.description, ...(r.ingredients || []).map(asText), ...(r.tags || [])].join(" ").toLowerCase();
+      const hay = [r.title, r.description, menuOf(r), ...(r.ingredients || []).map(asText), ...plainTags(r)].join(" ").toLowerCase();
       return hay.includes(q);
     });
-    $("list").innerHTML = shown.map((r) => `
-      <button class="item card" data-id="${r.id}">
-        <div class="t">${esc(r.title)}</div>
-        <div class="m">${[r.prep_minutes ? r.prep_minutes + " min" : "", (r.tags || []).filter((t) => !CATS[t]).join(", ")].filter(Boolean).map(esc).join(" · ")}</div>
-      </button>`).join("") || (base.length ? `<p class="muted center">Ei osumia.</p>` : "");
+
+    const item = (r, grouped) => {
+      const menu = grouped ? null : menuOf(r);
+      const meta = [(r.tags || []).includes("top") ? "⭐" : "", r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
+        .filter(Boolean).map(esc).join(" · ");
+      return `<button class="item card" data-id="${r.id}">
+        <div class="body"><div class="t">${esc(r.title)}</div><div class="m">${meta}</div></div>
+        ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
+      </button>`;
+    };
+    const empty = base.length ? `<p class="muted center">Ei osumia.</p>` : "";
+
+    if (activePrimary === "@menu") {
+      const groups = new Map();
+      for (const r of shown) { const m = menuOf(r); if (!groups.has(m)) groups.set(m, []); groups.get(m).push(r); }
+      const rank = (r) => { const i = COURSE_ORDER.findIndex((c) => (r.tags || []).includes(c)); return i < 0 ? 99 : i; };
+      $("list").innerHTML = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], "fi")).map(([m, rs]) =>
+        `<div class="group-title">🍽 ${esc(m)}</div><div class="list">${rs.sort((a, b) => rank(a) - rank(b)).map((r) => item(r, true)).join("")}</div>`
+      ).join("") || empty;
+    } else {
+      $("list").innerHTML = shown.map((r) => item(r)).join("") || empty;
+    }
   }
 
+  $("primaryChips").onclick = (e) => {
+    if (e.target.closest("[data-tagtoggle]")) { showTags = !showTags; return renderList(); }
+    const b = e.target.closest("[data-prim]"); if (!b) return;
+    activePrimary = b.dataset.prim || null;
+    renderList();
+  };
   $("q").oninput = renderList;
   $("tagChips").onclick = (e) => {
     const t = e.target.closest("[data-tag]"); if (!t) return;
@@ -452,23 +523,37 @@
     const r = recipes.find((x) => x.id === id); if (!r) return;
     const img = safeUrl(r.image_url);
     const src = r.source ? (safeUrl(r.source) ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>` : esc(r.source)) : "";
+    const menu = menuOf(r);
+    const isTop = (r.tags || []).includes("top");
     $("detail").innerHTML = `
       ${img ? `<img class="hero" src="${esc(img)}" alt="">` : ""}
-      <h2>${esc(r.title)}</h2>
+      <div class="dhead">
+        <h2>${esc(r.title)}</h2>
+        ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
+      </div>
       ${r.description ? `<p class="muted" style="margin:4px 0">${esc(r.description)}</p>` : ""}
       <div class="meta">
         ${r.servings ? `<span>🍽 ${r.servings} annosta</span>` : ""}
         ${r.prep_minutes ? `<span>⏱ ${r.prep_minutes} min</span>` : ""}
-        ${(r.tags || []).length ? `<span>🏷 ${esc(r.tags.join(", "))}</span>` : ""}
+        ${plainTags(r).length ? `<span>🏷 ${esc(plainTags(r).join(", "))}</span>` : ""}
       </div>
       ${(r.ingredients || []).length ? `<h3>Ainekset</h3><ul class="ing">${r.ingredients.map((i) => `<li>${esc(asText(i))}</li>`).join("")}</ul>` : ""}
       ${(r.instructions || []).length ? `<h3>Ohje</h3><ol class="steps">${r.instructions.map((s) => `<li>${esc(asText(s))}</li>`).join("")}</ol>` : ""}
       ${r.notes ? `<h3>Muistiinpanot</h3><p class="notes">${esc(r.notes)}</p>` : ""}
       ${src ? `<h3>Lähde</h3><p>${src}</p>` : ""}
       <div class="actions">
+        <button id="topBtn">${isTop ? "★ Poista Top-listalta" : "⭐ Lisää Top-listalle"}</button>
         <button id="editBtn">Muokkaa</button>
         <button id="delBtn" class="danger">Poista</button>
       </div>`;
+    $("topBtn").onclick = async () => {
+      const tags = isTop ? (r.tags || []).filter((t) => t !== "top") : [...(r.tags || []), "top"];
+      $("topBtn").disabled = true;
+      const { data, error } = await sb.from("recipes").update({ tags }).eq("id", r.id).select().single();
+      if (error) { $("topBtn").disabled = false; return alert("Tallennus epäonnistui: " + error.message); }
+      recipes[recipes.findIndex((x) => x.id === r.id)] = data;
+      openRecipe(r.id);
+    };
     $("editBtn").onclick = () => openEditor(r);
     $("delBtn").onclick = async () => {
       if (!confirm(`Poistetaanko "${r.title}"?`)) return;
@@ -493,7 +578,11 @@
     $("f_category").value = r
       ? (Object.keys(CATS).find((c) => (r.tags || []).includes(c)) || "")
       : (currentCat || "arkiruoka");
-    $("f_tags").value = (r?.tags || []).filter((t) => !CATS[t]).join(", ");
+    $("f_tags").value = r ? plainTags(r).join(", ") : "";
+    $("f_menu").value = r ? (menuOf(r) || "") : "";
+    $("f_top").checked = !!r && (r.tags || []).includes("top");
+    $("menuList").innerHTML = [...new Set(recipes.map(menuOf).filter(Boolean))]
+      .map((m) => `<option value="${esc(m)}"></option>`).join("");
     $("f_source").value = r?.source || "";
     $("f_image").value = r?.image_url || "";
     $("f_notes").value = r?.notes || "";
@@ -517,7 +606,9 @@
       instructions: lines($("f_instructions").value),
       tags: [...new Set([
         ...($("f_category").value ? [$("f_category").value] : []),
-        ...$("f_tags").value.split(",").map((t) => t.trim().toLowerCase()).filter((t) => t && !CATS[t]),
+        ...($("f_top").checked ? ["top"] : []),
+        ...($("f_menu").value.trim() ? ["menu:" + $("f_menu").value.trim().replace(/\s+/g, " ")] : []),
+        ...$("f_tags").value.split(",").map((t) => t.trim().toLowerCase()).filter((t) => t && !isMeta(t)),
       ])],
       source: $("f_source").value.trim() || null,
       image_url: $("f_image").value.trim() || null,
