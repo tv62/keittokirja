@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Keittokirja">
+<meta name="theme-color" content="#f6f1e9">
+<title>Perheen keittokirja</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍲</text></svg>">
+<style>
+  :root {
+    --bg: #f6f1e9;
+    --card: #fffdf9;
+    --ink: #2b2420;
+    --muted: #7a6d63;
+    --line: #e6ddd0;
+    --accent: #b5502f;
+    --accent-ink: #ffffff;
+    --chip: #efe5d7;
+    --danger: #a3261b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1816;
+      --card: #252120;
+      --ink: #f1e9df;
+      --muted: #a8998c;
+      --line: #3a3330;
+      --accent: #e07a55;
+      --accent-ink: #1b1816;
+      --chip: #332d29;
+      --danger: #ef6b5e;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 16px; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; margin: 0; font-weight: 600; }
+  h2 { font-family: Georgia, serif; font-size: 1.5rem; margin: 0 0 4px; }
+  h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 24px 0 8px; }
+  button, .btn {
+    font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    padding: 9px 14px; border-radius: 10px; cursor: pointer;
+  }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button.link { border: none; background: none; color: var(--muted); padding: 6px; }
+  button.danger { color: var(--danger); }
+  button:disabled { opacity: .6; cursor: default; }
+  input, textarea, select {
+    font: inherit; width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  }
+  textarea { min-height: 130px; resize: vertical; }
+  label { display: block; font-size: .9rem; color: var(--muted); margin: 14px 0 4px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+  .search { display: flex; gap: 8px; margin-bottom: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip {
+    background: var(--chip); border: 1px solid transparent; border-radius: 999px;
+    padding: 4px 11px; font-size: .85rem; cursor: pointer; color: var(--ink);
+  }
+  .chip.on { background: var(--accent); color: var(--accent-ink); }
+  .list { display: grid; gap: 10px; }
+  .item { display: block; text-align: left; width: 100%; padding: 14px 16px; border-radius: 14px; }
+  .item .t { font-weight: 600; font-size: 1.05rem; }
+  .item .m { color: var(--muted); font-size: .88rem; margin-top: 2px; }
+  .meta { color: var(--muted); font-size: .9rem; display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0; }
+  ul.ing { padding-left: 20px; margin: 0; }
+  ul.ing li { margin: 4px 0; }
+  ol.steps { padding-left: 22px; margin: 0; }
+  ol.steps li { margin: 10px 0; }
+  .muted { color: var(--muted); }
+  .center { text-align: center; }
+  .msg { padding: 10px 12px; border-radius: 10px; background: var(--chip); margin: 12px 0; font-size: .92rem; }
+  .msg.err { color: var(--danger); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .hero { width: 100%; max-height: 280px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; }
+  .hidden { display: none !important; }
+  .notes { white-space: pre-wrap; }
+  a { color: var(--accent); word-break: break-word; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🍲 Keittokirja</h1>
+    <button id="logoutBtn" class="link hidden">Kirjaudu ulos</button>
+  </header>
+
+  <!-- Kirjautuminen -->
+  <section id="authView" class="card hidden">
+    <h2 id="authTitle">Kirjaudu sisään</h2>
+    <p class="muted" id="authHint">Perheen reseptit näkyvät vain kirjautuneille.</p>
+    <form id="authForm">
+      <label for="email">Sähköposti</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <label for="password">Salasana</label>
+      <input id="password" type="password" autocomplete="current-password" minlength="8" required>
+      <div class="actions">
+        <button class="primary" type="submit" id="authSubmit">Kirjaudu</button>
+        <button class="link" type="button" id="authToggle">Ensimmäinen kerta? Luo tunnus</button>
+      </div>
+    </form>
+    <div id="authMsg" class="msg hidden"></div>
+  </section>
+
+  <!-- Lista -->
+  <section id="listView" class="hidden">
+    <div class="search">
+      <input id="q" type="search" placeholder="Hae nimellä tai aineksella…" autocomplete="off">
+      <button class="primary" id="newBtn">+ Uusi</button>
+    </div>
+    <div class="chips" id="tagChips"></div>
+    <div id="listMsg" class="msg hidden"></div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <!-- Resepti -->
+  <section id="detailView" class="hidden">
+    <button class="link" id="backBtn">← Kaikki reseptit</button>
+    <article class="card" id="detail"></article>
+  </section>
+
+  <!-- Lomake -->
+  <section id="editView" class="hidden">
+    <button class="link" id="cancelBtn">← Peruuta</button>
+    <form id="editForm" class="card">
+      <h2 id="editTitle">Uusi resepti</h2>
+      <label for="f_title">Nimi *</label>
+      <input id="f_title" required maxlength="200">
+      <label for="f_description">Lyhyt kuvaus</label>
+      <input id="f_description">
+      <div class="row">
+        <div><label for="f_servings">Annoksia</label><input id="f_servings" type="number" min="1" inputmode="numeric"></div>
+        <div><label for="f_prep">Aika (min)</label><input id="f_prep" type="number" min="0" inputmode="numeric"></div>
+      </div>
+      <label for="f_ingredients">Ainekset (yksi per rivi)</label>
+      <textarea id="f_ingredients" placeholder="2 dl kermaa&#10;1 sipuli"></textarea>
+      <label for="f_instructions">Ohje (yksi vaihe per rivi)</label>
+      <textarea id="f_instructions" placeholder="Kuullota sipuli voissa.&#10;Lisää kerma ja keitä hiljalleen."></textarea>
+      <label for="f_tags">Tagit (pilkulla erotettuna)</label>
+      <input id="f_tags" placeholder="arkiruoka, kasvis">
+      <label for="f_source">Lähde (linkki tai kuka antoi)</label>
+      <input id="f_source">
+      <label for="f_image">Kuvan osoite</label>
+      <input id="f_image" type="url" placeholder="https://…">
+      <label for="f_notes">Muistiinpanot</label>
+      <textarea id="f_notes" style="min-height:80px"></textarea>
+      <div class="actions">
+        <button class="primary" type="submit" id="saveBtn">Tallenna</button>
+      </div>
+      <div id="editMsg" class="msg err hidden"></div>
+    </form>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  // Julkiset asetukset. Tämä avain on tarkoitettu selaimeen;
+  // tietokannan suojaus (RLS) estää pääsyn ilman perheen tunnusta.
+  const SUPABASE_URL = "https://uzeaweqwthoofbmodutf.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_B9rpC9YrWJjWS1CeNF9nBg_V0utR7sg";
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = (id) => document.getElementById(id);
+
+  let recipes = [];
+  let activeTag = null;
+  let editingId = null;
+  let signupMode = false;
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const safeUrl = (u) => { try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : null; } catch { return null; } };
+  const lines = (s) => s.split("\n").map((l) => l.trim()).filter(Boolean);
+  const asText = (v) => (typeof v === "string" ? v : v && (v.text || [v.amount, v.unit, v.name].filter(Boolean).join(" ")));
+
+  function show(view) {
+    for (const v of ["authView", "listView", "detailView", "editView"]) $(v).classList.toggle("hidden", v !== view);
+    $("logoutBtn").classList.toggle("hidden", view === "authView");
+    window.scrollTo(0, 0);
+  }
+  function msg(el, text, isErr) {
+    el.textContent = text || "";
+    el.classList.toggle("hidden", !text);
+    el.classList.toggle("err", !!isErr);
+  }
+
+  // ---------- Kirjautuminen ----------
+  $("authToggle").onclick = () => {
+    signupMode = !signupMode;
+    $("authTitle").textContent = signupMode ? "Luo tunnus" : "Kirjaudu sisään";
+    $("authSubmit").textContent = signupMode ? "Luo tunnus" : "Kirjaudu";
+    $("authToggle").textContent = signupMode ? "Onko sinulla jo tunnus? Kirjaudu" : "Ensimmäinen kerta? Luo tunnus";
+    $("password").autocomplete = signupMode ? "new-password" : "current-password";
+    msg($("authMsg"), "");
+  };
+
+  $("authForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const email = $("email").value.trim().toLowerCase();
+    const password = $("password").value;
+    $("authSubmit").disabled = true;
+    msg($("authMsg"), "");
+    try {
+      if (signupMode) {
+        const { data, error } = await sb.auth.signUp({
+          email, password, options: { emailRedirectTo: location.origin + location.pathname },
+        });
+        if (error) throw error;
+        if (!data.session) msg($("authMsg"), "Tunnus luotu. Vahvista sähköpostiisi tullut linkki ja kirjaudu sitten sisään.");
+      } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
+    } catch (err) {
+      const m = err.message || "";
+      msg($("authMsg"),
+        /invalid login/i.test(m) ? "Väärä sähköposti tai salasana." :
+        /not confirmed/i.test(m) ? "Vahvista ensin sähköpostiisi tullut linkki." :
+        /already registered/i.test(m) ? "Tunnus on jo olemassa. Kirjaudu sisään." :
+        "Virhe: " + m, true);
+    } finally {
+      $("authSubmit").disabled = false;
+    }
+  };
+
+  $("logoutBtn").onclick = () => sb.auth.signOut();
+
+  sb.auth.onAuthStateChange((_evt, session) => {
+    // setTimeout: Supabase-kutsuja ei pidä tehdä suoraan tämän callbackin sisällä
+    if (session) { if (!recipes.length) setTimeout(loadRecipes, 0); }
+    else { recipes = []; show("authView"); }
+  });
+
+  // ---------- Lista ----------
+  async function loadRecipes() {
+    show("listView");
+    msg($("listMsg"), "Ladataan…");
+    const { data, error } = await sb.from("recipes").select("*").order("title");
+    if (error) { msg($("listMsg"), "Reseptien lataus epäonnistui: " + error.message, true); return; }
+    recipes = data;
+    msg($("listMsg"), recipes.length ? "" :
+      "Ei reseptejä vielä. Jos tunnuksesi on uusi, pyydä että sähköpostisi lisätään perheen listalle.");
+    renderList();
+  }
+
+  function renderList() {
+    const q = $("q").value.trim().toLowerCase();
+    const tags = [...new Set(recipes.flatMap((r) => r.tags || []))].sort((a, b) => a.localeCompare(b, "fi"));
+    $("tagChips").innerHTML = tags.map((t) =>
+      `<button class="chip ${t === activeTag ? "on" : ""}" data-tag="${esc(t)}">${esc(t)}</button>`).join("");
+    const shown = recipes.filter((r) => {
+      if (activeTag && !(r.tags || []).includes(activeTag)) return false;
+      if (!q) return true;
+      const hay = [r.title, r.description, ...(r.ingredients || []).map(asText), ...(r.tags || [])].join(" ").toLowerCase();
+      return hay.includes(q);
+    });
+    $("list").innerHTML = shown.map((r) => `
+      <button class="item card" data-id="${r.id}">
+        <div class="t">${esc(r.title)}</div>
+        <div class="m">${[r.prep_minutes ? r.prep_minutes + " min" : "", (r.tags || []).join(", ")].filter(Boolean).map(esc).join(" · ")}</div>
+      </button>`).join("") || (recipes.length ? `<p class="muted center">Ei osumia.</p>` : "");
+  }
+
+  $("q").oninput = renderList;
+  $("tagChips").onclick = (e) => {
+    const t = e.target.closest("[data-tag]"); if (!t) return;
+    activeTag = activeTag === t.dataset.tag ? null : t.dataset.tag; renderList();
+  };
+  $("list").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) openRecipe(b.dataset.id); };
+  $("newBtn").onclick = () => openEditor(null);
+
+  // ---------- Resepti ----------
+  function openRecipe(id) {
+    const r = recipes.find((x) => x.id === id); if (!r) return;
+    const img = safeUrl(r.image_url);
+    const src = r.source ? (safeUrl(r.source) ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>` : esc(r.source)) : "";
+    $("detail").innerHTML = `
+      ${img ? `<img class="hero" src="${esc(img)}" alt="">` : ""}
+      <h2>${esc(r.title)}</h2>
+      ${r.description ? `<p class="muted" style="margin:4px 0">${esc(r.description)}</p>` : ""}
+      <div class="meta">
+        ${r.servings ? `<span>🍽 ${r.servings} annosta</span>` : ""}
+        ${r.prep_minutes ? `<span>⏱ ${r.prep_minutes} min</span>` : ""}
+        ${(r.tags || []).length ? `<span>🏷 ${esc(r.tags.join(", "))}</span>` : ""}
+      </div>
+      ${(r.ingredients || []).length ? `<h3>Ainekset</h3><ul class="ing">${r.ingredients.map((i) => `<li>${esc(asText(i))}</li>`).join("")}</ul>` : ""}
+      ${(r.instructions || []).length ? `<h3>Ohje</h3><ol class="steps">${r.instructions.map((s) => `<li>${esc(asText(s))}</li>`).join("")}</ol>` : ""}
+      ${r.notes ? `<h3>Muistiinpanot</h3><p class="notes">${esc(r.notes)}</p>` : ""}
+      ${src ? `<h3>Lähde</h3><p>${src}</p>` : ""}
+      <div class="actions">
+        <button id="editBtn">Muokkaa</button>
+        <button id="delBtn" class="danger">Poista</button>
+      </div>`;
+    $("editBtn").onclick = () => openEditor(r);
+    $("delBtn").onclick = async () => {
+      if (!confirm(`Poistetaanko "${r.title}"?`)) return;
+      const { error } = await sb.from("recipes").delete().eq("id", r.id);
+      if (error) return alert("Poisto epäonnistui: " + error.message);
+      loadRecipes();
+    };
+    show("detailView");
+  }
+  $("backBtn").onclick = () => { show("listView"); renderList(); };
+
+  // ---------- Lomake ----------
+  function openEditor(r) {
+    editingId = r ? r.id : null;
+    $("editTitle").textContent = r ? "Muokkaa reseptiä" : "Uusi resepti";
+    $("f_title").value = r?.title || "";
+    $("f_description").value = r?.description || "";
+    $("f_servings").value = r?.servings || "";
+    $("f_prep").value = r?.prep_minutes || "";
+    $("f_ingredients").value = (r?.ingredients || []).map(asText).join("\n");
+    $("f_instructions").value = (r?.instructions || []).map(asText).join("\n");
+    $("f_tags").value = (r?.tags || []).join(", ");
+    $("f_source").value = r?.source || "";
+    $("f_image").value = r?.image_url || "";
+    $("f_notes").value = r?.notes || "";
+    msg($("editMsg"), "");
+    show("editView");
+  }
+  $("cancelBtn").onclick = () => (editingId ? openRecipe(editingId) : show("listView"));
+
+  $("editForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const num = (v) => (v === "" ? null : parseInt(v, 10));
+    const row = {
+      title: $("f_title").value.trim(),
+      description: $("f_description").value.trim() || null,
+      servings: num($("f_servings").value),
+      prep_minutes: num($("f_prep").value),
+      ingredients: lines($("f_ingredients").value),
+      instructions: lines($("f_instructions").value),
+      tags: [...new Set($("f_tags").value.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean))],
+      source: $("f_source").value.trim() || null,
+      image_url: $("f_image").value.trim() || null,
+      notes: $("f_notes").value.trim() || null,
+    };
+    $("saveBtn").disabled = true;
+    const q = editingId
+      ? sb.from("recipes").update(row).eq("id", editingId).select().single()
+      : sb.from("recipes").insert(row).select().single();
+    const { data, error } = await q;
+    $("saveBtn").disabled = false;
+    if (error) return msg($("editMsg"), "Tallennus epäonnistui: " + error.message, true);
+    const i = recipes.findIndex((x) => x.id === data.id);
+    if (i >= 0) recipes[i] = data; else recipes.push(data);
+    recipes.sort((a, b) => a.title.localeCompare(b.title, "fi"));
+    openRecipe(data.id);
+  };
+
+  // ---------- Käynnistys ----------
+  sb.auth.getSession().then(({ data }) => { if (!data.session) show("authView"); });
+</script>
+</body>
+</html>
