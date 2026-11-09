@@ -45,6 +45,10 @@
   .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 16px; }
   h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; margin: 0; font-weight: 600; }
+  h1 button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; text-align: left; }
+  .item .side { flex: 0 1 auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px; max-width: 50%; min-width: 0; }
+  .item .side .menu-badge { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+  .item .star { flex: none; font-size: 1.15rem; line-height: 1; }
   h2 { font-family: Georgia, serif; font-size: 1.5rem; margin: 0 0 4px; }
   h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 24px 0 8px; }
   button, .btn {
@@ -126,7 +130,7 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>🍲 Keittokirja</h1>
+    <h1><button id="titleBtn" type="button" aria-label="Keittokirja – etusivulle">🍲 Keittokirja</button></h1>
     <div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end">
       <button id="adminBtn" class="link hidden">⚙️ Hallinta</button>
       <button id="logoutBtn" class="link hidden">Kirjaudu ulos</button>
@@ -264,7 +268,7 @@
   // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu.
   const PRIMARY = {
     arkiruoka: [["top", "⭐ Top-lista"], ["kana", "Kana"], ["nauta", "Nauta"], ["kasvis", "Kasvis"]],
-    viikonloppuherkut: [["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
+    viikonloppuherkut: [["top", "⭐ Top-lista"], ["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
   };
   const COURSE_ORDER = ["alkuruoka", "illallinen", "makeat"];
   const isMeta = (t) => !!CATS[t] || t === "top" || t.startsWith("menu:");
@@ -451,6 +455,10 @@
   };
   $("newHomeBtn").onclick = () => { currentCat = null; returnView = "homeView"; openEditor(null); };
   $("homeBtn").onclick = () => { renderHome(); show("homeView"); };
+  $("titleBtn").onclick = () => {
+    if (!$("authView").classList.contains("hidden")) return; // ei kirjautunut
+    renderHome(); show("homeView");
+  };
 
   // ---------- Lista ----------
   function renderList() {
@@ -483,11 +491,15 @@
 
     const item = (r, grouped) => {
       const menu = grouped ? null : menuOf(r);
-      const meta = [(r.tags || []).includes("top") ? "⭐" : "", r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
+      const top = (r.tags || []).includes("top");
+      const meta = [r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
         .filter(Boolean).map(esc).join(" · ");
       return `<button class="item card" data-id="${r.id}">
         <div class="body"><div class="t">${esc(r.title)}</div><div class="m">${meta}</div></div>
-        ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
+        ${menu || top ? `<div class="side">
+          ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
+          ${top ? `<span class="star" role="img" aria-label="Top-listalla">⭐</span>` : ""}
+        </div>` : ""}
       </button>`;
     };
     const empty = base.length ? `<p class="muted center">Ei osumia.</p>` : "";
