@@ -484,7 +484,7 @@
   <section id="adminView" class="hidden">
     <button class="link" id="adminBackBtn">← Etusivu</button>
     <h2 style="margin:6px 0 4px">Käyttäjien hallinta</h2>
-    <p class="muted" style="margin:0 0 14px">Vain listalla olevat näkevät reseptit. Uusi jäsen saa oletuksena vain lukea, ja muokkausoikeuden voi antaa erikseen. Uusi jäsen luo itse tunnuksen keittokirjan kirjautumissivulla samalla sähköpostilla. Jäseneltä voi myös piilottaa etusivun osioita (esim. Viinit), jolloin hän ei näe niitä lainkaan.</p>
+    <p class="muted" style="margin:0 0 14px">Vain listalla olevat näkevät reseptit. Uusi jäsen saa oletuksena vain lukea, ja muokkausoikeuden voi antaa erikseen. Uusi jäsen luo itse tunnuksen keittokirjan kirjautumissivulla samalla sähköpostilla. Uusi jäsen ei näe yhtään etusivun osiota ennen kuin avaat ne hänen kohdaltaan alta (napauta osiota). Piilotettua osiota jäsen ei näe lainkaan.</p>
     <form id="addUserForm" class="card">
       <label for="u_email" style="margin-top:0">Lisää perheenjäsen</label>
       <input id="u_email" type="email" autocomplete="off" placeholder="nimi@esimerkki.fi" required>
@@ -925,7 +925,10 @@
       if (sec) b.classList.toggle("hidden", hidden.has(sec));
     }
     for (const el of [$("f_menu"), document.querySelector('label[for="f_menu"]')]) el.classList.toggle("hidden", hidden.has("menut"));
+    // Ei yhtään reseptikategoriaa → "Kaikki reseptit" ja "+ Uusi resepti" piiloon
+    $("newHomeBtn").parentElement.classList.toggle("hidden", Object.keys(CATS).every((c) => hidden.has(c)));
   }
+  const allHidden = () => SECTIONS.every(([k]) => hidden.has(k));
   async function loadAll() {
     loading = true;
     show("loadView");
@@ -953,8 +956,8 @@
     await signImages([...recipes, ...wines]);
     isAdmin = a.data === true;
     ready = true;
-    msg($("homeMsg"), recipes.length ? "" :
-      "Ei reseptejä vielä. Jos tunnuksesi on uusi, pyydä että sähköpostisi lisätään perheen listalle.");
+    msg($("homeMsg"), allHidden() ? "Tervetuloa! Sinulle ei ole vielä avattu keittokirjan osioita. Pyydä ylläpitäjää avaamaan ne."
+      : recipes.length || Object.keys(CATS).every((c) => hidden.has(c)) ? "" : "Ei reseptejä vielä. Jos tunnuksesi on uusi, pyydä että sähköpostisi lisätään perheen listalle.");
     route();
   }
 
@@ -1024,7 +1027,7 @@
     const admin = $("u_admin").checked, edit = admin || $("u_edit").checked;
     $("addUserBtn").disabled = true;
     await adminCall("admin_add_member", { p_email: email, p_admin: admin, p_can_edit: edit },
-      `${email} lisätty (${admin ? "admin" : edit ? "saa muokata" : "vain luku"}). Hän voi nyt luoda tunnuksen keittokirjan kirjautumissivulla.`);
+      `${email} lisätty (${admin ? "admin" : edit ? "saa muokata" : "vain luku"}). Avaa hänelle näkyvät osiot alta. Hän voi nyt luoda tunnuksen keittokirjan kirjautumissivulla.`);
     $("addUserBtn").disabled = false;
     if (!$("adminMsg").classList.contains("err")) {
       $("u_email").value = ""; $("u_admin").checked = false; $("u_edit").checked = false; $("u_edit").disabled = false;
@@ -1034,7 +1037,7 @@
   $("userList").onclick = (e) => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     const email = b.dataset.email;
-    if (b.dataset.act === "grant") adminCall("admin_add_member", { p_email: email, p_admin: false, p_can_edit: false }, `${email} sai lukuoikeuden.`);
+    if (b.dataset.act === "grant") adminCall("admin_add_member", { p_email: email, p_admin: false, p_can_edit: false }, `${email} sai lukuoikeuden. Avaa hänelle näkyvät osiot alta.`);
     if (b.dataset.act === "editor") adminCall("admin_set_editor", { p_email: email, p_can_edit: true }, `${email} saa nyt lisätä ja muokata.`);
     if (b.dataset.act === "reader") adminCall("admin_set_editor", { p_email: email, p_can_edit: false }, `${email} voi nyt vain lukea.`);
     if (b.dataset.act === "admin") adminCall("admin_set_admin", { p_email: email, p_admin: true }, `${email} on nyt admin.`);

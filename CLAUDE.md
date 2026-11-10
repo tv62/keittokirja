@@ -25,7 +25,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Oikeudet:** uusi jäsen saa oletuksena vain lukea. Admin antaa muokkausoikeuden Hallinta-sivulla. Admin saa aina muokata.
 - **Osioiden näkyvyys (admin päättää, 11/2026):** admin voi piilottaa jäseneltä etusivun osioita (Arkiruoka, Viikonloppuherkut,
   Vauvan ruoat, Menut, Viinit) Hallinta-sivulla. Piilotus on täysi: kortti, osoitteet ja haku pois, ja RLS estää datan
-  latautumisen. Admin näkee aina kaiken. Uusi jäsen näkee oletuksena kaiken.
+  latautumisen. Admin näkee aina kaiken. **Uusi jäsen ei näe oletuksena mitään** (käyttäjän päätös 11/2026): admin avaa osiot
+  Hallinta-sivulla. Ennen muutosta lisätyt jäsenet näkevät kaiken.
 - **Käyttäjä haluaa, että Claude tekee muutokset suoraan** (Supabase + push GitHubiin), ei tiedostojen siirtelyä.
 - **Käyttöliittymäpäätökset, joita ei muuteta kysymättä:**
   - Etusivulla viisi korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinit ja niiden alla oma osio
@@ -169,6 +170,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   piilotetun kategorian, `menut`/`viinit`/`uusi-viini`-osoitteet etusivulle; `…/vauva` ilman vauvaohjetta, jos vauva piilossa.
   Menumerkit, "Menut"-rajaus ja `allMenus()` tyhjenevät, jos menut piilossa. Lomakkeen kategoriavalinta rakennetaan näkyvistä
   kategorioista + reseptin nykyinen (`CAT_ICON`). Piilossa olevat `f_baby`/`f_babynotes`/`f_menu` säilyttävät arvonsa tallennuksessa.
+  Kaikki osiot piilossa (`allHidden()`) → etusivulla "Tervetuloa! Sinulle ei ole vielä avattu…". Ei yhtään reseptikategoriaa →
+  "Kaikki reseptit" ja "+ Uusi resepti" piiloon.
 - **Hallinta** (vain admin): perheen pääsylista RPC-funktioiden kautta. Jokaisella rivillä oikeusmerkki
   (admin / saa muokata / vain luku / ei pääsyä) ja napit Salli muokkaus / Poista muokkausoikeus, Tee adminiksi /
   Poista admin, Poista pääsy. Lisäyslomakkeessa "Saa lisätä ja muokata" on oletuksena pois (admin-ruutu valitsee
@@ -210,7 +213,8 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 
 Yksityinen skeema `private` (ei API:ssa):
 - `family_members(email, is_admin, can_edit, hidden_sections text[], added_at)` – pääsylista. Vain listalla olevat sähköpostit näkevät datan.
-  `hidden_sections` ⊆ {arkiruoka, viikonloppuherkut, vauvanruoat, menut, viinit} (check-rajoite), oletus `{}`.
+  `hidden_sections` ⊆ {arkiruoka, viikonloppuherkut, vauvanruoat, menut, viinit} (check-rajoite), oletus = kaikki viisi
+  (uusi jäsen `admin_add_member`-funktiolla ei näe mitään; `on conflict` ei muuta näkyvyyttä).
   `can_edit` oletus `false` (vain luku). Admin saa muokata `can_edit`-arvosta riippumatta.
 - `is_family()`, `is_admin()`, `can_edit()` (= is_admin or can_edit) – security definer -apufunktiot RLS:ää varten.
 - `my_hidden()` (adminilla `{}`), `can_see(osio)` (= is_family ja osio ei piilossa), `my_visible_cats()` – näkyvyys-RLS:ää varten.
