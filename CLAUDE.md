@@ -22,6 +22,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Hän lähettää usein kuvakaappauksia, joten neuvo niiden perusteella.
 - **Kaikki ilmaiseksi:** GitHub Free, GitHub Pages, Supabase Free. Älä ehdota maksullisia palveluita ilman painavaa syytä.
 - **Yksityisyys:** reseptit, menut ja viinit vain perheelle (RLS). Julkinen repo on hyväksytty, koska vain koodi on julkista.
+- **Oikeudet:** uusi jäsen saa oletuksena vain lukea. Admin antaa muokkausoikeuden Hallinta-sivulla. Admin saa aina muokata.
 - **Käyttäjä haluaa, että Claude tekee muutokset suoraan** (Supabase + push GitHubiin), ei tiedostojen siirtelyä.
 - **Käyttöliittymäpäätökset, joita ei muuteta kysymättä:**
   - Etusivulla neljä korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinit.
@@ -119,7 +120,14 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   "Lisää"-napilla tai Enterillä. Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
 - **Tallentamattomat muutokset:** resepti- ja viinilomake ottavat avattaessa tilannekuvan (`editSnap`, `wineSnap`).
   Peruuta, takaisin-pyyhkäisy ja muut siirtymät kysyvät "Hylätäänkö tallentamattomat muutokset?", jos lomaketta on muutettu.
-- **Hallinta** (vain admin): perheen pääsylista RPC-funktioiden kautta.
+- **Hallinta** (vain admin): perheen pääsylista RPC-funktioiden kautta. Jokaisella rivillä oikeusmerkki
+  (admin / saa muokata / vain luku / ei pääsyä) ja napit Salli muokkaus / Poista muokkausoikeus, Tee adminiksi /
+  Poista admin, Poista pääsy. Lisäyslomakkeessa "Saa lisätä ja muokata" on oletuksena pois (admin-ruutu valitsee
+  ja lukitsee sen). "Anna lukuoikeus" listalta puuttuvalle = vain luku.
+- **Vain lukuoikeus** (`canEdit` = RPC `can_i_edit`): `body.readonly` piilottaa `.edit-only`-napit (+ Uusi).
+  Reseptin Top- ja Muokkaa-napit sekä viinin Muokkaa jätetään renderöimättä. Lomakkeiden osoitteet
+  (`…/muokkaa`, `#/uusi-resepti`, `#/uusi-viini`) ohjautuvat etusivulle. Annosmäärä ja kokkaustila toimivat kaikille.
+  Tietokanta estää muokkauksen joka tapauksessa (RLS), käyttöliittymä vain siistii näkymän.
 - **Menut:** menukortti- ja viinilistasivut välilehtinä, alla menun reseptit.
 - **Viinit:** lista (haku, tyyppirajaus, omat tähdet), viinin sivu (Muokkaa), lomake (tähtivalitsin 1–5, Poista alaosassa).
 - Napautettavat chipit ovat vähintään 44 px korkeita (sormelle sopiva koko).
@@ -127,8 +135,12 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 
 ## Tietokanta (Supabase)
 
-Kaikissa julkisissa tauluissa on RLS. Säännöt: select/insert/update/delete `to authenticated` ehdolla
-`(select private.is_family())`. **Uudelle taululle samat neljä policya + `revoke all ... from anon`.**
+Kaikissa julkisissa tauluissa on RLS. Säännöt `to authenticated`:
+- **select** ehdolla `(select private.is_family())` – kaikki perheen jäsenet näkevät.
+- **insert/update/delete** ehdolla `(select private.can_edit())` – vain muokkausoikeus tai admin.
+
+**Uudelle taululle samat neljä policya (lukeminen is_family, kirjoitus can_edit) + `revoke all ... from anon`.**
+Sama koskee myöhemmin Supabase Storagen kuvia.
 
 | Taulu | Sarakkeet |
 |---|---|
@@ -138,13 +150,21 @@ Kaikissa julkisissa tauluissa on RLS. Säännöt: select/insert/update/delete `t
 | `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_url |
 
 Yksityinen skeema `private` (ei API:ssa):
-- `family_members(email, is_admin, added_at)` – pääsylista. Vain listalla olevat sähköpostit näkevät datan.
-- `is_family()`, `is_admin()` – security definer -apufunktiot RLS:ää varten.
+- `family_members(email, is_admin, can_edit, added_at)` – pääsylista. Vain listalla olevat sähköpostit näkevät datan.
+  `can_edit` oletus `false` (vain luku). Admin saa muokata `can_edit`-arvosta riippumatta.
+- `is_family()`, `is_admin()`, `can_edit()` (= is_admin or can_edit) – security definer -apufunktiot RLS:ää varten.
 - `touch_updated_at()` – trigger.
 
-RPC-funktiot (public, security definer, tarkistavat `is_admin()`:n itse): `am_i_admin`, `admin_list_users`,
-`admin_add_member`, `admin_remove_member` (ei omaa), `admin_set_admin` (ei omia oikeuksia pois).
-Advisorin varoitus "authenticated security definer function executable" näistä on tarkoituksellinen.
+RPC-funktiot (public, security definer):
+- `am_i_admin()`, `can_i_edit()` – kirjautuneen omat oikeudet (sivu piilottaa napit niiden mukaan).
+- Vain admin (tarkistavat `is_admin()`:n itse): `admin_list_users()` (palauttaa myös `can_edit`, adminilla aina true),
+  `admin_add_member(p_email, p_admin = false, p_can_edit = false)` (ei omia admin-oikeuksia pois),
+  `admin_set_editor(p_email, p_can_edit)`, `admin_remove_member(p_email)` (ei omaa),
+  `admin_set_admin(p_email, p_admin)` (ei omia oikeuksia pois; adminiksi tehty saa `can_edit = true`, joka jää voimaan
+  admin-oikeuden poistuessa).
+- Advisorin varoitus "authenticated security definer function executable" näistä on tarkoituksellinen.
+- RLS-testaus SQL:llä: `do $$ … insert testijäsen; set_config('request.jwt.claims', …); set local role authenticated;
+  … raise exception 'TULOS …' $$` – lopun virhe peruu kaiken, ja tulos näkyy virheviestissä.
 
 Rekisteröityminen on avoin, mutta ilman pääsylistaa tunnus ei näe mitään. Auth-asetuksissa Site URL ja
 Redirect URL = sivun osoite.

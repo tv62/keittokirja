@@ -170,6 +170,9 @@
   /* Lomakkeet */
   .tagpick { margin: 0 0 8px; }
   .danger-zone { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); }
+  /* Vain lukuoikeus: lisäys- ja muokkausnapit piiloon (tietokanta estää muokkauksen joka tapauksessa) */
+  .readonly .edit-only { display: none !important; }
+  .badge.ro { background: transparent; border: 1px solid var(--line); color: var(--muted); }
 </style>
 </head>
 <body>
@@ -228,7 +231,7 @@
       </div>
       <div class="actions" style="justify-content:space-between;align-items:center">
         <button class="link" data-cat="">Kaikki reseptit →</button>
-        <button class="primary" id="newHomeBtn">+ Uusi resepti</button>
+        <button class="primary edit-only" id="newHomeBtn">+ Uusi resepti</button>
       </div>
     </div>
   </section>
@@ -239,7 +242,7 @@
     <h2 id="listTitle" style="margin:6px 0 14px">Kaikki reseptit</h2>
     <div class="search">
       <input id="q" type="search" placeholder="Hae nimellä tai aineksella…" autocomplete="off" enterkeyhint="search">
-      <button class="primary" id="newBtn">+ Uusi</button>
+      <button class="primary edit-only" id="newBtn">+ Uusi</button>
     </div>
     <div class="chips primary" id="primaryChips"></div>
     <div class="chips hidden" id="tagChips"></div>
@@ -327,7 +330,7 @@
     <h2 style="margin:6px 0 14px">Viinit</h2>
     <div class="search">
       <input id="wq" type="search" placeholder="Hae viiniä, tuottajaa, rypälettä…" autocomplete="off" enterkeyhint="search">
-      <button class="primary" id="newWineBtn">+ Uusi</button>
+      <button class="primary edit-only" id="newWineBtn">+ Uusi</button>
     </div>
     <div class="chips primary" id="wineChips"></div>
     <div id="wineMsg" class="msg hidden"></div>
@@ -404,12 +407,15 @@
   <section id="adminView" class="hidden">
     <button class="link" id="adminBackBtn">← Etusivu</button>
     <h2 style="margin:6px 0 4px">Käyttäjien hallinta</h2>
-    <p class="muted" style="margin:0 0 14px">Vain listalla olevat näkevät reseptit. Uusi jäsen luo itse tunnuksen keittokirjan kirjautumissivulla samalla sähköpostilla.</p>
+    <p class="muted" style="margin:0 0 14px">Vain listalla olevat näkevät reseptit. Uusi jäsen saa oletuksena vain lukea, ja muokkausoikeuden voi antaa erikseen. Uusi jäsen luo itse tunnuksen keittokirjan kirjautumissivulla samalla sähköpostilla.</p>
     <form id="addUserForm" class="card">
       <label for="u_email" style="margin-top:0">Lisää perheenjäsen</label>
       <input id="u_email" type="email" autocomplete="off" placeholder="nimi@esimerkki.fi" required>
       <label style="display:flex;align-items:center;gap:8px;color:var(--ink)">
-        <input type="checkbox" id="u_admin" style="width:auto;margin:0"> Admin-oikeudet (voi hallita käyttäjiä)
+        <input type="checkbox" id="u_edit" style="width:auto;margin:0"> Saa lisätä ja muokata reseptejä ja viinejä
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;color:var(--ink)">
+        <input type="checkbox" id="u_admin" style="width:auto;margin:0"> Admin-oikeudet (voi myös hallita käyttäjiä)
       </label>
       <div class="actions" style="margin-top:12px"><button class="primary" type="submit" id="addUserBtn">Lisää</button></div>
     </form>
@@ -447,6 +453,7 @@
   let wines = [];
   let currentCat = null;
   let isAdmin = false;
+  let canEdit = false;     // false = vain lukuoikeus (tietokanta estää muokkauksen joka tapauksessa)
   let myEmail = "";
   let activeTag = null;
   let editingId = null;
@@ -543,6 +550,8 @@
     if (isPop) { const y = (history.state && history.state.y) || 0; requestAnimationFrame(() => window.scrollTo(0, y)); }
   }
   function renderRoute(a, b, c) {
+    // Lukuoikeuksiselle lomakkeiden osoitteet eivät aukea (→ etusivu).
+    if (!canEdit && (c === "muokkaa" || a === "uusi-resepti" || a === "uusi-viini")) return false;
     switch (a) {
       case undefined: openHome(); return true;
       case "reseptit": if (b && !CATS[b]) return false; openCategory(b || null); return true;
@@ -625,7 +634,7 @@
       myEmail = (session.user?.email || "").toLowerCase();
       if (!ready && !loading) setTimeout(loadAll, 0);
     } else {
-      ready = false; recipes = []; menus = []; wines = []; isAdmin = false; myEmail = "";
+      ready = false; recipes = []; menus = []; wines = []; isAdmin = false; canEdit = false; myEmail = "";
       markClean(); unlockScreen(); show("authView");
     }
   });
@@ -633,12 +642,15 @@
   async function loadAll() {
     loading = true;
     show("loadView");
-    const [r, m, w, a] = await Promise.all([
+    const [r, m, w, a, ed] = await Promise.all([
       sb.from("recipes").select("*").order("title"),
       sb.from("menus").select("id,name,subtitle,description,sort").order("sort").order("name"),
       wineQuery(),
       sb.rpc("am_i_admin"),
+      sb.rpc("can_i_edit"),
     ]);
+    canEdit = ed.data === true;
+    document.body.classList.toggle("readonly", !canEdit);
     loading = false;
     if (r.error) {
       show("homeView");
@@ -670,12 +682,20 @@
         : u.last_sign_in ? "Viimeksi kirjautunut " + fmt(u.last_sign_in) : "Tunnus luotu";
       const e = esc(u.email);
       const buttons = !u.on_list
-        ? `<button class="primary" data-act="grant" data-email="${e}">Anna pääsy</button>`
+        ? `<button class="primary" data-act="grant" data-email="${e}">Anna lukuoikeus</button>`
         : me ? `<span class="muted" style="font-size:.88rem">Tämä olet sinä</span>`
-        : `<button data-act="${u.is_admin ? "unadmin" : "admin"}" data-email="${e}">${u.is_admin ? "Poista admin" : "Tee adminiksi"}</button>
+        : `${u.is_admin ? "" : u.can_edit
+            ? `<button data-act="reader" data-email="${e}">Poista muokkausoikeus</button>`
+            : `<button data-act="editor" data-email="${e}">Salli muokkaus</button>`}
+           <button data-act="${u.is_admin ? "unadmin" : "admin"}" data-email="${e}">${u.is_admin ? "Poista admin" : "Tee adminiksi"}</button>
            <button class="danger" data-act="remove" data-email="${e}">Poista pääsy</button>`;
+      // Oikeudet: admin (sisältää muokkauksen) / saa muokata / vain luku / ei pääsyä
+      const badge = !u.on_list ? `<span class="badge warn">ei pääsyä</span>`
+        : u.is_admin ? `<span class="badge">admin</span>`
+        : u.can_edit ? `<span class="badge">saa muokata</span>`
+        : `<span class="badge ro">vain luku</span>`;
       return `<div class="card urow">
-        <div class="em">${e}${u.is_admin ? `<span class="badge">admin</span>` : ""}${!u.on_list ? `<span class="badge warn">ei pääsyä</span>` : ""}</div>
+        <div class="em">${e}${badge}</div>
         <div class="st">${esc(status)}</div>
         <div class="actions">${buttons}</div>
       </div>`;
@@ -693,22 +713,33 @@
   $("adminBtn").onclick = () => go("#/hallinta");
   $("adminBackBtn").onclick = () => back("#/");
 
+  // Admin saa aina muokata, joten muokkausruutu on silloin valittuna ja lukittuna.
+  $("u_admin").onchange = () => {
+    if ($("u_admin").checked) $("u_edit").checked = true;
+    $("u_edit").disabled = $("u_admin").checked;
+  };
+
   $("addUserForm").onsubmit = async (e) => {
     e.preventDefault();
     const email = $("u_email").value.trim().toLowerCase();
+    const admin = $("u_admin").checked, edit = admin || $("u_edit").checked;
     $("addUserBtn").disabled = true;
-    await adminCall("admin_add_member", { p_email: email, p_admin: $("u_admin").checked },
-      `${email} lisätty. Hän voi nyt luoda tunnuksen keittokirjan kirjautumissivulla.`);
+    await adminCall("admin_add_member", { p_email: email, p_admin: admin, p_can_edit: edit },
+      `${email} lisätty (${admin ? "admin" : edit ? "saa muokata" : "vain luku"}). Hän voi nyt luoda tunnuksen keittokirjan kirjautumissivulla.`);
     $("addUserBtn").disabled = false;
-    if (!$("adminMsg").classList.contains("err")) { $("u_email").value = ""; $("u_admin").checked = false; }
+    if (!$("adminMsg").classList.contains("err")) {
+      $("u_email").value = ""; $("u_admin").checked = false; $("u_edit").checked = false; $("u_edit").disabled = false;
+    }
   };
 
   $("userList").onclick = (e) => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     const email = b.dataset.email;
-    if (b.dataset.act === "grant") adminCall("admin_add_member", { p_email: email, p_admin: false }, `${email} sai pääsyn.`);
+    if (b.dataset.act === "grant") adminCall("admin_add_member", { p_email: email, p_admin: false, p_can_edit: false }, `${email} sai lukuoikeuden.`);
+    if (b.dataset.act === "editor") adminCall("admin_set_editor", { p_email: email, p_can_edit: true }, `${email} saa nyt lisätä ja muokata.`);
+    if (b.dataset.act === "reader") adminCall("admin_set_editor", { p_email: email, p_can_edit: false }, `${email} voi nyt vain lukea.`);
     if (b.dataset.act === "admin") adminCall("admin_set_admin", { p_email: email, p_admin: true }, `${email} on nyt admin.`);
-    if (b.dataset.act === "unadmin") adminCall("admin_set_admin", { p_email: email, p_admin: false }, `${email} ei ole enää admin.`);
+    if (b.dataset.act === "unadmin") adminCall("admin_set_admin", { p_email: email, p_admin: false }, `${email} ei ole enää admin (saa edelleen muokata).`);
     if (b.dataset.act === "remove" && confirm(`Poistetaanko käyttäjän ${email} pääsy keittokirjaan?`))
       adminCall("admin_remove_member", { p_email: email }, `${email} poistettu listalta.`);
   };
@@ -981,10 +1012,10 @@
       ${steps ? `<h3>Ohje</h3><ol class="steps">${steps}</ol>` : ""}
       ${r.notes ? `<h3>Muistiinpanot</h3><p class="notes">${esc(r.notes)}</p>` : ""}
       ${src ? `<h3>Lähde</h3><p>${src}</p>` : ""}
-      <div class="actions">
+      ${canEdit ? `<div class="actions">
         <button type="button" data-act="top">${isTop ? "★ Poista Top-listalta" : "⭐ Lisää Top-listalle"}</button>
         <button type="button" data-act="edit">Muokkaa</button>
-      </div>`;
+      </div>` : ""}`;
     markCurrentStep(st);
   }
   // Kokkaustilassa ensimmäinen tekemätön vaihe korostetaan.
@@ -1181,8 +1212,8 @@
       </dl>
       ${w.own_notes ? `<h3>Omat muistiinpanot</h3><p class="notes">${esc(w.own_notes)}</p>` : ""}
       ${w.description ? `<h3>Kuvaus</h3><p class="notes">${esc(w.description)}</p>` : ""}
-      <div class="actions"><button id="wEditBtn">Muokkaa</button></div>`;
-    $("wEditBtn").onclick = () => go(`#/viinit/${w.id}/muokkaa`);
+      ${canEdit ? `<div class="actions"><button id="wEditBtn">Muokkaa</button></div>` : ""}`;
+    if (canEdit) $("wEditBtn").onclick = () => go(`#/viinit/${w.id}/muokkaa`);
     show("wineView");
   }
 
