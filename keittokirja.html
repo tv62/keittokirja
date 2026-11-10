@@ -198,6 +198,17 @@
   .badge.ro { background: transparent; border: 1px solid var(--line); color: var(--muted); }
   /* Resepti- ja viinikuvat: aina neliö. Listalla pikkukuva vasemmalla, ilman kuvaa nimen alkukirjain. */
   .item.withpic { padding: 10px 14px 10px 10px; }
+  /* Järjestys: lajitteluvalinta + oma järjestys raahaamalla */
+  .sortbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; }
+  .sortsel { display: flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--muted); margin: 0; }
+  .sortsel select { width: auto; min-height: 40px; padding: 6px 10px; font-size: .92rem; }
+  #orderBtn { padding: 8px 14px; font-size: .92rem; white-space: nowrap; }
+  .orderhint { font-size: .88rem; color: var(--muted); margin: 0 0 10px; }
+  .item.sorting { cursor: default; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .item .grip { flex: none; display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px;
+    margin: -6px -8px -6px 0; font-size: 1.5rem; color: var(--muted); touch-action: none; cursor: grab; }
+  .item.dragging { position: relative; z-index: 5; box-shadow: 0 10px 28px rgba(0,0,0,.22); transition: none; }
+  .item.dragging .grip { cursor: grabbing; }
   .thumb { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; flex: none; background: var(--chip); }
   .thumb.ph { display: flex; align-items: center; justify-content: center; color: var(--muted); font: 600 1.5rem Georgia, serif; }
   .rimg { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 12px; background: var(--chip); }
@@ -296,6 +307,18 @@
     <div class="subgrid hidden" id="subGrid"></div>
     <div class="chips primary" id="primaryChips"></div>
     <div class="chips hidden" id="tagChips"></div>
+    <div class="sortbar hidden" id="sortBar">
+      <label class="sortsel">Järjestys
+        <select id="sortSel" aria-label="Reseptien järjestys">
+          <option value="oma">Oma järjestys</option>
+          <option value="az">Aakkosjärjestys</option>
+          <option value="uusin">Uusimmat ensin</option>
+          <option value="nopein">Nopeimmat ensin</option>
+        </select>
+      </label>
+      <button type="button" class="edit-only" id="orderBtn">↕ Järjestä</button>
+    </div>
+    <p class="orderhint hidden" id="orderHint">Raahaa reseptiä oikean reunan ≡-kahvasta uuteen kohtaan. Järjestys tallentuu heti ja näkyy kaikille.</p>
     <div id="listMsg" class="msg hidden"></div>
     <div class="list" id="list"></div>
   </section>
@@ -560,6 +583,16 @@
   let canEdit = false;     // false = vain lukuoikeus (tietokanta estää muokkauksen joka tapauksessa)
   let myEmail = "";
   let activeTag = null;
+  let ordering = false;   // "Järjestä"-tila (raahaus)
+  let sortMode = "oma";   // oma | az | uusin | nopein (muistetaan laitteella)
+  try { sortMode = localStorage.getItem("kk_sort") || "oma"; } catch {}
+  const byTitle = (a, b) => (a.title || "").localeCompare(b.title || "", "fi");
+  const SORTS = {
+    oma: (a, b) => (a.sort_order ?? 1e9) - (b.sort_order ?? 1e9) || byTitle(a, b),
+    az: byTitle,
+    uusin: (a, b) => (b.created_at || "").localeCompare(a.created_at || "") || byTitle(a, b),
+    nopein: (a, b) => (a.prep_minutes ?? 1e9) - (b.prep_minutes ?? 1e9) || byTitle(a, b),
+  };
   let editingId = null;
   let signupMode = false;
   let ready = false;       // data ladattu ja reititys käytössä
@@ -1177,7 +1210,7 @@
 
   // ---------- Lista ----------
   let listOpened = false;
-  function resetListFilters() { activeTag = null; activePrimary = null; showTags = false; $("q").value = ""; }
+  function resetListFilters() { activeTag = null; activePrimary = null; showTags = false; ordering = false; $("q").value = ""; }
   function openCategory(cat, group) {
     // Rajaukset säilyvät, kun reseptistä palataan takaisin samaan listaan.
     if (!listOpened || cat !== currentCat) resetListFilters();
@@ -1213,6 +1246,7 @@
       $("subGrid").innerHTML = grid.groups.filter((g) => n(g[3])).map(([k, e, label, tags]) => card(k, e, label, n(tags))).join("") +
         card("kaikki", "📖", grid.all, base.length, "wide");
       $("tagChips").classList.add("hidden");
+      $("sortBar").classList.add("hidden"); $("orderHint").classList.add("hidden");
       msg($("listMsg"), base.length ? "" : "Tässä kategoriassa ei ole vielä reseptejä.");
       return;
     }
@@ -1244,6 +1278,18 @@
 
     const empty = base.length ? `<p class="muted center">Ei osumia.</p>` : "";
 
+    // Järjestys: valittu lajittelu; raahaus vain omassa järjestyksessä (ei menuittain ryhmitellyssä näkymässä)
+    const menuMode = activePrimary === "@menu";
+    const canOrder = canEdit && sortMode === "oma" && !menuMode && shown.length > 1;
+    if (!canOrder) ordering = false;
+    $("sortBar").classList.toggle("hidden", menuMode || !shown.length);
+    $("sortSel").value = sortMode;
+    $("orderBtn").classList.toggle("hidden", !canOrder);
+    $("orderBtn").textContent = ordering ? "✓ Valmis" : "↕ Järjestä";
+    $("orderBtn").classList.toggle("primary", ordering);
+    $("orderHint").classList.toggle("hidden", !ordering);
+    shown.sort(SORTS[sortMode] || SORTS.oma);
+
     if (activePrimary === "@menu") {
       const groups = new Map();
       for (const r of shown) { const m = menuOf(r); if (!groups.has(m)) groups.set(m, []); groups.get(m).push(r); }
@@ -1252,7 +1298,7 @@
          <div class="list">${rs.sort(byCourse).map((r) => recipeItem(r, true)).join("")}</div>`
       ).join("") || empty;
     } else {
-      $("list").innerHTML = shown.map((r) => recipeItem(r)).join("") || empty;
+      $("list").innerHTML = shown.map((r) => recipeItem(r, false, ordering)).join("") || empty;
     }
     // Pyyhkäistävällä rivillä valittu rajaus näkyviin
     const on = grid && $("primaryChips").querySelector(".chip.on");
@@ -1261,19 +1307,21 @@
 
   const courseRank = (r) => { const i = COURSE_ORDER.findIndex((c) => (r.tags || []).includes(c)); return i < 0 ? 99 : i; };
   const byCourse = (a, b) => courseRank(a) - courseRank(b);
-  function recipeItem(r, hideMenu) {
+  function recipeItem(r, hideMenu, sorting) {
     const menu = hideMenu || hidden.has("menut") ? null : menuOf(r);
     const top = (r.tags || []).includes("top");
     const meta = [r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
       .filter(Boolean).map(esc).join(" · ");
     const thumb = thumbHtml(r, r.title);
-    return `<button class="item card withpic" data-id="${r.id}">${thumb}
+    const tag = sorting ? "div" : "button";
+    return `<${tag} class="item card withpic${sorting ? " sorting" : ""}" data-id="${r.id}">${thumb}
       <div class="body"><div class="t">${esc(r.title)}</div><div class="m">${meta}</div></div>
       ${menu || top ? `<div class="side">
         ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
         ${top ? `<span class="star" role="img" aria-label="Top-listalla">⭐</span>` : ""}
       </div>` : ""}
-    </button>`;
+      ${sorting ? `<span class="grip" role="img" aria-label="Siirrä ${esc(r.title)}">≡</span>` : ""}
+    </${tag}>`;
   }
 
   $("primaryChips").onclick = (e) => {
@@ -1294,11 +1342,77 @@
     activeTag = activeTag === t.dataset.tag ? null : t.dataset.tag; renderList();
   };
   $("list").onclick = (e) => {
+    if (ordering) return;
     const m = e.target.closest("[data-openmenu]"); if (m) return go(`#/menut/${enc(m.dataset.openmenu)}`);
     const b = e.target.closest("[data-id]");
     if (b) go(`#/resepti/${b.dataset.id}${currentCat === "vauvanruoat" ? "/vauva" : ""}`);
   };
   $("newBtn").onclick = () => go(currentCat ? `#/uusi-resepti/${currentCat}` : "#/uusi-resepti");
+  $("sortSel").onchange = () => {
+    sortMode = $("sortSel").value;
+    try { localStorage.setItem("kk_sort", sortMode); } catch {}
+    renderList();
+  };
+  $("orderBtn").onclick = () => { ordering = !ordering; renderList(); };
+
+  // ---------- Oma järjestys raahaamalla (≡-kahva, toimii sormella ja hiirellä) ----------
+  // Yksi yhteinen järjestys (recipes.sort_order). Näkyvät reseptit jakavat keskenään niiden nykyiset
+  // järjestysnumerot uudessa järjestyksessä, joten muiden listojen järjestys ei muutu.
+  $("list").addEventListener("pointerdown", (e) => {
+    const grip = e.target.closest(".grip");
+    if (!ordering || !grip) return;
+    e.preventDefault();
+    const row = grip.closest(".item"), list = $("list");
+    const pageY = (ev) => ev.clientY + window.scrollY;
+    let startY = pageY(e), lastClientY = e.clientY, timer = null;
+    row.classList.add("dragging");
+    grip.setPointerCapture(e.pointerId);
+    const gap = () => parseFloat(getComputedStyle(list).rowGap) || 10;
+    const move = () => {
+      let dy = lastClientY + window.scrollY - startY;
+      const next = row.nextElementSibling, prev = row.previousElementSibling;
+      if (dy > 0 && next && lastClientY > next.getBoundingClientRect().top + next.offsetHeight / 2) {
+        list.insertBefore(next, row); startY += next.offsetHeight + gap(); dy = lastClientY + window.scrollY - startY;
+      } else if (dy < 0 && prev && lastClientY < prev.getBoundingClientRect().top + prev.offsetHeight / 2) {
+        list.insertBefore(row, prev); startY -= prev.offsetHeight + gap(); dy = lastClientY + window.scrollY - startY;
+      }
+      row.style.transform = `translateY(${dy}px)`;
+    };
+    // Automaattinen vieritys, kun sormi on lähellä näytön ylä- tai alareunaa
+    const edge = () => {
+      const h = window.innerHeight, step = lastClientY > h - 70 ? 12 : lastClientY < 70 ? -12 : 0;
+      if (step) { window.scrollBy(0, step); move(); }
+    };
+    timer = setInterval(edge, 16);
+    const onMove = (ev) => { lastClientY = ev.clientY; move(); };
+    const onUp = () => {
+      clearInterval(timer);
+      grip.removeEventListener("pointermove", onMove);
+      grip.removeEventListener("pointerup", onUp);
+      grip.removeEventListener("pointercancel", onUp);
+      row.classList.remove("dragging"); row.style.transform = "";
+      saveOrder([...list.querySelectorAll(".item[data-id]")].map((el) => el.dataset.id));
+    };
+    grip.addEventListener("pointermove", onMove);
+    grip.addEventListener("pointerup", onUp);
+    grip.addEventListener("pointercancel", onUp);
+  });
+
+  async function saveOrder(ids) {
+    const items = ids.map((id) => recipes.find((r) => r.id === id)).filter(Boolean);
+    let max = Math.max(0, ...recipes.map((r) => r.sort_order || 0));
+    const slots = items.map((r) => r.sort_order ?? ++max).sort((a, b) => a - b);
+    const changed = items.map((r, i) => [r, slots[i]]).filter(([r, pos]) => r.sort_order !== pos);
+    if (!changed.length) return;
+    const before = changed.map(([r]) => [r, r.sort_order]);
+    for (const [r, pos] of changed) r.sort_order = pos;
+    const { error } = await sb.rpc("set_recipe_order", { p_ids: changed.map(([r]) => r.id), p_pos: changed.map(([, pos]) => pos) });
+    if (error) {
+      for (const [r, old] of before) r.sort_order = old;
+      renderList();
+      msg($("listMsg"), "Järjestyksen tallennus epäonnistui: " + error.message, true);
+    }
+  }
 
   // ---------- Annosmäärän muutos ----------
   // Ainesrivin luvut kerrotaan (myös "1/2", "½", "1,5", "2–3" ja sulkeissa olevat "(400 g)").

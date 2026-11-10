@@ -40,6 +40,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     Top-lista, Kana, Liha, Poro, Kala, Kasvis, Keitot, Pastat, Lisukkeet, Kastikkeet + leveä "Kaikki arkiruoat".
     Tyhjät ryhmät piilotetaan. Ryhmän listassa ylhäällä "← Arkiruoka" ja päärajaukset yhdellä pyyhkäistävällä rivillä.
   - Muissa kategorioissa päärajaukset aina näkyvissä. Pikatagit aina piilossa "🏷 Tagit" -napin takana.
+  - **Reseptien järjestys** (11/2026, käyttäjä valitsi "molemmat"): oma yhteinen järjestys (oletus, muokkaajat raahaavat)
+    + jokaisen oma lajitteluvalinta listan yläpuolella (Oma järjestys / Aakkosjärjestys / Uusimmat ensin / Nopeimmat ensin).
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
@@ -147,6 +149,12 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   palatessa haku ja tagi nollataan; reseptistä palatessa ne säilyvät. Chip-rivi `.chips.scroll`, valittu keskitetään.
 - **Reseptilista:** päärajaukset `PRIMARY`-vakiossa kategorioittain (GRID-kategorioissa ryhmät), pikatagit piilossa "🏷 Tagit" -napin takana.
   "Menut"-rajaus (`@menu`) ryhmittelee menuittain, järjestys `COURSE_ORDER` = alkuruoka → illallinen → makeat.
+- **Järjestys** (`#sortBar`, piilossa valintasivulla ja Menut-ryhmittelyssä): `sortMode` (`SORTS`: oma = `sort_order`, az,
+  uusin = `created_at` desc, nopein = `prep_minutes`, tasatilanteessa nimi), muistetaan `localStorage`-avaimella `kk_sort`.
+  "↕ Järjestä" (`#orderBtn`, vain muokkaajalle ja vain omassa järjestyksessä) → `ordering`: rivit `<div class="item sorting">`
+  + ≡-kahva (`.grip`, `touch-action:none`), napautus ei avaa reseptiä. Raahaus pointer-tapahtumilla (sormi ja hiiri),
+  automaattivieritys reunoilla. `saveOrder(ids)`: näkyvät reseptit jakavat keskenään nykyiset `sort_order`-numeronsa uudessa
+  järjestyksessä (muiden listojen suhteellinen järjestys säilyy) → RPC `set_recipe_order(p_ids, p_pos)`; virheessä palautus.
 - **Reseptirivi** (`recipeItem`): menumerkki ja ⭐ (top) rivin oikeassa laidassa.
 - **Resepti:** menumerkki oikeassa yläkulmassa avaa menun. Napit "⭐ Lisää Top-listalle" ja "Muokkaa"
   (Poista on lomakkeen alaosassa, ettei sitä paina vahingossa).
@@ -224,7 +232,7 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 
 | Taulu | Sarakkeet |
 |---|---|
-| `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_path (Storage-polku, esim. `<uuid>.jpg`), image_url (vanha ulkoinen osoite, ei enää lomakkeessa), notes, baby_notes (vauvaohje, näkyy vain `…/vauva`-näkymässä), created_by, created_at, updated_at |
+| `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_path (Storage-polku, esim. `<uuid>.jpg`), image_url (vanha ulkoinen osoite, ei enää lomakkeessa), notes, baby_notes (vauvaohje, näkyy vain `…/vauva`-näkymässä), sort_order (oma järjestys, uusi = max+1 triggerillä `recipes_default_sort`), created_by, created_at, updated_at |
 | `menus` | id, name (uniikki, = reseptien `menu:`-tagin nimi), subtitle, description, sort |
 | `menu_pages` | id, menu_id, kind (`menu`/`viinilista`/`muu`), title, html, width, height, sort |
 | `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa) |
@@ -236,10 +244,11 @@ Yksityinen skeema `private` (ei API:ssa):
   `can_edit` oletus `false` (vain luku). Admin saa muokata `can_edit`-arvosta riippumatta.
 - `is_family()`, `is_admin()`, `can_edit()` (= is_admin or can_edit) – security definer -apufunktiot RLS:ää varten.
 - `my_hidden()` (adminilla `{}`), `can_see(osio)` (= is_family ja osio ei piilossa), `my_visible_cats()` – näkyvyys-RLS:ää varten.
-- `touch_updated_at()` – trigger.
+- `touch_updated_at()` – trigger. `recipes_default_sort()` – trigger (security definer): uuden reseptin `sort_order` = max + 1.
 
 RPC-funktiot (public, security definer):
 - `am_i_admin()`, `can_i_edit()`, `my_hidden_sections()` – kirjautuneen omat oikeudet ja piilotetut osiot.
+- `set_recipe_order(p_ids uuid[], p_pos int[])` – security invoker (RLS), tarkistaa `can_edit()`; päivittää `sort_order`-arvot.
 - Vain admin (tarkistavat `is_admin()`:n itse): `admin_list_users()` (palauttaa myös `can_edit`, adminilla aina true, ja
   `hidden_sections`), `admin_set_hidden(p_email, p_hidden text[])` (ei adminille: "Admin näkee aina kaiken"),
   `admin_add_member(p_email, p_admin = false, p_can_edit = false)` (ei omia admin-oikeuksia pois),
