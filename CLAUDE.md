@@ -17,6 +17,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   tuotemerkkiä): lähde `kuvake.svg` → `apple-touch-icon.png` (180, kotivalikko), `icon-192.png`, `favicon-32.png`.
   Uudelleen: `rsvg-convert -w 1024 -h 1024 kuvake.svg -o k.png` ja pienennys PIL:llä (LANCZOS). Läpinäkymätön, ei pyöristystä
   (iOS pyöristää). Jo tallennettu kotivalikon pikakuvake ei päivity: poista ja lisää uudelleen Safarin Jaa-valikosta.
+  Otsikon logo `pata.svg` = sama pata läpinäkyvällä taustalla ilman varjoa, viewBox rajattu pataan (`h1 .logo`, 1.15em).
 - Käyttäjä käyttää enimmäkseen iPadia ja iPhonea (Safari). Suunnittele mobiili edellä.
 
 ## Käyttäjä ja tehdyt päätökset
@@ -132,7 +133,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 
 - **Etusivu:** hakukenttä (`#hq`) ja kortit Arkiruoka, Viikonloppuherkut, Vauvan ruoat (`data-cat`), Menut ja Viinit (`data-nav`).
   Haku etsii resepteistä (nimi, kuvaus, kategorian nimi, ainekset, tagit, menu), menuista ja viineistä. Haun aikana kortit
-  piilotetaan ja tulokset näytetään ryhmiteltynä. Haku säilyy, kun tuloksesta palataan. Otsikko "🍲 Keittokirja"
+  piilotetaan ja tulokset näytetään ryhmiteltynä. Haku säilyy, kun tuloksesta palataan. Otsikko (pata-logo + "Keittokirja")
   vie etusivulle ja tyhjentää haun. `data-home`-elementti = takaisin etusivulle.
 - **Haku kaikkialla:** `words()` + `matches()`: jokaisen hakusanan pitää löytyä (esim. "kana pasta").
 - **Kategoriat** `CATS`-vakiossa. Uusi kategoria: `CATS` + `PRIMARY` (tai `GRID`) + etusivun kortti (`data-cat`, laskuri `cnt_<kategoria>`)

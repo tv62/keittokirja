@@ -49,6 +49,7 @@
   h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; margin: 0; font-weight: 600; }
   h1 button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; text-align: left; white-space: nowrap; }
   header h1 { flex: none; }
+  h1 .logo { height: 1.15em; width: auto; vertical-align: -0.18em; margin-right: .35em; }
   header > div { flex: 1; min-width: 0; }
   header .link { white-space: nowrap; padding: 4px 6px; }
   .item .side { flex: 0 1 auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px; max-width: 50%; min-width: 0; }
@@ -222,7 +223,7 @@
 <body>
 <div class="wrap">
   <header>
-    <h1><button id="titleBtn" type="button" aria-label="Keittokirja – etusivulle">🍲 Keittokirja</button></h1>
+    <h1><button id="titleBtn" type="button" aria-label="Keittokirja – etusivulle"><img class="logo" src="pata.svg" alt="" width="58" height="32">Keittokirja</button></h1>
     <div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end">
       <button id="adminBtn" class="link hidden">⚙️ Hallinta</button>
       <button id="logoutBtn" class="link hidden">Kirjaudu ulos</button>
