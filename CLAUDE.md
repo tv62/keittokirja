@@ -30,8 +30,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
-  - Reseptikuvat aina neliöitä ja värillisiä. Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
-    alkukirjain). Puhelimessa kuva reseptin lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä.
+  - Resepti- ja viinikuvat aina neliöitä ja värillisiä. Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
+    alkukirjain). Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä.
     (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
 - **Reseptilähteet:**
   - Apple Muistiinpanot: vienti Pikakomennoilla (Etsi muistiinpanot → Yhdistä teksti, erotin `=====` → Tallenna tiedosto)
@@ -67,7 +67,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
 - Headless-Chromium ei anna Wake Lockia, joten kokkaustila näyttää siinä "ei pysty pitämään näyttöä päällä".
 - Kuvat: stubiin `storage.from(b).upload/createSignedUrls/remove` (upload → `URL.createObjectURL(blob)`).
-  Kuvan valinta `page.set_input_files("#f_file", polku)`. Ennen rajauksen raahausta `scroll_into_view_if_needed()`,
+  Kuvan valinta `page.set_input_files("#f_file" / "#w_file", polku)`, tila `recipePic.state` / `winePic.state`. Ennen rajauksen raahausta `scroll_into_view_if_needed()`,
   muuten hiiri osuu näkymän ulkopuolelle. Kuvien koon voi tarkistaa `createImageBitmap`-funktiolla.
 - Google Fonts ei lataudu testiympäristössä (verkkoesto); ne virheet voi ohittaa.
 
@@ -121,15 +121,18 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     palaa näkyviin) ja aineksen tai vaiheen voi napauttaa tehdyksi (yliviivaus). Ensimmäinen tekemätön vaihe korostetaan.
   - Annosmäärä ja kokkaustilan rastit säilyvät muistissa (`cook`-Map) reseptikohtaisesti, kunnes sivu ladataan
     uudelleen, kokkaus lopetetaan tai resepti tallennetaan.
-- **Reseptikuva** (`imgUrl(r, small)`, `rimg-top` / `rimg-end`): sama kuva renderöidään kahteen kohtaan, ja CSS näyttää
-  alle 600 px leveällä lopussa, muuten ylhäällä (max 440 px). Listan pikkukuva `.thumb` 60 px, ilman kuvaa `.thumb.ph`
-  (alkukirjain). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
-- **Kuvan lisäys lomakkeessa:** "📷 Lisää kuva" (`<label for="f_file">`, `accept="image/*"` → iPhonessa kamera tai
-  kuvakirjasto). Neliörajaus canvasilla: siirto sormella, suurennus liukusäätimellä (1–3×) tai kahdella sormella,
-  oletuksena keskeltä. Tallennettaessa `uploadCropped()`: 1200×1200 JPEG (laatu 0,85, n. 350 kt) ja 240×240
-  pikkukuva (n. 16 kt), pienennys vaiheittain. Vaihto/poisto poistaa vanhat tiedostot vasta onnistuneen tallennuksen
-  jälkeen, ja epäonnistunut tallennus poistaa juuri ladatut. Reseptin poisto poistaa myös kuvat.
-  Tila `imgState.kind`: `none` / `keep` / `new` / `removed` (Peru palauttaa edellisen). Kuvan valinta tekee lomakkeesta muutetun.
+- **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi)` (listan pikkukuva `.thumb` 60 px tai
+  alkukirjain `.thumb.ph`, rivillä luokka `.item.withpic`) ja `bigPic(item, alt, "rimg-top"|"rimg-end")`. Iso kuva
+  renderöidään kahteen kohtaan, ja CSS näyttää alle 600 px leveällä sivun lopussa (ennen nappeja), muuten ylhäällä
+  (max 440 px). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
+- **Kuvan lisäys lomakkeessa:** yhteinen `imagePicker(p)` (`recipePic` = "f", `winePic` = "w"; elementit
+  `<p>_imgprev, _cropwrap, _crop, _zoom, _imgnote, _imgpick, _imgundo, _imgdel, _file`). "📷 Lisää kuva" on
+  `<label for="<p>_file">`, `accept="image/*"` → iPhonessa kamera tai kuvakirjasto. Neliörajaus canvasilla: siirto
+  sormella, suurennus liukusäätimellä (1–3×) tai kahdella sormella, oletuksena keskeltä. `pic.upload(kansio)`:
+  1200×1200 JPEG (laatu 0,85, n. 350 kt) ja 240×240 pikkukuva (n. 16 kt), pienennys vaiheittain.
+  Tallennus: `applyPic()` ennen rivin tallennusta, `finishPic()` sen jälkeen (vanha kuva poistetaan vasta onnistuneen
+  tallennuksen jälkeen; epäonnistunut tallennus poistaa juuri ladatut). Rivin poisto poistaa myös kuvat.
+  Tila `pic.kind`: `none` / `keep` / `new` / `removed` (Peru palauttaa edellisen). Kuvan valinta tekee lomakkeesta muutetun.
 - **Reseptilomake:** tagit valitaan napautettavista chipeistä (`editTags`). Valitun kategorian päärajaukset ensin,
   sitten muut käytössä olevat tagit aakkosjärjestyksessä. Uuden tagin voi kirjoittaa (pilkulla useita) ja lisätä
   "Lisää"-napilla tai Enterillä. Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
@@ -144,7 +147,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   (`…/muokkaa`, `#/uusi-resepti`, `#/uusi-viini`) ohjautuvat etusivulle. Annosmäärä ja kokkaustila toimivat kaikille.
   Tietokanta estää muokkauksen joka tapauksessa (RLS), käyttöliittymä vain siistii näkymän.
 - **Menut:** menukortti- ja viinilistasivut välilehtinä, alla menun reseptit.
-- **Viinit:** lista (haku, tyyppirajaus, omat tähdet), viinin sivu (Muokkaa), lomake (tähtivalitsin 1–5, Poista alaosassa).
+- **Viinit:** lista (pikkukuva, haku, tyyppirajaus, omat tähdet), viinin sivu (kuva, Muokkaa), lomake (kuva,
+  tähtivalitsin 1–5, Poista alaosassa).
 - Napautettavat chipit ovat vähintään 44 px korkeita (sormelle sopiva koko).
 - Käyttäjän syöte escapetaan aina `esc()`-funktiolla ennen `innerHTML`:ää. URLit `safeUrl()`-funktiolla.
 
@@ -158,7 +162,7 @@ Kaikissa julkisissa tauluissa on RLS. Säännöt `to authenticated`:
 
 **Storage:** yksityinen bucket `recipe-images` (vain `image/jpeg`, max 5 Mt). `storage.objects`-säännöt samalla
 mallilla: select `is_family()`, insert/update/delete `can_edit()` (ehtona `bucket_id = 'recipe-images'`).
-Tiedostot `<uuid>.jpg` (1200×1200) ja `<uuid>-pk.jpg` (240×240). Sivu hakee allekirjoitetut osoitteet
+Reseptit `<uuid>.jpg` (1200×1200) ja `<uuid>-pk.jpg` (240×240), viinit samoin kansiossa `viinit/`. Sivu hakee allekirjoitetut osoitteet
 (`createSignedUrls`, voimassa 7 vrk) kaikille kuville kerralla `loadAll()`:ssa (`signImages()`).
 Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuville.
 
@@ -167,7 +171,7 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 | `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_path (Storage-polku, esim. `<uuid>.jpg`), image_url (vanha ulkoinen osoite, ei enää lomakkeessa), notes, created_by, created_at, updated_at |
 | `menus` | id, name (uniikki, = reseptien `menu:`-tagin nimi), subtitle, description, sort |
 | `menu_pages` | id, menu_id, kind (`menu`/`viinilista`/`muu`), title, html, width, height, sort |
-| `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_url |
+| `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa) |
 
 Yksityinen skeema `private` (ei API:ssa):
 - `family_members(email, is_admin, can_edit, added_at)` – pääsylista. Vain listalla olevat sähköpostit näkevät datan.
@@ -236,8 +240,6 @@ Nykyiset menut: **Lapponia alla piemontese** (menukortti + viinilista, 3 resepti
 ## Tunnetut asiat ja ideat
 
 - "Leaked password protection" ei ole päällä (saattaa vaatia maksullisen Supabase-tason).
-- Viinien kuvat ovat yhä URL-osoitteita (lomakkeen "Kuvan osoite"). Reseptien kuvanlisäyksen voi tarvittaessa
-  laajentaa viineihin samalla mallilla.
 - Ehdotettuja, ei vielä tehty (ulkoasu): ainesten väliotsikot ("Kastike:") otsikoiksi; "Hallinta" ja
   "Kirjaudu ulos" vievät iPhonella kaksi riviä (uloskirjautuminen Hallinta-sivulle?); iPadilla vaakatasossa
   ainekset ja ohje rinnakkain; ohjeen vaiheisiin isommat numerot; oma Koti-valikon kuvake (apple-touch-icon).
