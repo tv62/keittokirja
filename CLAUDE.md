@@ -13,6 +13,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Data ja kirjautuminen:** Supabase-projekti `keittokirja`, ref `uzeaweqwthoofbmodutf`, alue eu-north-1, ilmaistaso.
 - **Kirjasto:** `@supabase/supabase-js@2.45.4` (UMD, jsDelivr). Sivulla vain julkinen publishable-avain.
 - `.nojekyll` pitää GitHub Pagesin julkaisemassa tiedostot sellaisenaan. Älä poista.
+- **Kuvake** (valittu 11/2026, vaihtoehto E: punainen valurautapata sivulta valkoisella pohjalla, oma piirros, ei
+  tuotemerkkiä): lähde `kuvake.svg` → `apple-touch-icon.png` (180, kotivalikko), `icon-192.png`, `favicon-32.png`.
+  Uudelleen: `rsvg-convert -w 1024 -h 1024 kuvake.svg -o k.png` ja pienennys PIL:llä (LANCZOS). Läpinäkymätön, ei pyöristystä
+  (iOS pyöristää). Jo tallennettu kotivalikon pikakuvake ei päivity: poista ja lisää uudelleen Safarin Jaa-valikosta.
 - Käyttäjä käyttää enimmäkseen iPadia ja iPhonea (Safari). Suunnittele mobiili edellä.
 
 ## Käyttäjä ja tehdyt päätökset
@@ -318,6 +322,6 @@ Supabase ei varmuuskopioi ilmaistason projektia, ja tietokannan varmuuskopio ei 
 - "Leaked password protection" ei ole päällä (saattaa vaatia maksullisen Supabase-tason).
 - Ehdotettuja, ei vielä tehty (ulkoasu): ainesten väliotsikot ("Kastike:") otsikoiksi; "Hallinta" ja
   "Kirjaudu ulos" vievät iPhonella kaksi riviä (uloskirjautuminen Hallinta-sivulle?); iPadilla vaakatasossa
-  ainekset ja ohje rinnakkain; ohjeen vaiheisiin isommat numerot; oma Koti-valikon kuvake (apple-touch-icon).
+  ainekset ja ohje rinnakkain; ohjeen vaiheisiin isommat numerot.
 - Myöhemmin ehkä: toimii ilman verkkoa (service worker), ostoslista Muistutuksiin, ajastin ohjeen aikoihin,
   viinien ja reseptien yhdistäminen ruokapareiksi.
