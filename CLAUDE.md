@@ -186,6 +186,7 @@ RPC-funktiot (public, security definer):
   `admin_set_editor(p_email, p_can_edit)`, `admin_remove_member(p_email)` (ei omaa),
   `admin_set_admin(p_email, p_admin)` (ei omia oikeuksia pois; adminiksi tehty saa `can_edit = true`, joka jää voimaan
   admin-oikeuden poistuessa).
+- `backup_family_members()` – pääsylista varmuuskopiota varten. Vain `service_role` (salainen avain) voi kutsua.
 - Advisorin varoitus "authenticated security definer function executable" näistä on tarkoituksellinen.
 - RLS-testaus SQL:llä: `do $$ … insert testijäsen; set_config('request.jwt.claims', …); set local role authenticated;
   … raise exception 'TULOS …' $$` – lopun virhe peruu kaiken, ja tulos näkyy virheviestissä.
@@ -236,6 +237,26 @@ Nykyiset menut: **Lapponia alla piemontese** (menukortti + viinilista, 3 resepti
 - Jos repoon ei tule committeja 45 päivään, workflow päivittää `.github/heratys.txt`-tiedoston, koska GitHub
   poistaa ajastukset käytöstä julkisissa repoissa 60 päivän hiljaisuuden jälkeen.
 - Jos projekti on silti pausella: Supabasen hallintapaneeli → "Resume project". Data säilyy.
+
+## Varmuuskopiot
+
+Supabase ei varmuuskopioi ilmaistason projektia, ja tietokannan varmuuskopio ei sisältäisi Storagen kuvia.
+
+- **Automaattinen:** yksityinen repo `tv62/keittokirja-varmuuskopio` (EI julkinen, sisältää perheen datan).
+  GitHub Actions (`.github/workflows/varmuuskopio.yml`) ajaa `varmuuskopioi.py`:n sunnuntaisin 01.37 UTC, käsin
+  (Actions → Varmuuskopio → Run workflow) ja aina kun ohjelma tai workflow muuttuu.
+  - Hakee REST-rajapinnasta taulut `recipes`, `wines`, `menus`, `menu_pages` (→ `data/<taulu>.json`), RPC:llä
+    `backup_family_members()` (→ `data/family_members.json`) ja bucketin `recipe-images` kuvat (→ `kuvat/`, vain uudet;
+    poistetut poistetaan, historia säilyttää). Lisäksi `viimeisin.txt`, jolloin jokainen ajo on oma committinsa.
+  - Avain: repon salaisuus `SUPABASE_SECRET_KEY` (Supabasen salainen avain nimeltä "varmuuskopio", `sb_secret_…`).
+    Lähetetään vain `apikey`-otsakkeessa. Ohjelma keskeyttää, jos avain ei ole salainen tai tulos olisi tyhjä.
+  - Jos lisäät uuden taulun, lisää se `TABLES`-listaan `varmuuskopioi.py`:ssä.
+  - Ajon tilan näkee: `gh run list -R tv62/keittokirja-varmuuskopio`. Repo pitää liittää sessioon (`add_repo`).
+- **Pyynnöstä ("tee varmuuskopio"):** hae rivit `execute_sql`:llä (`row_to_json(x)::text`) ja per rivi `md5`,
+  kirjoita tiedostoon ja tarkista md5:t (kopiointivirheiden varalta), kokoa JSON + luettava HTML ja lähetä käyttäjälle.
+  Kuvia ei saa tällä tavalla mukaan. Helpompi: lue tuorein tila suoraan varmuuskopioreposta.
+- **Palautus:** rivit ovat JSON-muodossa sellaisinaan → `insert … on conflict (id) do update` (`execute_sql`, dollar-quoting).
+  Kuvat palautetaan bucketiin samoille poluille (vaatii salaisen avaimen tai käyttäjän lataamaan sivun kautta).
 
 ## Tunnetut asiat ja ideat
 
