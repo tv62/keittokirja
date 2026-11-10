@@ -50,8 +50,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Muistiinpanojen kansiot: Keitot ja Kastikkeet → `arkiruoka` (+ `keitto` / `kastike`), Perjantaiherkut → `viikonloppuherkut`.
   Tyhjinä jätettiin pois: Hummus leivän päälle, Sitruunainen kantarellispagetti, Valkosipulimarinoidut
   lampaankyljykset, Nopea linssibolognese. Wokkikastikkeesta puuttuu ohje (vain ainekset).
-- Vauvan ruoat: ei vielä omia reseptejä. 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`).
-  Päärajauksena vain Top-lista; muut (esim. ikä) sovitaan käyttäjän kanssa.
+- Vauvan ruoat: ei vielä reseptejä. Päärajauksena vain Top-lista; muut (esim. ikä) sovitaan käyttäjän kanssa.
+  (Arkiruokien ristiinmerkintä vauvalle kokeiltiin ja poistettiin 11/2026, ks. tagisäännöt.)
 - Seuraavaksi todennäköisesti: puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
@@ -155,7 +155,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   Tila `pic.kind`: `none` / `keep` / `new` / `removed` (Peru palauttaa edellisen). Kuvan valinta tekee lomakkeesta muutetun.
 - **Reseptilomake:** tagit valitaan napautettavista chipeistä (`editTags`). Valitun kategorian päärajaukset ensin,
   sitten muut käytössä olevat tagit aakkosjärjestyksessä. Uuden tagin voi kirjoittaa (pilkulla useita) ja lisätä
-  "Lisää"-napilla tai Enterillä. Ruudut ⭐ Top-listalla (`f_top`) ja 🍼 Näytä myös vauvan ruoissa (`f_baby`). Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
+  "Lisää"-napilla tai Enterillä. Ruutu ⭐ Top-listalla (`f_top`). Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
 - **Tallentamattomat muutokset:** resepti- ja viinilomake ottavat avattaessa tilannekuvan (`editSnap`, `wineSnap`).
   Peruuta, takaisin-pyyhkäisy ja muut siirtymät kysyvät "Hylätäänkö tallentamattomat muutokset?", jos lomaketta on muutettu.
 - **Hallinta** (vain admin): perheen pääsylista RPC-funktioiden kautta. Jokaisella rivillä oikeusmerkki
@@ -217,11 +217,11 @@ Redirect URL = sivun osoite.
 ## Tagisäännöt (recipes.tags)
 
 - **Kategoria (yksi):** `arkiruoka`, `viikonloppuherkut` tai `vauvanruoat`
-- **Myös vauvalle:** `vauvanruoat` voi olla toisena kategoriana pääkategorian lisäksi. Resepti näkyy molemmissa listoissa;
-  `catOf()` palauttaa ensimmäisen `CATS`-järjestyksessä, joten pääkategoria voittaa (takaisin-nappi, lomake). Lomakkeessa ruutu
-  "🍼 Näytä myös vauvan ruoissa" (`f_baby`, piilossa jos kategoria on jo vauvan ruoat), reseptisivulla merkki "🍼 Sopii vauvalle".
-  Alle 1-vuotiaalle EI: hunaja, pinaatti, punajuuri, nokkonen, chili, alkoholi, makkarat/pekoni/kinkku, feta/oliivit/kaprikset/soija.
-  Merkittyjen `notes`-kenttään rivi "🍼 Vauvalle (alle 1 v): jätä suola ja liemikuutio pois …".
+- **Vauvan ruoat ovat aina omia reseptejään** (käyttäjän päätös 11/2026): kategoria `vauvanruoat`, tehdään erikseen.
+  Muiden kategorioiden reseptejä EI merkitä vauvalle eikä niihin lisätä vauvaohjeita. (Broileri-linssikastikkeen
+  alkuperäisessä ohjeessa oleva vaihe "Ota alle vuoden ikäisen lapsen kastikeannos sivuun" on käyttäjän omaa tekstiä.)
+  Vauvaresepteissä alle 1-vuotiaalle EI: suola, liemikuutiot, hunaja, pinaatti, punajuuri, nokkonen, chili, alkoholi,
+  makkarat/pekoni/kinkku, feta/oliivit/kaprikset/soija.
 - **Top-lista:** `top`
 - **Menu:** `menu:<Menun nimi>` (iso alkukirjain säilyy, sama kuin `menus.name`)
 - **Päärajaukset:** arki = valintasivun ryhmät (`GRID`): `top`, `kana`, Liha = `nauta`|`lammas`, `poro`, Kala = `kala`|`katkarapu`,
