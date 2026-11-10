@@ -75,7 +75,8 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
   .chip {
     background: var(--chip); border: 1px solid transparent; border-radius: 999px;
-    padding: 4px 11px; font-size: .85rem; cursor: pointer; color: var(--ink);
+    padding: 4px 13px; font-size: .88rem; cursor: pointer; color: var(--ink);
+    min-height: 44px; display: inline-flex; align-items: center;
   }
   .chip.on { background: var(--accent); color: var(--accent-ink); }
   .list { display: grid; gap: 10px; }
@@ -143,6 +144,32 @@
   .badge.warn { background: var(--accent); color: var(--accent-ink); }
   .urow .actions { margin-top: 10px; }
   .urow .actions button { padding: 7px 12px; font-size: .9rem; }
+  /* Etusivun haku */
+  .home-search { margin: 0 0 14px; }
+  #homeResults h3:first-child { margin-top: 4px; }
+  /* Annosmäärä ja kokkaustila */
+  .cookbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 16px 0 0; }
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+  .stepper button { border: none; background: none; border-radius: 12px; min-width: 46px; min-height: 44px; padding: 0 12px; font-size: 1.35rem; line-height: 1; color: var(--accent); }
+  .stepper button:disabled { color: var(--line); opacity: 1; }
+  .stepper .val { min-width: 96px; text-align: center; font-size: .95rem; }
+  .stepper .val.changed { color: var(--accent); font-weight: 600; }
+  button.cook { min-height: 44px; }
+  button.cook.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  .cookhint { font-size: .88rem; color: var(--muted); margin: 8px 0 0; }
+  .scalenote { font-size: .88rem; color: var(--muted); margin: 10px 0 0; }
+  .scalenote button { padding: 2px 4px; font-size: .88rem; color: var(--accent); text-decoration: underline; }
+  b.sc { color: var(--accent); }
+  .cooking ul.ing li[data-ing], .cooking ol.steps li { cursor: pointer; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+  .cooking ul.ing li { margin: 0; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .cooking ul.ing li:last-child { border-bottom: none; }
+  .cooking ol.steps li { margin: 4px 0; padding: 10px 12px; border-radius: 10px; }
+  .cooking ol.steps li.cur { background: var(--chip); }
+  li.done { text-decoration: line-through; color: var(--muted); }
+  li.done b.sc { color: inherit; }
+  /* Lomakkeet */
+  .tagpick { margin: 0 0 8px; }
+  .danger-zone { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); }
 </style>
 </head>
 <body>
@@ -154,6 +181,11 @@
       <button id="logoutBtn" class="link hidden">Kirjaudu ulos</button>
     </div>
   </header>
+
+  <!-- Ladataan -->
+  <section id="loadView" class="hidden">
+    <p class="muted center">Ladataan…</p>
+  </section>
 
   <!-- Kirjautuminen -->
   <section id="authView" class="card hidden">
@@ -175,32 +207,38 @@
   <!-- Etusivu -->
   <section id="homeView" class="hidden">
     <div id="homeMsg" class="msg hidden"></div>
-    <div class="home">
-      <button class="cat card" data-cat="arkiruoka">
-        <span class="e">🥘</span><span>Arkiruoka<span class="s" id="cnt_arkiruoka"></span></span>
-      </button>
-      <button class="cat card" data-cat="viikonloppuherkut">
-        <span class="e">🥂</span><span>Viikonloppuherkut<span class="s" id="cnt_viikonloppuherkut"></span></span>
-      </button>
-      <button class="cat card" data-nav="menus">
-        <span class="e">📜</span><span>Menut<span class="s" id="cnt_menus"></span></span>
-      </button>
-      <button class="cat card" data-nav="wines">
-        <span class="e">🍷</span><span>Viinit<span class="s" id="cnt_wines"></span></span>
-      </button>
+    <div class="home-search">
+      <input id="hq" type="search" placeholder="Hae reseptejä, aineksia, viinejä…" autocomplete="off" enterkeyhint="search" aria-label="Hae koko keittokirjasta">
     </div>
-    <div class="actions" style="justify-content:space-between;align-items:center">
-      <button class="link" data-cat="">Kaikki reseptit →</button>
-      <button class="primary" id="newHomeBtn">+ Uusi resepti</button>
+    <div id="homeResults" class="hidden"></div>
+    <div id="homeMain">
+      <div class="home">
+        <button class="cat card" data-cat="arkiruoka">
+          <span class="e">🥘</span><span>Arkiruoka<span class="s" id="cnt_arkiruoka"></span></span>
+        </button>
+        <button class="cat card" data-cat="viikonloppuherkut">
+          <span class="e">🥂</span><span>Viikonloppuherkut<span class="s" id="cnt_viikonloppuherkut"></span></span>
+        </button>
+        <button class="cat card" data-nav="menus">
+          <span class="e">📜</span><span>Menut<span class="s" id="cnt_menus"></span></span>
+        </button>
+        <button class="cat card" data-nav="wines">
+          <span class="e">🍷</span><span>Viinit<span class="s" id="cnt_wines"></span></span>
+        </button>
+      </div>
+      <div class="actions" style="justify-content:space-between;align-items:center">
+        <button class="link" data-cat="">Kaikki reseptit →</button>
+        <button class="primary" id="newHomeBtn">+ Uusi resepti</button>
+      </div>
     </div>
   </section>
 
   <!-- Lista -->
   <section id="listView" class="hidden">
-    <button class="link" id="homeBtn">← Etusivu</button>
+    <button class="link" data-home="1">← Etusivu</button>
     <h2 id="listTitle" style="margin:6px 0 14px">Kaikki reseptit</h2>
     <div class="search">
-      <input id="q" type="search" placeholder="Hae nimellä tai aineksella…" autocomplete="off">
+      <input id="q" type="search" placeholder="Hae nimellä tai aineksella…" autocomplete="off" enterkeyhint="search">
       <button class="primary" id="newBtn">+ Uusi</button>
     </div>
     <div class="chips primary" id="primaryChips"></div>
@@ -225,7 +263,7 @@
       <label for="f_category">Kategoria</label>
       <select id="f_category">
         <option value="arkiruoka">🥘 Arkiruoka</option>
-        <option value="viikonloppuherkut">🍷 Viikonloppuherkut</option>
+        <option value="viikonloppuherkut">🥂 Viikonloppuherkut</option>
         <option value="">Ei kategoriaa</option>
       </select>
       <label for="f_menu">Menu (valinnainen)</label>
@@ -244,8 +282,12 @@
       <textarea id="f_ingredients" placeholder="2 dl kermaa&#10;1 sipuli"></textarea>
       <label for="f_instructions">Ohje (yksi vaihe per rivi)</label>
       <textarea id="f_instructions" placeholder="Kuullota sipuli voissa.&#10;Lisää kerma ja keitä hiljalleen."></textarea>
-      <label for="f_tags">Tagit (pilkulla erotettuna)</label>
-      <input id="f_tags" placeholder="arkiruoka, kasvis">
+      <label>Tagit <span style="font-size:.85rem">(napauta valitaksesi)</span></label>
+      <div class="chips tagpick" id="f_tagpick" role="group" aria-label="Tagit"></div>
+      <div class="search" style="margin:0">
+        <input id="f_newtag" placeholder="Uusi tagi, esim. kala" autocomplete="off" autocapitalize="none" enterkeyhint="done" aria-label="Uusi tagi">
+        <button type="button" id="f_addtag">Lisää</button>
+      </div>
       <label for="f_source">Lähde (linkki tai kuka antoi)</label>
       <input id="f_source">
       <label for="f_image">Kuvan osoite</label>
@@ -256,6 +298,9 @@
         <button class="primary" type="submit" id="saveBtn">Tallenna</button>
       </div>
       <div id="editMsg" class="msg err hidden"></div>
+      <div id="delWrap" class="danger-zone hidden">
+        <button type="button" class="danger" id="delBtn">Poista resepti</button>
+      </div>
     </form>
   </section>
 
@@ -281,7 +326,7 @@
     <button class="link" data-home="1">← Etusivu</button>
     <h2 style="margin:6px 0 14px">Viinit</h2>
     <div class="search">
-      <input id="wq" type="search" placeholder="Hae viiniä, tuottajaa, rypälettä…" autocomplete="off">
+      <input id="wq" type="search" placeholder="Hae viiniä, tuottajaa, rypälettä…" autocomplete="off" enterkeyhint="search">
       <button class="primary" id="newWineBtn">+ Uusi</button>
     </div>
     <div class="chips primary" id="wineChips"></div>
@@ -349,6 +394,9 @@
       <input id="w_image" type="url" placeholder="https://…">
       <div class="actions"><button class="primary" type="submit" id="wineSaveBtn">Tallenna</button></div>
       <div id="wineEditMsg" class="msg err hidden"></div>
+      <div id="wDelWrap" class="danger-zone hidden">
+        <button type="button" class="danger" id="wDelBtn">Poista viini</button>
+      </div>
     </form>
   </section>
 
@@ -391,26 +439,45 @@
   const isMeta = (t) => !!CATS[t] || t === "top" || t.startsWith("menu:");
   const menuOf = (r) => { const t = (r.tags || []).find((x) => x.startsWith("menu:")); return t ? t.slice(5) : null; };
   const plainTags = (r) => (r.tags || []).filter((t) => !isMeta(t));
+  const catOf = (r) => Object.keys(CATS).find((c) => (r.tags || []).includes(c)) || "";
   let activePrimary = null;
   let showTags = false;
   let recipes = [];
+  let menus = [];
+  let wines = [];
   let currentCat = null;
-  let returnView = "listView";
   let isAdmin = false;
   let myEmail = "";
   let activeTag = null;
   let editingId = null;
   let signupMode = false;
+  let ready = false;       // data ladattu ja reititys käytössä
+  let loading = false;
+  let currentView = null;
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const safeUrl = (u) => { try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : null; } catch { return null; } };
   const lines = (s) => s.split("\n").map((l) => l.trim()).filter(Boolean);
   const asText = (v) => (typeof v === "string" ? v : v && (v.text || [v.amount, v.unit, v.name].filter(Boolean).join(" ")));
+  const enc = encodeURIComponent;
 
+  // Haku: jokaisen hakusanan pitää löytyä (esim. "kana pasta").
+  const words = (q) => q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = (fields, ws) => {
+    if (!ws.length) return true;
+    const hay = fields.filter((x) => x != null).join(" ").toLowerCase();
+    return ws.every((w) => hay.includes(w));
+  };
+  const recipeHay = (r) => [r.title, r.description, menuOf(r), ...(r.ingredients || []).map(asText), ...plainTags(r)];
+  const wineHay = (w) => [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.occasion, w.own_notes, w.description];
+  const menuHay = (m) => [m.name, m.subtitle, m.description];
+
+  const VIEWS = ["loadView", "authView", "homeView", "listView", "detailView", "editView", "adminView",
+                 "menusView", "menuView", "winesView", "wineView", "wineEditView"];
   function show(view) {
-    for (const v of ["authView", "homeView", "listView", "detailView", "editView", "adminView",
-                     "menusView", "menuView", "winesView", "wineView", "wineEditView"]) $(v).classList.toggle("hidden", v !== view);
+    for (const v of VIEWS) $(v).classList.toggle("hidden", v !== view);
+    currentView = view;
     $("logoutBtn").classList.toggle("hidden", view === "authView");
     $("adminBtn").classList.toggle("hidden", view === "authView" || view === "adminView" || !isAdmin);
     window.scrollTo(0, 0);
@@ -419,6 +486,96 @@
     el.textContent = text || "";
     el.classList.toggle("hidden", !text);
     el.classList.toggle("err", !!isErr);
+  }
+
+  // ---------- Osoitteet (reititys) ----------
+  // Jokaisella näkymällä on oma #/-osoite. Näin selaimen takaisin-ele ja sivun päivitys toimivat,
+  // ja reseptin voi jakaa linkkinä. Supabasen omat "#access_token=…"-osoitteet eivät ala "#/".
+  // history.state = { d: monesko sovelluksen sisäinen siirtymä, y: vierityskohta }
+  try { history.scrollRestoration = "manual"; } catch {}
+  if (!history.state) history.replaceState({ d: 0 }, "");
+  let lastHash = location.hash, lastState = history.state;
+  const depth = () => (history.state && history.state.d) || 0;
+
+  function go(hash, opts = {}) {
+    if (!opts.force && !leaveOk()) return false;
+    if (opts.replace) history.replaceState({ d: depth() }, "", hash);
+    else {
+      const d = depth();
+      history.replaceState({ ...(history.state || {}), y: window.scrollY }, "");
+      history.pushState({ d: d + 1 }, "", hash);
+    }
+    route();
+    return true;
+  }
+  // Takaisin edelliseen näkymään. Jos sivu avattiin suoraan linkistä, mennään loogiseen yläsivuun.
+  function back(fallback) {
+    if (!leaveOk()) return;
+    if (depth() > 0) history.back();
+    else go(fallback, { replace: true, force: true });
+  }
+  // Poiston jälkeen: ohitetaan sekä poistettu sivu että lomake.
+  function leaveDeleted(fallback) {
+    markClean();
+    if (depth() >= 2) history.go(-2);
+    else go(fallback, { replace: true, force: true });
+  }
+
+  window.addEventListener("popstate", () => {
+    if (formDirty() && !confirm("Hylätäänkö tallentamattomat muutokset?")) {
+      history.pushState(lastState, "", lastHash); // takaisin lomakkeeseen
+      return;
+    }
+    markClean();
+    route(true);
+  });
+  window.addEventListener("beforeunload", (e) => { if (formDirty()) { e.preventDefault(); e.returnValue = ""; } });
+
+  function route(isPop) {
+    if (!ready) return;
+    let parts = [];
+    if (location.hash.startsWith("#/")) {
+      try { parts = location.hash.slice(2).split("/").filter(Boolean).map(decodeURIComponent); } catch { parts = []; }
+    }
+    if (!renderRoute(...parts)) { history.replaceState({ d: depth() }, "", "#/"); renderRoute(); }
+    if (currentView !== "detailView") unlockScreen();
+    lastHash = location.hash; lastState = history.state;
+    if (isPop) { const y = (history.state && history.state.y) || 0; requestAnimationFrame(() => window.scrollTo(0, y)); }
+  }
+  function renderRoute(a, b, c) {
+    switch (a) {
+      case undefined: openHome(); return true;
+      case "reseptit": if (b && !CATS[b]) return false; openCategory(b || null); return true;
+      case "resepti": {
+        const r = recipes.find((x) => x.id === b); if (!r) return false;
+        c === "muokkaa" ? openEditor(r) : openRecipe(r); return true;
+      }
+      case "uusi-resepti": openEditor(null, CATS[b] ? b : null); return true;
+      case "menut":
+        if (!b) { openMenus(); return true; }
+        if (!allMenus().some((m) => m.name === b)) return false;
+        openMenu(b); return true;
+      case "viinit": {
+        if (!b) { openWines(); return true; }
+        const w = wines.find((x) => x.id === b); if (!w) return false;
+        c === "muokkaa" ? openWineEditor(w) : openWine(w); return true;
+      }
+      case "uusi-viini": openWineEditor(null); return true;
+      case "hallinta": if (!isAdmin) return false; msg($("adminMsg"), ""); loadUsers(); return true;
+      default: return false;
+    }
+  }
+
+  // ---------- Tallentamattomat muutokset ----------
+  let editSnap = null, wineSnap = null;
+  const formDirty = () =>
+    (currentView === "editView" && editSnap !== null && recipeFormState() !== editSnap) ||
+    (currentView === "wineEditView" && wineSnap !== null && wineFormState() !== wineSnap);
+  const markClean = () => { editSnap = null; wineSnap = null; };
+  function leaveOk() {
+    if (formDirty() && !confirm("Hylätäänkö tallentamattomat muutokset?")) return false;
+    markClean();
+    return true;
   }
 
   // ---------- Kirjautuminen ----------
@@ -466,18 +623,39 @@
     // setTimeout: Supabase-kutsuja ei pidä tehdä suoraan tämän callbackin sisällä
     if (session) {
       myEmail = (session.user?.email || "").toLowerCase();
-      if (!recipes.length) setTimeout(() => { loadRecipes(); checkAdmin(); }, 0);
-    } else { recipes = []; isAdmin = false; myEmail = ""; show("authView"); }
+      if (!ready && !loading) setTimeout(loadAll, 0);
+    } else {
+      ready = false; recipes = []; menus = []; wines = []; isAdmin = false; myEmail = "";
+      markClean(); unlockScreen(); show("authView");
+    }
   });
 
-  // ---------- Käyttäjien hallinta ----------
-  async function checkAdmin() {
-    const { data } = await sb.rpc("am_i_admin");
-    isAdmin = data === true;
-    const hide = !isAdmin || !$("authView").classList.contains("hidden") || !$("adminView").classList.contains("hidden");
-    $("adminBtn").classList.toggle("hidden", hide);
+  async function loadAll() {
+    loading = true;
+    show("loadView");
+    const [r, m, w, a] = await Promise.all([
+      sb.from("recipes").select("*").order("title"),
+      sb.from("menus").select("id,name,subtitle,description,sort").order("sort").order("name"),
+      wineQuery(),
+      sb.rpc("am_i_admin"),
+    ]);
+    loading = false;
+    if (r.error) {
+      show("homeView");
+      msg($("homeMsg"), "Reseptien lataus epäonnistui: " + r.error.message, true);
+      return;
+    }
+    recipes = r.data;
+    if (!m.error) menus = m.data;
+    if (!w.error) wines = w.data;
+    isAdmin = a.data === true;
+    ready = true;
+    msg($("homeMsg"), recipes.length ? "" :
+      "Ei reseptejä vielä. Jos tunnuksesi on uusi, pyydä että sähköpostisi lisätään perheen listalle.");
+    route();
   }
 
+  // ---------- Käyttäjien hallinta ----------
   async function loadUsers() {
     show("adminView");
     $("userList").innerHTML = `<p class="muted">Ladataan…</p>`;
@@ -512,8 +690,8 @@
     loadUsers();
   }
 
-  $("adminBtn").onclick = () => { msg($("adminMsg"), ""); loadUsers(); };
-  $("adminBackBtn").onclick = () => { renderHome(); show("homeView"); };
+  $("adminBtn").onclick = () => go("#/hallinta");
+  $("adminBackBtn").onclick = () => back("#/");
 
   $("addUserForm").onsubmit = async (e) => {
     e.preventDefault();
@@ -535,21 +713,6 @@
       adminCall("admin_remove_member", { p_email: email }, `${email} poistettu listalta.`);
   };
 
-  // ---------- Lista ----------
-  async function loadRecipes(view) {
-    view = view === "listView" ? "listView" : "homeView";
-    show(view);
-    msg($("homeMsg"), "Ladataan…");
-    const { data, error } = await sb.from("recipes").select("*").order("title");
-    if (error) { show("homeView"); msg($("homeMsg"), "Reseptien lataus epäonnistui: " + error.message, true); return; }
-    recipes = data;
-    msg($("homeMsg"), recipes.length ? "" :
-      "Ei reseptejä vielä. Jos tunnuksesi on uusi, pyydä että sähköpostisi lisätään perheen listalle.");
-    renderHome();
-    if (view === "listView") renderList();
-    loadExtras();
-  }
-
   // ---------- Etusivu ----------
   function renderHome() {
     for (const c of Object.keys(CATS)) {
@@ -560,35 +723,65 @@
     $("cnt_menus").textContent = nm + (nm === 1 ? " menu" : " menua");
     $("cnt_wines").textContent = nw + (nw === 1 ? " viini" : " viiniä");
   }
-  function openCategory(cat) {
-    currentCat = cat || null;
-    activeTag = null;
-    activePrimary = null;
-    showTags = false;
-    $("q").value = "";
-    $("listTitle").textContent = currentCat ? CATS[currentCat] : "Kaikki reseptit";
-    show("listView");
-    renderList();
+  function openHome() { renderHome(); renderHomeSearch(); show("homeView"); }
+
+  // Haku koko keittokirjasta: reseptit, menut ja viinit. Haun aikana kortit piilotetaan.
+  function renderHomeSearch() {
+    const ws = words($("hq").value);
+    $("homeMain").classList.toggle("hidden", ws.length > 0);
+    $("homeResults").classList.toggle("hidden", !ws.length);
+    if (!ws.length) { $("homeResults").innerHTML = ""; return; }
+    const rs = recipes.filter((r) => matches(recipeHay(r), ws));
+    const ms = allMenus().filter((m) => matches(menuHay(m), ws));
+    const wn = wines.filter((w) => matches(wineHay(w), ws));
+    const sec = (title, items, fn) => items.length
+      ? `<h3>${title} (${items.length})</h3><div class="list">${items.map(fn).join("")}</div>` : "";
+    $("homeResults").innerHTML =
+      (sec("Reseptit", rs, (r) => recipeItem(r)) + sec("Menut", ms, menuItem) + sec("Viinit", wn, wineItem)) ||
+      `<p class="muted center">Ei osumia haulle "${esc($("hq").value.trim())}".</p>`;
   }
-  $("homeView").onclick = (e) => {
-    const n = e.target.closest("[data-nav]");
-    if (n) return n.dataset.nav === "menus" ? openMenus() : openWines();
-    const b = e.target.closest("[data-cat]");
-    if (b) openCategory(b.dataset.cat);
+  $("hq").oninput = renderHomeSearch;
+  $("hq").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("hq").blur(); } };
+  $("homeResults").onclick = (e) => {
+    const r = e.target.closest("[data-id]"); if (r) return go(`#/resepti/${r.dataset.id}`);
+    const w = e.target.closest("[data-wine]"); if (w) return go(`#/viinit/${w.dataset.wine}`);
+    const m = e.target.closest("[data-menu]"); if (m) return go(`#/menut/${enc(m.dataset.menu)}`);
   };
-  document.addEventListener("click", (e) => {
-    if (e.target.closest("[data-home]")) { renderHome(); show("homeView"); }
-  });
-  $("newHomeBtn").onclick = () => { currentCat = null; returnView = "homeView"; openEditor(null); };
-  $("homeBtn").onclick = () => { renderHome(); show("homeView"); };
+
+  $("homeMain").onclick = (e) => {
+    const n = e.target.closest("[data-nav]");
+    if (n) {
+      if (n.dataset.nav === "menus") return go("#/menut");
+      wineType = null; $("wq").value = "";
+      return go("#/viinit");
+    }
+    const b = e.target.closest("[data-cat]");
+    if (b) { resetListFilters(); go(b.dataset.cat ? `#/reseptit/${b.dataset.cat}` : "#/reseptit"); }
+  };
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-home]")) back("#/"); });
+  $("newHomeBtn").onclick = () => go("#/uusi-resepti");
   $("titleBtn").onclick = () => {
-    if (!$("authView").classList.contains("hidden")) return; // ei kirjautunut
-    renderHome(); show("homeView");
+    if (!ready) return; // ei kirjautunut tai lataus kesken
+    const q = $("hq").value;
+    $("hq").value = "";
+    if (!go("#/")) $("hq").value = q;
   };
 
   // ---------- Lista ----------
+  let listOpened = false;
+  function resetListFilters() { activeTag = null; activePrimary = null; showTags = false; $("q").value = ""; }
+  function openCategory(cat) {
+    // Rajaukset säilyvät, kun reseptistä palataan takaisin samaan listaan.
+    if (!listOpened || cat !== currentCat) resetListFilters();
+    listOpened = true;
+    currentCat = cat;
+    $("listTitle").textContent = currentCat ? CATS[currentCat] : "Kaikki reseptit";
+    renderList();
+    show("listView");
+  }
+
   function renderList() {
-    const q = $("q").value.trim().toLowerCase();
+    const ws = words($("q").value);
     const base = currentCat ? recipes.filter((r) => (r.tags || []).includes(currentCat)) : recipes;
 
     // Päärajaukset + Tagit-nappi
@@ -610,9 +803,7 @@
       if (activePrimary === "@menu" && !menuOf(r)) return false;
       if (activePrimary && activePrimary !== "@menu" && !tg.includes(activePrimary)) return false;
       if (activeTag && !tg.includes(activeTag)) return false;
-      if (!q) return true;
-      const hay = [r.title, r.description, menuOf(r), ...(r.ingredients || []).map(asText), ...plainTags(r)].join(" ").toLowerCase();
-      return hay.includes(q);
+      return matches(recipeHay(r), ws);
     });
 
     const empty = base.length ? `<p class="muted center">Ei osumia.</p>` : "";
@@ -652,25 +843,118 @@
     renderList();
   };
   $("q").oninput = renderList;
+  $("q").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("q").blur(); } };
   $("tagChips").onclick = (e) => {
     const t = e.target.closest("[data-tag]"); if (!t) return;
     activeTag = activeTag === t.dataset.tag ? null : t.dataset.tag; renderList();
   };
   $("list").onclick = (e) => {
-    const m = e.target.closest("[data-openmenu]"); if (m) return openMenu(m.dataset.openmenu);
-    const b = e.target.closest("[data-id]"); if (b) openRecipe(b.dataset.id);
+    const m = e.target.closest("[data-openmenu]"); if (m) return go(`#/menut/${enc(m.dataset.openmenu)}`);
+    const b = e.target.closest("[data-id]"); if (b) go(`#/resepti/${b.dataset.id}`);
   };
-  $("newBtn").onclick = () => { returnView = "listView"; openEditor(null); };
+  $("newBtn").onclick = () => go(currentCat ? `#/uusi-resepti/${currentCat}` : "#/uusi-resepti");
+
+  // ---------- Annosmäärän muutos ----------
+  // Ainesrivin luvut kerrotaan (myös "1/2", "½", "1,5", "2–3" ja sulkeissa olevat "(400 g)").
+  // Prosentteja ja asteita ("15 %", "200 °C") ei muuteta. Väliotsikko = rivi, joka päättyy kaksoispisteeseen.
+  const FRAC = { "½": 1 / 2, "⅓": 1 / 3, "⅔": 2 / 3, "¼": 1 / 4, "¾": 3 / 4, "⅕": 1 / 5, "⅛": 1 / 8 };
+  const NUM = String.raw`(?:\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?(?:\s?[½⅓⅔¼¾⅕⅛])?|[½⅓⅔¼¾⅕⅛])`;
+  const QTY = new RegExp(String.raw`(^|[^\p{L}\d.,/])((${NUM})(?:\s*[–-]\s*(${NUM}))?)(?![\d/]|[.,]\d|\s*[%°])`, "gu");
+  const isSub = (t) => /:\s*$/.test(t);
+
+  function parseNum(s) {
+    s = s.trim();
+    let m;
+    if ((m = s.match(/^(\d+)\s+(\d+)\/(\d+)$/))) return +m[1] + m[2] / m[3];
+    if ((m = s.match(/^(\d+)\/(\d+)$/))) return m[1] / m[2];
+    if ((m = s.match(/^(\d+(?:[.,]\d+)?)?\s?([½⅓⅔¼¾⅕⅛])?$/)))
+      return (m[1] ? parseFloat(m[1].replace(",", ".")) : 0) + (m[2] ? FRAC[m[2]] : 0);
+    return NaN;
+  }
+  function fmtNum(v) {
+    if (v < 1) {
+      const opts = [[1 / 8, "⅛"], [1 / 4, "¼"], [1 / 3, "⅓"], [1 / 2, "½"], [2 / 3, "⅔"], [3 / 4, "¾"], [1, "1"]];
+      const best = opts.reduce((a, b) => (Math.abs(b[0] - v) < Math.abs(a[0] - v) ? b : a));
+      if (Math.abs(best[0] - v) / v <= 0.08) return best[1];
+      return String(Math.max(0.1, Math.round(v * 10) / 10)).replace(".", ",");
+    }
+    if (v < 10) {
+      // Mieluiten kokonainen tai puolikas (1,5), jos se on lähellä; muuten yksi desimaali (1,1).
+      const half = Math.round(v * 2) / 2;
+      const r = Math.abs(half - v) / v <= 0.06 ? half : Math.round(v * 10) / 10;
+      return String(r).replace(".", ",");
+    }
+    if (v < 100) return String(Math.round(v));
+    return String(Math.round(v / 5) * 5);
+  }
+  // Palauttaa HTML:n: kerrotut määrät korostettuina, muu teksti escapettuna.
+  function scaleLine(text, f) {
+    if (f === 1) return esc(text);
+    let out = "", last = 0;
+    for (const m of text.matchAll(QTY)) {
+      const a = parseNum(m[3]), b = m[4] != null ? parseNum(m[4]) : null;
+      if (!isFinite(a) || a <= 0 || (b != null && !isFinite(b))) continue;
+      let s = fmtNum(a * f);
+      if (b != null) { const t = fmtNum(b * f); if (t !== s) s += "–" + t; }
+      const start = m.index + m[1].length;
+      out += esc(text.slice(last, start)) + `<b class="sc">${esc(s)}</b>`;
+      last = m.index + m[0].length;
+    }
+    return out + esc(text.slice(last));
+  }
+  const servingsTxt = (n) => n + (n === 1 ? " annos" : " annosta");
+
+  // ---------- Kokkaustila ----------
+  // Näyttö pidetään päällä (Wake Lock) ja aineksen tai vaiheen voi napauttaa tehdyksi.
+  const cook = new Map(); // reseptin id → { servings, on, ing: Set, st: Set, lockOk }
+  function cookState(r) {
+    if (!cook.has(r.id)) cook.set(r.id, { servings: r.servings || null, on: false, ing: new Set(), st: new Set(), lockOk: true });
+    return cook.get(r.id);
+  }
+  let wakeLock = null;
+  async function lockScreen() {
+    try {
+      if (!("wakeLock" in navigator)) return false;
+      if (wakeLock) return true;
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+      return true;
+    } catch { return false; }
+  }
+  function unlockScreen() { try { if (wakeLock) wakeLock.release(); } catch {} wakeLock = null; }
+  const cookingNow = () => {
+    const r = currentView === "detailView" && recipes.find((x) => x.id === detailId);
+    return !!(r && cookState(r).on);
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && cookingNow()) lockScreen();
+  });
 
   // ---------- Resepti ----------
-  let detailReturn = "list";
-  function openRecipe(id, from) {
-    const r = recipes.find((x) => x.id === id); if (!r) return;
-    if (from !== "keep") detailReturn = from || "list";
+  let detailId = null;
+  function openRecipe(r) {
+    detailId = r.id;
+    renderDetail(r);
+    show("detailView");
+    if (cookState(r).on) lockScreen(); else unlockScreen();
+  }
+  function renderDetail(r) {
+    const st = cookState(r);
+    if (r.servings && !st.servings) st.servings = r.servings;
+    const f = r.servings ? st.servings / r.servings : 1;
     const img = safeUrl(r.image_url);
     const src = r.source ? (safeUrl(r.source) ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>` : esc(r.source)) : "";
     const menu = menuOf(r);
     const isTop = (r.tags || []).includes("top");
+    const ings = (r.ingredients || []).map((i, k) => {
+      const t = asText(i);
+      return isSub(t) ? `<li class="sub">${esc(t)}</li>`
+        : `<li data-ing="${k}" class="${st.ing.has(k) ? "done" : ""}">${scaleLine(t, f)}</li>`;
+    }).join("");
+    const steps = (r.instructions || []).map((s, k) =>
+      `<li data-step="${k}" class="${st.st.has(k) ? "done" : ""}">${esc(asText(s))}</li>`).join("");
+    const lockNote = st.lockOk ? "Näyttö pysyy päällä." : "Tämä selain ei pysty pitämään näyttöä päällä.";
+    $("detail").classList.toggle("cooking", st.on);
     $("detail").innerHTML = `
       ${img ? `<img class="hero" src="${esc(img)}" alt="">` : ""}
       <div class="dhead">
@@ -679,64 +963,87 @@
       </div>
       ${r.description ? `<p class="muted" style="margin:4px 0">${esc(r.description)}</p>` : ""}
       <div class="meta">
-        ${r.servings ? `<span>🍽 ${r.servings} annosta</span>` : ""}
         ${r.prep_minutes ? `<span>⏱ ${r.prep_minutes} min</span>` : ""}
         ${plainTags(r).length ? `<span>🏷 ${esc(plainTags(r).join(", "))}</span>` : ""}
       </div>
-      ${(r.ingredients || []).length ? `<h3>Ainekset</h3><ul class="ing">${r.ingredients.map((i) => `<li>${esc(asText(i))}</li>`).join("")}</ul>` : ""}
-      ${(r.instructions || []).length ? `<h3>Ohje</h3><ol class="steps">${r.instructions.map((s) => `<li>${esc(asText(s))}</li>`).join("")}</ol>` : ""}
+      <div class="cookbar">
+        ${r.servings ? `<div class="stepper" role="group" aria-label="Annosmäärä">
+          <button type="button" data-act="less" aria-label="Vähemmän annoksia" ${st.servings <= 1 ? "disabled" : ""}>−</button>
+          <span class="val ${f !== 1 ? "changed" : ""}" aria-live="polite">${servingsTxt(st.servings)}</span>
+          <button type="button" data-act="more" aria-label="Enemmän annoksia" ${st.servings >= 99 ? "disabled" : ""}>+</button>
+        </div>` : "<span></span>"}
+        <button type="button" class="cook ${st.on ? "on" : ""}" data-act="cook" aria-pressed="${st.on}">${st.on ? "Lopeta kokkaus" : "🍳 Aloita kokkaus"}</button>
+      </div>
+      ${st.on ? `<p class="cookhint">${lockNote} Napauta ainesta tai vaihetta, kun se on tehty.</p>` : ""}
+      ${ings ? `<h3>Ainekset</h3><ul class="ing">${ings}</ul>` : ""}
+      ${f !== 1 ? `<p class="scalenote">Määrät on laskettu ${st.servings} annokselle (alkuperäinen ${r.servings}).
+        Ohjeen tekstissä olevat määrät ovat alkuperäiset. <button type="button" class="link" data-act="reset">Palauta</button></p>` : ""}
+      ${steps ? `<h3>Ohje</h3><ol class="steps">${steps}</ol>` : ""}
       ${r.notes ? `<h3>Muistiinpanot</h3><p class="notes">${esc(r.notes)}</p>` : ""}
       ${src ? `<h3>Lähde</h3><p>${src}</p>` : ""}
       <div class="actions">
-        <button id="topBtn">${isTop ? "★ Poista Top-listalta" : "⭐ Lisää Top-listalle"}</button>
-        <button id="editBtn">Muokkaa</button>
-        <button id="delBtn" class="danger">Poista</button>
+        <button type="button" data-act="top">${isTop ? "★ Poista Top-listalta" : "⭐ Lisää Top-listalle"}</button>
+        <button type="button" data-act="edit">Muokkaa</button>
       </div>`;
-    $("topBtn").onclick = async () => {
-      const tags = isTop ? (r.tags || []).filter((t) => t !== "top") : [...(r.tags || []), "top"];
-      $("topBtn").disabled = true;
-      const { data, error } = await sb.from("recipes").update({ tags }).eq("id", r.id).select().single();
-      if (error) { $("topBtn").disabled = false; return alert("Tallennus epäonnistui: " + error.message); }
-      recipes[recipes.findIndex((x) => x.id === r.id)] = data;
-      openRecipe(r.id, "keep");
-    };
-    $("editBtn").onclick = () => openEditor(r);
-    const mb = $("detail").querySelector("[data-openmenu]");
-    if (mb) mb.onclick = () => openMenu(mb.dataset.openmenu);
-    $("delBtn").onclick = async () => {
-      if (!confirm(`Poistetaanko "${r.title}"?`)) return;
-      const { error } = await sb.from("recipes").delete().eq("id", r.id);
-      if (error) return alert("Poisto epäonnistui: " + error.message);
-      loadRecipes("listView");
-    };
-    show("detailView");
+    markCurrentStep(st);
   }
+  // Kokkaustilassa ensimmäinen tekemätön vaihe korostetaan.
+  function markCurrentStep(st) {
+    const lis = [...$("detail").querySelectorAll("ol.steps li")];
+    lis.forEach((li) => li.classList.remove("cur"));
+    if (!st.on) return;
+    const cur = lis.find((li) => !st.st.has(+li.dataset.step));
+    if (cur) cur.classList.add("cur");
+  }
+  $("detail").onclick = async (e) => {
+    const r = recipes.find((x) => x.id === detailId); if (!r) return;
+    const st = cookState(r);
+    const mb = e.target.closest("[data-openmenu]");
+    if (mb) return go(`#/menut/${enc(mb.dataset.openmenu)}`);
+    const li = e.target.closest("li[data-ing], li[data-step]");
+    if (li) {
+      if (!st.on) return;
+      const set = li.dataset.ing != null ? st.ing : st.st;
+      const k = +(li.dataset.ing ?? li.dataset.step);
+      set.has(k) ? set.delete(k) : set.add(k);
+      li.classList.toggle("done", set.has(k));
+      markCurrentStep(st);
+      if (!wakeLock) lockScreen(); // esim. jos lukitus vapautui sovellusta vaihdettaessa
+      return;
+    }
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    switch (b.dataset.act) {
+      case "less": st.servings = Math.max(1, st.servings - 1); renderDetail(r); break;
+      case "more": st.servings = Math.min(99, st.servings + 1); renderDetail(r); break;
+      case "reset": st.servings = r.servings; renderDetail(r); break;
+      case "cook":
+        st.on = !st.on;
+        if (st.on) st.lockOk = await lockScreen();
+        else { st.ing.clear(); st.st.clear(); unlockScreen(); }
+        renderDetail(r);
+        break;
+      case "edit": go(`#/resepti/${r.id}/muokkaa`); break;
+      case "top": {
+        const isTop = (r.tags || []).includes("top");
+        const tags = isTop ? (r.tags || []).filter((t) => t !== "top") : [...(r.tags || []), "top"];
+        b.disabled = true;
+        const { data, error } = await sb.from("recipes").update({ tags }).eq("id", r.id).select().single();
+        if (error) { b.disabled = false; return alert("Tallennus epäonnistui: " + error.message); }
+        recipes[recipes.findIndex((x) => x.id === r.id)] = data;
+        renderDetail(data);
+        break;
+      }
+    }
+  };
   $("backBtn").onclick = () => {
-    if (detailReturn === "menu" && currentMenuName) return openMenu(currentMenuName);
-    show("listView"); renderList();
+    const r = recipes.find((x) => x.id === detailId);
+    const c = r && catOf(r);
+    back(c ? `#/reseptit/${c}` : "#/reseptit");
   };
 
   // ---------- Menut ----------
-  let menus = [];
-  let wines = [];
   let currentMenuName = null;
   const pageCache = {};
-
-  async function loadExtras() {
-    const [m, w] = await Promise.all([
-      sb.from("menus").select("id,name,subtitle,description,sort").order("sort").order("name"),
-      loadWines(true),
-    ]);
-    if (!m.error) menus = m.data;
-    renderHome();
-  }
-  async function loadWines(silent) {
-    const res = await sb.from("wines").select("*")
-      .order("drunk_on", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
-    if (!res.error) wines = res.data;
-    else if (!silent) msg($("wineMsg"), "Viinien lataus epäonnistui: " + res.error.message, true);
-    return res;
-  }
 
   // Menut-taulun menut + reseptien menu-tageista löytyvät menut
   function allMenus() {
@@ -745,21 +1052,22 @@
       if (!list.some((m) => m.name === n)) list.push({ id: null, name: n });
     return list;
   }
+  function menuItem(m) {
+    const n = recipes.filter((r) => menuOf(r) === m.name).length;
+    return `<button class="item card" data-menu="${esc(m.name)}">
+      <div class="body"><div class="t menu-title">${esc(m.name)}</div>
+      <div class="m">${esc([m.subtitle, n + (n === 1 ? " resepti" : " reseptiä")].filter(Boolean).join(" · "))}</div></div>
+      <span class="muted" aria-hidden="true" style="font-size:1.4rem">›</span>
+    </button>`;
+  }
 
   function openMenus() {
-    const ms = allMenus();
-    $("menusList").innerHTML = ms.map((m) => {
-      const n = recipes.filter((r) => menuOf(r) === m.name).length;
-      return `<button class="item card" data-menu="${esc(m.name)}">
-        <div class="body"><div class="t menu-title">${esc(m.name)}</div>
-        <div class="m">${esc([m.subtitle, n + (n === 1 ? " resepti" : " reseptiä")].filter(Boolean).join(" · "))}</div></div>
-        <span class="muted" aria-hidden="true" style="font-size:1.4rem">›</span>
-      </button>`;
-    }).join("") || `<p class="muted">Ei vielä menuja. Menun voi antaa reseptille reseptilomakkeessa.</p>`;
+    $("menusList").innerHTML = allMenus().map(menuItem).join("") ||
+      `<p class="muted">Ei vielä menuja. Menun voi antaa reseptille reseptilomakkeessa.</p>`;
     show("menusView");
   }
-  $("menusList").onclick = (e) => { const b = e.target.closest("[data-menu]"); if (b) openMenu(b.dataset.menu); };
-  $("menuBackBtn").onclick = openMenus;
+  $("menusList").onclick = (e) => { const b = e.target.closest("[data-menu]"); if (b) go(`#/menut/${enc(b.dataset.menu)}`); };
+  $("menuBackBtn").onclick = () => back("#/menut");
 
   async function openMenu(name) {
     const m = allMenus().find((x) => x.name === name); if (!m) return;
@@ -779,9 +1087,9 @@
       if (error) { $("menuPages").innerHTML = `<div class="msg err">Menukortin lataus epäonnistui: ${esc(error.message)}</div>`; return; }
       pages = pageCache[m.id] = data;
     }
-    if (currentMenuName === name) renderMenuPage(pages, 0);
+    if (currentMenuName === name && currentView === "menuView") renderMenuPage(pages, 0);
   }
-  $("menuRecipes").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) openRecipe(b.dataset.id, "menu"); };
+  $("menuRecipes").onclick = (e) => { const b = e.target.closest("[data-id]"); if (b) go(`#/resepti/${b.dataset.id}`); };
 
   function renderMenuPage(pages, idx) {
     $("menuTabs").innerHTML = pages.length > 1
@@ -811,37 +1119,47 @@
   const starsTxt = (n) => n ? "★".repeat(n) + "☆".repeat(5 - n) : "";
   const fmtDate = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("fi-FI") : "";
 
-  async function openWines() {
-    wineType = null; $("wq").value = "";
+  const wineQuery = () => sb.from("wines").select("*")
+    .order("drunk_on", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
+  async function loadWines(silent) {
+    const res = await wineQuery();
+    if (!res.error) wines = res.data;
+    else if (!silent) msg($("wineMsg"), "Viinien lataus epäonnistui: " + res.error.message, true);
+    return res;
+  }
+
+  function openWines() {
     renderWines(); show("winesView");
-    await loadWines(); renderWines();
+    // Päivitetään taustalla, jos joku muu perheestä on lisännyt viinin.
+    loadWines(true).then(() => { if (currentView === "winesView") renderWines(); });
+  }
+  function wineItem(w) {
+    return `<button class="item card" data-wine="${w.id}">
+      <div class="body">
+        <div class="t">${esc(w.name)}${w.vintage ? ` <span class="muted" style="font-weight:400">${w.vintage}</span>` : ""}</div>
+        <div class="m">${esc([w.producer, WTYPES[w.wine_type], w.region || w.country, w.drunk_on ? "juotu " + fmtDate(w.drunk_on) : ""].filter(Boolean).join(" · "))}</div>
+      </div>
+      ${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}
+    </button>`;
   }
   function renderWines() {
     const types = Object.keys(WTYPES).filter((k) => wines.some((w) => w.wine_type === k));
     $("wineChips").innerHTML = types.length > 1
       ? [["", "Kaikki"], ...types.map((k) => [k, WTYPES[k]])].map(([k, l]) =>
           `<button class="chip ${(wineType || "") === k ? "on" : ""}" data-wtype="${esc(k)}">${esc(l)}</button>`).join("") : "";
-    const q = $("wq").value.trim().toLowerCase();
-    const shown = wines.filter((w) => (!wineType || w.wine_type === wineType) &&
-      (!q || [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.occasion, w.own_notes, w.description]
-        .join(" ").toLowerCase().includes(q)));
+    const ws = words($("wq").value);
+    const shown = wines.filter((w) => (!wineType || w.wine_type === wineType) && matches(wineHay(w), ws));
     msg($("wineMsg"), wines.length ? "" : "Viinikirja on vielä tyhjä. Lisää ensimmäinen viini + Uusi -napista.");
-    $("wineList").innerHTML = shown.map((w) => `<button class="item card" data-wine="${w.id}">
-      <div class="body">
-        <div class="t">${esc(w.name)}${w.vintage ? ` <span class="muted" style="font-weight:400">${w.vintage}</span>` : ""}</div>
-        <div class="m">${esc([w.producer, WTYPES[w.wine_type], w.region || w.country, w.drunk_on ? "juotu " + fmtDate(w.drunk_on) : ""].filter(Boolean).join(" · "))}</div>
-      </div>
-      ${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}
-    </button>`).join("") || (wines.length ? `<p class="muted center">Ei osumia.</p>` : "");
+    $("wineList").innerHTML = shown.map(wineItem).join("") || (wines.length ? `<p class="muted center">Ei osumia.</p>` : "");
   }
   $("wq").oninput = renderWines;
+  $("wq").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("wq").blur(); } };
   $("wineChips").onclick = (e) => { const b = e.target.closest("[data-wtype]"); if (b) { wineType = b.dataset.wtype || null; renderWines(); } };
-  $("wineList").onclick = (e) => { const b = e.target.closest("[data-wine]"); if (b) openWine(b.dataset.wine); };
-  $("newWineBtn").onclick = () => openWineEditor(null);
-  $("wineBackBtn").onclick = () => { renderWines(); show("winesView"); };
+  $("wineList").onclick = (e) => { const b = e.target.closest("[data-wine]"); if (b) go(`#/viinit/${b.dataset.wine}`); };
+  $("newWineBtn").onclick = () => go("#/uusi-viini");
+  $("wineBackBtn").onclick = () => back("#/viinit");
 
-  function openWine(id) {
-    const w = wines.find((x) => x.id === id); if (!w) return;
+  function openWine(w) {
     const img = safeUrl(w.image_url), srcUrl = safeUrl(w.source_url);
     const row = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
     const price = w.price != null ? Number(w.price).toLocaleString("fi-FI", { style: "currency", currency: "EUR" }) : "";
@@ -863,14 +1181,8 @@
       </dl>
       ${w.own_notes ? `<h3>Omat muistiinpanot</h3><p class="notes">${esc(w.own_notes)}</p>` : ""}
       ${w.description ? `<h3>Kuvaus</h3><p class="notes">${esc(w.description)}</p>` : ""}
-      <div class="actions"><button id="wEditBtn">Muokkaa</button><button id="wDelBtn" class="danger">Poista</button></div>`;
-    $("wEditBtn").onclick = () => openWineEditor(w);
-    $("wDelBtn").onclick = async () => {
-      if (!confirm(`Poistetaanko "${w.name}"?`)) return;
-      const { error } = await sb.from("wines").delete().eq("id", w.id);
-      if (error) return alert("Poisto epäonnistui: " + error.message);
-      wines = wines.filter((x) => x.id !== w.id); renderHome(); renderWines(); show("winesView");
-    };
+      <div class="actions"><button id="wEditBtn">Muokkaa</button></div>`;
+    $("wEditBtn").onclick = () => go(`#/viinit/${w.id}/muokkaa`);
     show("wineView");
   }
 
@@ -887,6 +1199,7 @@
     w_region: "region", w_country: "country", w_drunk: "drunk_on", w_price: "price", w_occasion: "occasion",
     w_src_rating: "source_rating", w_src_name: "source_name", w_src_url: "source_url", w_own_notes: "own_notes",
     w_desc: "description", w_food: "food_pairing", w_image: "image_url" };
+  const wineFormState = () => JSON.stringify([...Object.keys(WFIELDS).map((id) => $(id).value), wineStars]);
 
   function openWineEditor(w) {
     editingWineId = w ? w.id : null;
@@ -897,10 +1210,12 @@
       $(id).value = v ?? "";
     }
     wineStars = w?.own_rating || 0; renderStarPick();
+    $("wDelWrap").classList.toggle("hidden", !w);
     msg($("wineEditMsg"), "");
     show("wineEditView");
+    wineSnap = wineFormState();
   }
-  $("wineCancelBtn").onclick = () => editingWineId ? openWine(editingWineId) : (renderWines(), show("winesView"));
+  $("wineCancelBtn").onclick = () => back(editingWineId ? `#/viinit/${editingWineId}` : "#/viinit");
 
   $("wineForm").onsubmit = async (e) => {
     e.preventDefault();
@@ -921,13 +1236,29 @@
     $("wineSaveBtn").disabled = false;
     if (error) return msg($("wineEditMsg"), "Tallennus epäonnistui: " + error.message, true);
     await loadWines(true);
-    if (!wines.some((x) => x.id === data.id)) wines.unshift(data);
-    renderHome();
-    openWine(data.id);
+    const i = wines.findIndex((x) => x.id === data.id);
+    if (i >= 0) wines[i] = data; else wines.unshift(data);
+    markClean();
+    if (editingWineId) back(`#/viinit/${data.id}`);
+    else go(`#/viinit/${data.id}`, { replace: true, force: true });
   };
 
-  // ---------- Lomake ----------
-  function openEditor(r) {
+  $("wDelBtn").onclick = async () => {
+    const w = wines.find((x) => x.id === editingWineId); if (!w) return;
+    if (!confirm(`Poistetaanko "${w.name}" pysyvästi?`)) return;
+    const { error } = await sb.from("wines").delete().eq("id", w.id);
+    if (error) return alert("Poisto epäonnistui: " + error.message);
+    wines = wines.filter((x) => x.id !== w.id);
+    leaveDeleted("#/viinit");
+  };
+
+  // ---------- Reseptilomake ----------
+  let editTags = new Set();
+  const FORM_IDS = ["f_title", "f_category", "f_menu", "f_description", "f_servings", "f_prep",
+                    "f_ingredients", "f_instructions", "f_source", "f_image", "f_notes", "f_newtag"];
+  const recipeFormState = () => JSON.stringify([...FORM_IDS.map((id) => $(id).value.trim()), $("f_top").checked, [...editTags].sort()]);
+
+  function openEditor(r, cat) {
     editingId = r ? r.id : null;
     $("editTitle").textContent = r ? "Muokkaa reseptiä" : "Uusi resepti";
     $("f_title").value = r?.title || "";
@@ -936,10 +1267,7 @@
     $("f_prep").value = r?.prep_minutes || "";
     $("f_ingredients").value = (r?.ingredients || []).map(asText).join("\n");
     $("f_instructions").value = (r?.instructions || []).map(asText).join("\n");
-    $("f_category").value = r
-      ? (Object.keys(CATS).find((c) => (r.tags || []).includes(c)) || "")
-      : (currentCat || "arkiruoka");
-    $("f_tags").value = r ? plainTags(r).join(", ") : "";
+    $("f_category").value = r ? catOf(r) : (cat || "arkiruoka");
     $("f_menu").value = r ? (menuOf(r) || "") : "";
     $("f_top").checked = !!r && (r.tags || []).includes("top");
     $("menuList").innerHTML = [...new Set(recipes.map(menuOf).filter(Boolean))]
@@ -947,16 +1275,49 @@
     $("f_source").value = r?.source || "";
     $("f_image").value = r?.image_url || "";
     $("f_notes").value = r?.notes || "";
+    editTags = new Set(r ? plainTags(r) : []);
+    $("f_newtag").value = "";
+    renderTagPick();
+    $("delWrap").classList.toggle("hidden", !r);
     msg($("editMsg"), "");
     show("editView");
+    editSnap = recipeFormState();
   }
+
+  // Tagivalitsin: valmiit tagit napautettavina. Valitun kategorian päärajaukset ensin.
+  const primaryTagsOf = (cat) => (PRIMARY[cat] || []).map(([k]) => k).filter((k) => !isMeta(k) && !k.startsWith("@"));
+  function renderTagPick() {
+    const first = primaryTagsOf($("f_category").value);
+    const rest = new Set([...recipes.flatMap(plainTags), ...Object.keys(PRIMARY).flatMap(primaryTagsOf), ...editTags]);
+    first.forEach((t) => rest.delete(t));
+    const all = [...first, ...[...rest].sort((a, b) => a.localeCompare(b, "fi"))];
+    $("f_tagpick").innerHTML = all.map((t) =>
+      `<button type="button" class="chip ${editTags.has(t) ? "on" : ""}" data-tag="${esc(t)}" aria-pressed="${editTags.has(t)}">${esc(t)}</button>`).join("");
+  }
+  $("f_tagpick").onclick = (e) => {
+    const b = e.target.closest("[data-tag]"); if (!b) return;
+    const t = b.dataset.tag;
+    editTags.has(t) ? editTags.delete(t) : editTags.add(t);
+    renderTagPick();
+  };
+  function addNewTags() {
+    const ts = $("f_newtag").value.split(",").map((t) => t.trim().toLowerCase().replace(/\s+/g, " ")).filter((t) => t && !isMeta(t));
+    ts.forEach((t) => editTags.add(t));
+    $("f_newtag").value = "";
+    renderTagPick();
+  }
+  $("f_addtag").onclick = addNewTags;
+  $("f_newtag").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); addNewTags(); } };
+  $("f_category").onchange = renderTagPick;
+
   $("cancelBtn").onclick = () => {
-    if (editingId) return openRecipe(editingId, "keep");
-    if (returnView === "homeView") { renderHome(); show("homeView"); } else { show("listView"); renderList(); }
+    const c = $("f_category").value;
+    back(editingId ? `#/resepti/${editingId}` : c ? `#/reseptit/${c}` : "#/");
   };
 
   $("editForm").onsubmit = async (e) => {
     e.preventDefault();
+    addNewTags(); // kirjoitettu mutta lisäämättä jäänyt tagi tallentuu myös
     const num = (v) => (v === "" ? null : parseInt(v, 10));
     const row = {
       title: $("f_title").value.trim(),
@@ -969,7 +1330,7 @@
         ...($("f_category").value ? [$("f_category").value] : []),
         ...($("f_top").checked ? ["top"] : []),
         ...($("f_menu").value.trim() ? ["menu:" + $("f_menu").value.trim().replace(/\s+/g, " ")] : []),
-        ...$("f_tags").value.split(",").map((t) => t.trim().toLowerCase()).filter((t) => t && !isMeta(t)),
+        ...editTags,
       ])],
       source: $("f_source").value.trim() || null,
       image_url: $("f_image").value.trim() || null,
@@ -985,7 +1346,22 @@
     const i = recipes.findIndex((x) => x.id === data.id);
     if (i >= 0) recipes[i] = data; else recipes.push(data);
     recipes.sort((a, b) => a.title.localeCompare(b.title, "fi"));
-    openRecipe(data.id, editingId ? "keep" : "list");
+    // Muokattu resepti: annosmäärä ja kokkaustila alusta, koska ainekset ovat voineet muuttua.
+    cook.delete(data.id);
+    markClean();
+    if (editingId) back(`#/resepti/${data.id}`);
+    else go(`#/resepti/${data.id}`, { replace: true, force: true });
+  };
+
+  $("delBtn").onclick = async () => {
+    const r = recipes.find((x) => x.id === editingId); if (!r) return;
+    if (!confirm(`Poistetaanko "${r.title}" pysyvästi?`)) return;
+    const { error } = await sb.from("recipes").delete().eq("id", r.id);
+    if (error) return alert("Poisto epäonnistui: " + error.message);
+    recipes = recipes.filter((x) => x.id !== r.id);
+    cook.delete(r.id);
+    const c = catOf(r);
+    leaveDeleted(c ? `#/reseptit/${c}` : "#/reseptit");
   };
 
   // ---------- Käynnistys ----------

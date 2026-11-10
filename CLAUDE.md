@@ -58,23 +58,71 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - Playwright (esiasennettu): korvaa supabase-js-skripti stubilla, joka palauttaa testidataa
   (`createClient` → `auth.onAuthStateChange`, `auth.getSession`, `from(t).select().order()/eq()`,
   `insert/update/delete`, `rpc`). Aja 390×844-näkymässä ja katso kuvakaappaukset.
+- Reitityksen testaus: `page.go_back()` = takaisin-pyyhkäisy. Huom. `page.goto(sama_url + "#/…")` on vain
+  #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
+  Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
+- Headless-Chromium ei anna Wake Lockia, joten kokkaustila näyttää siinä "ei pysty pitämään näyttöä päällä".
 - Google Fonts ei lataudu testiympäristössä (verkkoesto); ne virheet voi ohittaa.
 
 ## Sovelluksen rakenne (keittokirja.html)
 
-Näkymät ovat `<section>`-elementtejä, joita `show(view)` vaihtaa:
-`authView`, `homeView`, `listView`, `detailView`, `editView`, `adminView`, `menusView`, `menuView`,
-`winesView`, `wineView`, `wineEditView`. Lisää uusi näkymä myös `show()`-funktion listaan.
+Näkymät ovat `<section>`-elementtejä, joita `show(view)` vaihtaa (lista `VIEWS`):
+`loadView`, `authView`, `homeView`, `listView`, `detailView`, `editView`, `adminView`, `menusView`, `menuView`,
+`winesView`, `wineView`, `wineEditView`. Lisää uusi näkymä `VIEWS`-listaan ja reititykseen.
 
-- **Etusivu:** kortit Arkiruoka, Viikonloppuherkut (`data-cat`), Menut ja Viinit (`data-nav`). Otsikko "🍲 Keittokirja"
-  vie etusivulle. Elementti, jolla on `data-home`, vie etusivulle.
+### Osoitteet ja takaisin-ele (reititys)
+
+Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin, sivun päivitys ja linkin jakaminen toimivat.
+
+| Osoite | Näkymä |
+|---|---|
+| `#/` | etusivu |
+| `#/reseptit`, `#/reseptit/arkiruoka`, `#/reseptit/viikonloppuherkut` | reseptilista |
+| `#/resepti/<id>`, `#/resepti/<id>/muokkaa` | resepti, muokkaus |
+| `#/uusi-resepti`, `#/uusi-resepti/<kategoria>` | uusi resepti |
+| `#/menut`, `#/menut/<nimi, encodeURIComponent>` | menut, yksi menu |
+| `#/viinit`, `#/viinit/<id>`, `#/viinit/<id>/muokkaa`, `#/uusi-viini` | viinit |
+| `#/hallinta` | käyttäjien hallinta (vain admin) |
+
+- **Siirtymät aina `go(hash)`-funktiolla** (pushState + `route()`), ei `show()`:lla suoraan. `go(hash, {replace:true})`
+  korvaa nykyisen historiarivin (esim. uusi resepti tallennettu → lomake korvataan reseptillä).
+- **Takaisin-napit `back(fallback)`:** `history.back()`, jos sovelluksen sisällä on edellinen sivu (`history.state.d > 0`),
+  muuten mennään `fallback`-osoitteeseen (suora linkki). Poiston jälkeen `leaveDeleted()` = `history.go(-2)`.
+- `route()` lukee osoitteen ja kutsuu `renderRoute()`:a. Tuntematon tai poistettu kohde → etusivu.
+  Osoitteet, jotka eivät ala `#/` (esim. Supabasen `#access_token=…`), tulkitaan etusivuksi.
+- Vierityskohta tallennetaan `history.state.y`:hyn ja palautetaan takaisin tultaessa.
+- Listan rajaukset (kategoria, päärajaus, tagi, haku) säilyvät, kun reseptistä palataan. Ne nollataan,
+  kun lista avataan etusivun kortista (`resetListFilters()`). Sama viineissä (`wineType`, `wq`).
+- Data (reseptit, menut, viinit, admin-tieto) ladataan kerralla `loadAll()`-funktiossa ennen ensimmäistä `route()`-kutsua.
+
+### Näkymät
+
+- **Etusivu:** hakukenttä (`#hq`) ja kortit Arkiruoka, Viikonloppuherkut (`data-cat`), Menut ja Viinit (`data-nav`).
+  Haku etsii resepteistä (nimi, kuvaus, ainekset, tagit, menu), menuista ja viineistä. Haun aikana kortit
+  piilotetaan ja tulokset näytetään ryhmiteltynä. Haku säilyy, kun tuloksesta palataan. Otsikko "🍲 Keittokirja"
+  vie etusivulle ja tyhjentää haun. `data-home`-elementti = takaisin etusivulle.
+- **Haku kaikkialla:** `words()` + `matches()`: jokaisen hakusanan pitää löytyä (esim. "kana pasta").
 - **Reseptilista:** päärajaukset `PRIMARY`-vakiossa kategorioittain, pikatagit piilossa "🏷 Tagit" -napin takana.
   "Menut"-rajaus (`@menu`) ryhmittelee menuittain, järjestys `COURSE_ORDER` = alkuruoka → illallinen → makeat.
 - **Reseptirivi** (`recipeItem`): menumerkki ja ⭐ (top) rivin oikeassa laidassa.
-- **Resepti:** menumerkki oikeassa yläkulmassa avaa menun. "⭐ Lisää Top-listalle" -nappi.
+- **Resepti:** menumerkki oikeassa yläkulmassa avaa menun. Napit "⭐ Lisää Top-listalle" ja "Muokkaa"
+  (Poista on lomakkeen alaosassa, ettei sitä paina vahingossa).
+  - **Annosmäärä:** −/+ -napit (vain jos `servings` on annettu). `scaleLine()` kertoo ainesrivin kaikki luvut
+    (`1/2`, `½`, `1,5`, `2–3`, sulkeissa olevat `(400 g)`), mutta ei prosentteja eikä asteita. Kerrotut luvut
+    korostetaan. Väliotsikoita (rivi päättyy `:`) ei muuteta. Ohjeen tekstin määriä ei muuteta, ja sivu kertoo sen.
+  - **Kokkaustila:** "🍳 Aloita kokkaus" pitää näytön päällä (Screen Wake Lock API, haetaan uudelleen kun sovellus
+    palaa näkyviin) ja aineksen tai vaiheen voi napauttaa tehdyksi (yliviivaus). Ensimmäinen tekemätön vaihe korostetaan.
+  - Annosmäärä ja kokkaustilan rastit säilyvät muistissa (`cook`-Map) reseptikohtaisesti, kunnes sivu ladataan
+    uudelleen, kokkaus lopetetaan tai resepti tallennetaan.
+- **Reseptilomake:** tagit valitaan napautettavista chipeistä (`editTags`). Valitun kategorian päärajaukset ensin,
+  sitten muut käytössä olevat tagit aakkosjärjestyksessä. Uuden tagin voi kirjoittaa (pilkulla useita) ja lisätä
+  "Lisää"-napilla tai Enterillä. Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
+- **Tallentamattomat muutokset:** resepti- ja viinilomake ottavat avattaessa tilannekuvan (`editSnap`, `wineSnap`).
+  Peruuta, takaisin-pyyhkäisy ja muut siirtymät kysyvät "Hylätäänkö tallentamattomat muutokset?", jos lomaketta on muutettu.
 - **Hallinta** (vain admin): perheen pääsylista RPC-funktioiden kautta.
 - **Menut:** menukortti- ja viinilistasivut välilehtinä, alla menun reseptit.
-- **Viinit:** lista (haku, tyyppirajaus, omat tähdet), viinin sivu, lomake (tähtivalitsin 1–5).
+- **Viinit:** lista (haku, tyyppirajaus, omat tähdet), viinin sivu (Muokkaa), lomake (tähtivalitsin 1–5, Poista alaosassa).
+- Napautettavat chipit ovat vähintään 44 px korkeita (sormelle sopiva koko).
 - Käyttäjän syöte escapetaan aina `esc()`-funktiolla ennen `innerHTML`:ää. URLit `safeUrl()`-funktiolla.
 
 ## Tietokanta (Supabase)
@@ -149,3 +197,9 @@ Nykyiset menut: **Lapponia alla piemontese** (menukortti + viinilista, 3 resepti
 
 - "Leaked password protection" ei ole päällä (saattaa vaatia maksullisen Supabase-tason).
 - Kuvien lataus (Supabase Storage) puuttuu. Kuvat ovat nyt URL-osoitteita.
+  **Seuraavaksi sovittu:** kuvat suoraan kameralla (Supabase Storage, pikkukuvat listaan).
+- Ehdotettuja, ei vielä tehty (ulkoasu): ainesten väliotsikot ("Kastike:") otsikoiksi; "Hallinta" ja
+  "Kirjaudu ulos" vievät iPhonella kaksi riviä (uloskirjautuminen Hallinta-sivulle?); iPadilla vaakatasossa
+  ainekset ja ohje rinnakkain; ohjeen vaiheisiin isommat numerot; oma Koti-valikon kuvake (apple-touch-icon).
+- Myöhemmin ehkä: toimii ilman verkkoa (service worker), ostoslista Muistutuksiin, ajastin ohjeen aikoihin,
+  viinien ja reseptien yhdistäminen ruokapareiksi.
