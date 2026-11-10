@@ -294,6 +294,9 @@
       <label style="display:flex;align-items:center;gap:8px;color:var(--ink)">
         <input type="checkbox" id="f_top" style="width:auto;margin:0"> ⭐ Top-listalla
       </label>
+      <label id="f_babywrap" style="display:flex;align-items:center;gap:8px;color:var(--ink)">
+        <input type="checkbox" id="f_baby" style="width:auto;margin:0"> 🍼 Näytä myös vauvan ruoissa
+      </label>
       <label for="f_description">Lyhyt kuvaus</label>
       <input id="f_description">
       <div class="row">
@@ -485,7 +488,7 @@
   const CATS = { arkiruoka: "Arkiruoka", viikonloppuherkut: "Viikonloppuherkut", vauvanruoat: "Vauvan ruoat" };
   // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu.
   const PRIMARY = {
-    arkiruoka: [["top", "⭐ Top-lista"], ["kana", "Kana"], ["nauta", "Nauta"], ["kasvis", "Kasvis"], ["lisuke", "Lisukkeet"]],
+    arkiruoka: [["top", "⭐ Top-lista"], ["kana", "Kana"], ["nauta", "Nauta"], ["kasvis", "Kasvis"], ["lisuke", "Lisukkeet"], ["kastike", "Kastikkeet"]],
     viikonloppuherkut: [["top", "⭐ Top-lista"], ["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
     vauvanruoat: [["top", "⭐ Top-lista"]],
   };
@@ -1225,6 +1228,7 @@
       ${r.description ? `<p class="muted" style="margin:4px 0">${esc(r.description)}</p>` : ""}
       <div class="meta">
         ${r.prep_minutes ? `<span>⏱ ${r.prep_minutes} min</span>` : ""}
+        ${catOf(r) !== "vauvanruoat" && (r.tags || []).includes("vauvanruoat") ? `<span>🍼 Sopii vauvalle</span>` : ""}
         ${plainTags(r).length ? `<span>🏷 ${esc(plainTags(r).join(", "))}</span>` : ""}
       </div>
       <div class="cookbar">
@@ -1536,7 +1540,7 @@
   let editTags = new Set();
   const FORM_IDS = ["f_title", "f_category", "f_menu", "f_description", "f_servings", "f_prep",
                     "f_ingredients", "f_instructions", "f_source", "f_notes", "f_newtag"];
-  const recipeFormState = () => JSON.stringify([...FORM_IDS.map((id) => $(id).value.trim()), $("f_top").checked, [...editTags].sort(), recipePic.kind]);
+  const recipeFormState = () => JSON.stringify([...FORM_IDS.map((id) => $(id).value.trim()), $("f_top").checked, $("f_baby").checked, [...editTags].sort(), recipePic.kind]);
 
   function openEditor(r, cat) {
     editingId = r ? r.id : null;
@@ -1550,6 +1554,8 @@
     $("f_category").value = r ? catOf(r) : (cat || "arkiruoka");
     $("f_menu").value = r ? (menuOf(r) || "") : "";
     $("f_top").checked = !!r && (r.tags || []).includes("top");
+    $("f_baby").checked = !!r && catOf(r) !== "vauvanruoat" && (r.tags || []).includes("vauvanruoat");
+    syncBabyBox();
     $("menuList").innerHTML = [...new Set(recipes.map(menuOf).filter(Boolean))]
       .map((m) => `<option value="${esc(m)}"></option>`).join("");
     $("f_source").value = r?.source || "";
@@ -1588,7 +1594,9 @@
   }
   $("f_addtag").onclick = addNewTags;
   $("f_newtag").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); addNewTags(); } };
-  $("f_category").onchange = renderTagPick;
+  // "Näytä myös vauvan ruoissa": vauvanruoat-tagi toisena kategoriana (ei näytetä, jos kategoria on jo vauvan ruoat)
+  function syncBabyBox() { $("f_babywrap").classList.toggle("hidden", ["vauvanruoat", ""].includes($("f_category").value)); }
+  $("f_category").onchange = () => { renderTagPick(); syncBabyBox(); };
 
   $("cancelBtn").onclick = () => {
     const c = $("f_category").value;
@@ -1609,6 +1617,7 @@
       tags: [...new Set([
         ...($("f_category").value ? [$("f_category").value] : []),
         ...($("f_top").checked ? ["top"] : []),
+        ...($("f_baby").checked && !$("f_babywrap").classList.contains("hidden") ? ["vauvanruoat"] : []),
         ...($("f_menu").value.trim() ? ["menu:" + $("f_menu").value.trim().replace(/\s+/g, " ")] : []),
         ...editTags,
       ])],
