@@ -106,9 +106,18 @@ Redirect URL = sivun osoite.
 
 Nykyiset menut: **Lapponia alla piemontese** (menukortti + viinilista, 3 reseptiä).
 
+## Herätys (Supabase ei pausetu)
+
+- Supabase pausettaa ilmaisprojektin, jos käyttöä ei ole 7 päivään. Estetään GitHub Actionsilla:
+  `.github/workflows/supabase-heratys.yml` kutsuu päivittäin RPC:tä `public.keepalive()` julkisella avaimella.
+- `keepalive()` on security definer ja anonin kutsuttavissa. Se päivittää rivin `private.heartbeat`
+  (korkeintaan kerran tunnissa) ja palauttaa vain kellonajan, ei dataa. Advisorin varoitus siitä on tarkoituksellinen.
+- Viimeisimmän herätyksen näkee kyselyllä `select * from private.heartbeat;`.
+- Jos repoon ei tule committeja 45 päivään, workflow päivittää `.github/heratys.txt`-tiedoston, koska GitHub
+  poistaa ajastukset käytöstä julkisissa repoissa 60 päivän hiljaisuuden jälkeen.
+- Jos projekti on silti pausella: Supabasen hallintapaneeli → "Resume project". Data säilyy.
+
 ## Tunnetut asiat ja ideat
 
-- Supabase pausettaa ilmaisprojektin, jos käyttöä ei ole 7 päivään. Data säilyy, ja projektin saa
-  jatkumaan Supabasen hallintapaneelista ("Resume project").
 - "Leaked password protection" ei ole päällä (saattaa vaatia maksullisen Supabase-tason).
 - Kuvien lataus (Supabase Storage) puuttuu. Kuvat ovat nyt URL-osoitteita.

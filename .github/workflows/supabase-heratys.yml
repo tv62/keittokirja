@@ -1,0 +1,51 @@
+# Pitää Supabasen ilmaisprojektin hereillä: Supabase pausettaa projektin,
+# jos tietokantaa ei käytetä 7 päivään. Tämä kutsuu tietokantaa kerran päivässä.
+# Kutsu ei lue eikä palauta perheen dataa (public.keepalive palauttaa vain kellonajan).
+name: Supabase-herätys
+
+on:
+  schedule:
+    - cron: "23 3 * * *"   # joka päivä n. klo 5–6 Suomen aikaa
+  workflow_dispatch:        # voi ajaa myös käsin Actions-välilehdeltä
+
+permissions:
+  contents: write           # tarvitaan vain alla olevaan ajastuksen ylläpitoon
+
+jobs:
+  heratys:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Kutsu tietokantaa
+        env:
+          SUPABASE_URL: https://uzeaweqwthoofbmodutf.supabase.co
+          # Selaimen julkinen avain (sama kuin keittokirja.html:ssä), ei salainen.
+          SUPABASE_KEY: sb_publishable_B9rpC9YrWJjWS1CeNF9nBg_V0utR7sg
+        run: |
+          for i in 1 2 3; do
+            if curl -fsS -X POST "$SUPABASE_URL/rest/v1/rpc/keepalive" \
+                 -H "apikey: $SUPABASE_KEY" -H "Content-Type: application/json" -d '{}'; then
+              echo; echo "Herätys onnistui."; exit 0
+            fi
+            echo "Yritys $i epäonnistui, odotetaan..."; sleep 20
+          done
+          echo "::error::Supabase ei vastannut. Projekti voi olla pausella: avaa supabase.com ja paina Resume project."
+          exit 1
+
+      # GitHub poistaa ajastetut tehtävät käytöstä julkisessa repossa, jos repoon ei tule
+      # muutoksia 60 päivään. Jos edellisestä muutoksesta on 45 päivää, päivitetään pieni
+      # aikaleimatiedosto, jotta herätys pysyy käynnissä.
+      - uses: actions/checkout@v4
+      - name: Pidä ajastus voimassa
+        run: |
+          last=$(git log -1 --format=%ct)
+          days=$(( ($(date +%s) - last) / 86400 ))
+          echo "Edellisestä muutoksesta $days päivää."
+          if [ "$days" -ge 45 ]; then
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/heratys.txt
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .github/heratys.txt
+            git commit -m "Herätyksen ylläpito (ei muutoksia sovellukseen)"
+            git push
+          fi
