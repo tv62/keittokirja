@@ -159,6 +159,10 @@
   .badge { display: inline-block; font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--chip); margin-left: 6px; vertical-align: middle; }
   .badge.warn { background: var(--accent); color: var(--accent-ink); }
   .urow .actions { margin-top: 10px; }
+  .urow .vis { margin-top: 10px; }
+  .urow .vis .vlabel { font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+  .urow .vis .chips { margin-bottom: 0; }
+  .chip.off { text-decoration: line-through; color: var(--muted); }
   .urow .actions button { padding: 7px 12px; font-size: .9rem; }
   /* Etusivun haku */
   .home-search { margin: 0 0 14px; }
@@ -480,7 +484,7 @@
   <section id="adminView" class="hidden">
     <button class="link" id="adminBackBtn">← Etusivu</button>
     <h2 style="margin:6px 0 4px">Käyttäjien hallinta</h2>
-    <p class="muted" style="margin:0 0 14px">Vain listalla olevat näkevät reseptit. Uusi jäsen saa oletuksena vain lukea, ja muokkausoikeuden voi antaa erikseen. Uusi jäsen luo itse tunnuksen keittokirjan kirjautumissivulla samalla sähköpostilla.</p>
+    <p class="muted" style="margin:0 0 14px">Vain listalla olevat näkevät reseptit. Uusi jäsen saa oletuksena vain lukea, ja muokkausoikeuden voi antaa erikseen. Uusi jäsen luo itse tunnuksen keittokirjan kirjautumissivulla samalla sähköpostilla. Jäseneltä voi myös piilottaa etusivun osioita (esim. Viinit), jolloin hän ei näe niitä lainkaan.</p>
     <form id="addUserForm" class="card">
       <label for="u_email" style="margin-top:0">Lisää perheenjäsen</label>
       <input id="u_email" type="email" autocomplete="off" placeholder="nimi@esimerkki.fi" required>
@@ -509,6 +513,10 @@
   const $ = (id) => document.getElementById(id);
 
   const CATS = { arkiruoka: "Arkiruoka", viikonloppuherkut: "Viikonloppuherkut", vauvanruoat: "Vauvan ruoat" };
+  const CAT_ICON = { arkiruoka: "🥘", viikonloppuherkut: "🥂", vauvanruoat: "🍼" };
+  // Etusivun osiot, jotka admin voi piilottaa käyttäjältä (private.family_members.hidden_sections, RLS estää datan).
+  const SECTIONS = [["arkiruoka", "🥘", "Arki"], ["viikonloppuherkut", "🥂", "Viikonloppu"], ["vauvanruoat", "🍼", "Vauva"],
+    ["menut", "📜", "Menut"], ["viinit", "🍷", "Viinit"]];
   // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu.
   const PRIMARY = {
     viikonloppuherkut: [["top", "⭐ Top-lista"], ["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
@@ -537,6 +545,7 @@
   let wines = [];
   let currentCat = null;
   let isAdmin = false;
+  let hidden = new Set();  // tältä käyttäjältä piilotetut osiot (admin: tyhjä)
   let canEdit = false;     // false = vain lukuoikeus (tietokanta estää muokkauksen joka tapauksessa)
   let myEmail = "";
   let activeTag = null;
@@ -819,24 +828,26 @@
     switch (a) {
       case undefined: openHome(); return true;
       case "reseptit":
-        if (b && !CATS[b]) return false;
+        if (b && (!CATS[b] || hidden.has(b))) return false;
         if (c && !(GRID[b] && (c === "kaikki" || gridGroup(b, c)))) return false;
         openCategory(b || null, c || null); return true;
       case "resepti": {
         const r = recipes.find((x) => x.id === b); if (!r) return false;
-        c === "muokkaa" ? openEditor(r) : openRecipe(r, c === "vauva"); return true;
+        c === "muokkaa" ? openEditor(r) : openRecipe(r, c === "vauva" && !hidden.has("vauvanruoat")); return true;
       }
-      case "uusi-resepti": openEditor(null, CATS[b] ? b : null); return true;
+      case "uusi-resepti": openEditor(null, CATS[b] && !hidden.has(b) ? b : null); return true;
       case "menut":
+        if (hidden.has("menut")) return false;
         if (!b) { openMenus(); return true; }
         if (!allMenus().some((m) => m.name === b)) return false;
         openMenu(b); return true;
       case "viinit": {
+        if (hidden.has("viinit")) return false;
         if (!b) { openWines(); return true; }
         const w = wines.find((x) => x.id === b); if (!w) return false;
         c === "muokkaa" ? openWineEditor(w) : openWine(w); return true;
       }
-      case "uusi-viini": openWineEditor(null); return true;
+      case "uusi-viini": if (hidden.has("viinit")) return false; openWineEditor(null); return true;
       case "hallinta": if (!isAdmin) return false; msg($("adminMsg"), ""); loadUsers(); return true;
       default: return false;
     }
@@ -901,21 +912,33 @@
       myEmail = (session.user?.email || "").toLowerCase();
       if (!ready && !loading) setTimeout(loadAll, 0);
     } else {
-      ready = false; recipes = []; menus = []; wines = []; isAdmin = false; canEdit = false; myEmail = "";
+      ready = false; recipes = []; menus = []; wines = []; isAdmin = false; canEdit = false; myEmail = ""; hidden = new Set();
       markClean(); unlockScreen(); show("authView");
     }
   });
 
+  // Piilotetut osiot: etusivun kortit ja lomakkeen menukenttä piiloon (data ei tule edes ladatuksi, RLS).
+  function applyHidden() {
+    const navSec = { menus: "menut", wines: "viinit" };
+    for (const b of document.querySelectorAll("#homeMain [data-cat], #homeMain [data-nav]")) {
+      const sec = b.dataset.nav ? navSec[b.dataset.nav] : b.dataset.cat;
+      if (sec) b.classList.toggle("hidden", hidden.has(sec));
+    }
+    for (const el of [$("f_menu"), document.querySelector('label[for="f_menu"]')]) el.classList.toggle("hidden", hidden.has("menut"));
+  }
   async function loadAll() {
     loading = true;
     show("loadView");
-    const [r, m, w, a, ed] = await Promise.all([
+    const [r, m, w, a, ed, hs] = await Promise.all([
       sb.from("recipes").select("*").order("title"),
       sb.from("menus").select("id,name,subtitle,description,sort").order("sort").order("name"),
       wineQuery(),
       sb.rpc("am_i_admin"),
       sb.rpc("can_i_edit"),
+      sb.rpc("my_hidden_sections"),
     ]);
+    hidden = new Set(Array.isArray(hs.data) ? hs.data : []);
+    applyHidden();
     canEdit = ed.data === true;
     document.body.classList.toggle("readonly", !canEdit);
     loading = false;
@@ -962,9 +985,17 @@
         : u.is_admin ? `<span class="badge">admin</span>`
         : u.can_edit ? `<span class="badge">saa muokata</span>`
         : `<span class="badge ro">vain luku</span>`;
+      // Näkyvyys: vain listalla oleville, ei adminille (admin näkee aina kaiken)
+      const hid = new Set(u.hidden_sections || []);
+      const vis = u.on_list && !u.is_admin ? `<div class="vis">
+          <div class="vlabel">Näkyy etusivulla – napauta piilottaaksesi tai näyttääksesi:</div>
+          <div class="chips">${SECTIONS.map(([k, ic, label]) =>
+            `<button class="chip ${hid.has(k) ? "off" : "on"}" data-act="vis" data-email="${e}" data-sec="${k}" data-hidden="${esc([...hid].join(","))}" aria-pressed="${!hid.has(k)}">${ic} ${label}</button>`).join("")}</div>
+        </div>` : "";
       return `<div class="card urow">
         <div class="em">${e}${badge}</div>
-        <div class="st">${esc(status)}</div>
+        <div class="st">${esc(status)}${hid.size ? " · piilotettu: " + esc(SECTIONS.filter(([k]) => hid.has(k)).map(([, , l]) => l).join(", ")) : ""}</div>
+        ${vis}
         <div class="actions">${buttons}</div>
       </div>`;
     }).join("") || `<p class="muted">Ei käyttäjiä.</p>`;
@@ -1008,6 +1039,13 @@
     if (b.dataset.act === "reader") adminCall("admin_set_editor", { p_email: email, p_can_edit: false }, `${email} voi nyt vain lukea.`);
     if (b.dataset.act === "admin") adminCall("admin_set_admin", { p_email: email, p_admin: true }, `${email} on nyt admin.`);
     if (b.dataset.act === "unadmin") adminCall("admin_set_admin", { p_email: email, p_admin: false }, `${email} ei ole enää admin (saa edelleen muokata).`);
+    if (b.dataset.act === "vis") {
+      const h = new Set((b.dataset.hidden || "").split(",").filter(Boolean)), sec = b.dataset.sec;
+      const label = SECTIONS.find(([k]) => k === sec)[2];
+      h.has(sec) ? h.delete(sec) : h.add(sec);
+      adminCall("admin_set_hidden", { p_email: email, p_hidden: [...h] },
+        `${email}: ${label} ${h.has(sec) ? "piilotettu" : "näkyy taas"}.`);
+    }
     if (b.dataset.act === "remove" && confirm(`Poistetaanko käyttäjän ${email} pääsy keittokirjaan?`))
       adminCall("admin_remove_member", { p_email: email }, `${email} poistettu listalta.`);
   };
@@ -1109,7 +1147,8 @@
     }
 
     // Päärajaukset + Tagit-nappi
-    const prim = grid ? grid.groups.map(([k, , label]) => [k, label]) : (PRIMARY[currentCat] || []);
+    const prim = grid ? grid.groups.map(([k, , label]) => [k, label])
+      : (PRIMARY[currentCat] || []).filter(([k]) => !(k === "@menu" && hidden.has("menut")));
     $("primaryChips").classList.toggle("scroll", !!grid);
     $("primaryChips").innerHTML =
       (prim.length ? [[grid ? "kaikki" : "", "Kaikki"], ...prim] : []).map(([k, label]) =>
@@ -1152,7 +1191,7 @@
   const courseRank = (r) => { const i = COURSE_ORDER.findIndex((c) => (r.tags || []).includes(c)); return i < 0 ? 99 : i; };
   const byCourse = (a, b) => courseRank(a) - courseRank(b);
   function recipeItem(r, hideMenu) {
-    const menu = hideMenu ? null : menuOf(r);
+    const menu = hideMenu || hidden.has("menut") ? null : menuOf(r);
     const top = (r.tags || []).includes("top");
     const meta = [r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
       .filter(Boolean).map(esc).join(" · ");
@@ -1282,7 +1321,7 @@
     const f = r.servings ? st.servings / r.servings : 1;
     const pic = (cls) => bigPic(r, r.title, cls);
     const src = r.source ? (safeUrl(r.source) ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>` : esc(r.source)) : "";
-    const menu = menuOf(r);
+    const menu = hidden.has("menut") ? null : menuOf(r);
     const isTop = (r.tags || []).includes("top");
     const ings = (r.ingredients || []).map((i, k) => {
       const t = asText(i);
@@ -1387,6 +1426,7 @@
 
   // Menut-taulun menut + reseptien menu-tageista löytyvät menut
   function allMenus() {
+    if (hidden.has("menut")) return [];
     const list = menus.map((m) => ({ ...m }));
     for (const n of new Set(recipes.map(menuOf).filter(Boolean)))
       if (!list.some((m) => m.name === n)) list.push({ id: null, name: n });
@@ -1625,7 +1665,10 @@
     $("f_prep").value = r?.prep_minutes || "";
     $("f_ingredients").value = (r?.ingredients || []).map(asText).join("\n");
     $("f_instructions").value = (r?.instructions || []).map(asText).join("\n");
-    $("f_category").value = r ? catOf(r) : (cat || "arkiruoka");
+    const curCat = r ? catOf(r) : cat || Object.keys(CATS).find((c) => !hidden.has(c)) || "";
+    $("f_category").innerHTML = Object.keys(CATS).filter((c) => !hidden.has(c) || c === curCat)
+      .map((c) => `<option value="${c}">${CAT_ICON[c]} ${CATS[c]}</option>`).join("") + `<option value="">Ei kategoriaa</option>`;
+    $("f_category").value = curCat;
     $("f_menu").value = r ? (menuOf(r) || "") : "";
     $("f_top").checked = !!r && (r.tags || []).includes("top");
     $("f_baby").checked = !!r && catOf(r) !== "vauvanruoat" && (r.tags || []).includes("vauvanruoat");
@@ -1674,8 +1717,9 @@
   // Vauvaohje (baby_notes) kuuluu vain tällaisille resepteille ja näkyy vain vauvan ruoista avattuna.
   const babyCross = () => $("f_baby").checked && !["vauvanruoat", ""].includes($("f_category").value);
   function syncBabyBox() {
-    $("f_babywrap").classList.toggle("hidden", ["vauvanruoat", ""].includes($("f_category").value));
-    $("f_babynoteswrap").classList.toggle("hidden", !babyCross());
+    // Vauva piilotettu tältä käyttäjältä → ruksi ja kenttä piiloon, mutta arvot säilyvät tallennuksessa.
+    $("f_babywrap").classList.toggle("hidden", hidden.has("vauvanruoat") || ["vauvanruoat", ""].includes($("f_category").value));
+    $("f_babynoteswrap").classList.toggle("hidden", hidden.has("vauvanruoat") || !babyCross());
   }
   $("f_category").onchange = () => { renderTagPick(); syncBabyBox(); };
   $("f_baby").onchange = syncBabyBox;

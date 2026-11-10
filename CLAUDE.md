@@ -23,6 +23,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Kaikki ilmaiseksi:** GitHub Free, GitHub Pages, Supabase Free. Älä ehdota maksullisia palveluita ilman painavaa syytä.
 - **Yksityisyys:** reseptit, menut ja viinit vain perheelle (RLS). Julkinen repo on hyväksytty, koska vain koodi on julkista.
 - **Oikeudet:** uusi jäsen saa oletuksena vain lukea. Admin antaa muokkausoikeuden Hallinta-sivulla. Admin saa aina muokata.
+- **Osioiden näkyvyys (admin päättää, 11/2026):** admin voi piilottaa jäseneltä etusivun osioita (Arkiruoka, Viikonloppuherkut,
+  Vauvan ruoat, Menut, Viinit) Hallinta-sivulla. Piilotus on täysi: kortti, osoitteet ja haku pois, ja RLS estää datan
+  latautumisen. Admin näkee aina kaiken. Uusi jäsen näkee oletuksena kaiken.
 - **Käyttäjä haluaa, että Claude tekee muutokset suoraan** (Supabase + push GitHubiin), ei tiedostojen siirtelyä.
 - **Käyttöliittymäpäätökset, joita ei muuteta kysymättä:**
   - Etusivulla viisi korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinit ja niiden alla oma osio
@@ -72,7 +75,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - `node --check` sivun `<script>`-lohkolle.
 - Playwright (esiasennettu): korvaa supabase-js-skripti stubilla, joka palauttaa testidataa
   (`createClient` → `auth.onAuthStateChange`, `auth.getSession`, `from(t).select().order()/eq()`,
-  `insert/update/delete`, `rpc`). Aja 390×844-näkymässä ja katso kuvakaappaukset.
+  `insert/update/delete`, `rpc`; `my_hidden_sections` → taulukko, esim. `["viinit"]`). Aja 390×844-näkymässä ja katso kuvakaappaukset.
 - Reitityksen testaus: `page.go_back()` = takaisin-pyyhkäisy. Huom. `page.goto(sama_url + "#/…")` on vain
   #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
@@ -161,10 +164,16 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   näkyy kenttä 🍼 Vauvaohje (`f_babynotes` → `baby_notes`, tallennetaan vain ristiinmerkitylle, muuten null). Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
 - **Tallentamattomat muutokset:** resepti- ja viinilomake ottavat avattaessa tilannekuvan (`editSnap`, `wineSnap`).
   Peruuta, takaisin-pyyhkäisy ja muut siirtymät kysyvät "Hylätäänkö tallentamattomat muutokset?", jos lomaketta on muutettu.
+- **Piilotetut osiot:** `hidden` (Set) = RPC `my_hidden_sections()` `loadAll()`:ssa (adminilla tyhjä). `applyHidden()` piilottaa
+  etusivun kortit (`SECTIONS`-avaimet; `data-nav` menus→menut, wines→viinit) ja lomakkeen menukentän. `renderRoute()` ohjaa
+  piilotetun kategorian, `menut`/`viinit`/`uusi-viini`-osoitteet etusivulle; `…/vauva` ilman vauvaohjetta, jos vauva piilossa.
+  Menumerkit, "Menut"-rajaus ja `allMenus()` tyhjenevät, jos menut piilossa. Lomakkeen kategoriavalinta rakennetaan näkyvistä
+  kategorioista + reseptin nykyinen (`CAT_ICON`). Piilossa olevat `f_baby`/`f_babynotes`/`f_menu` säilyttävät arvonsa tallennuksessa.
 - **Hallinta** (vain admin): perheen pääsylista RPC-funktioiden kautta. Jokaisella rivillä oikeusmerkki
   (admin / saa muokata / vain luku / ei pääsyä) ja napit Salli muokkaus / Poista muokkausoikeus, Tee adminiksi /
   Poista admin, Poista pääsy. Lisäyslomakkeessa "Saa lisätä ja muokata" on oletuksena pois (admin-ruutu valitsee
-  ja lukitsee sen). "Anna lukuoikeus" listalta puuttuvalle = vain luku.
+  ja lukitsee sen). "Anna lukuoikeus" listalta puuttuvalle = vain luku. Ei-admin-jäsenillä rivi "Näkyy etusivulla": 5 chippiä
+  (`data-act="vis"`, päällä = näkyy, yliviivattu `.chip.off` = piilossa) → `admin_set_hidden`; tilarivillä "piilotettu: …".
 - **Vain lukuoikeus** (`canEdit` = RPC `can_i_edit`): `body.readonly` piilottaa `.edit-only`-napit (+ Uusi).
   Reseptin Top- ja Muokkaa-napit sekä viinin Muokkaa jätetään renderöimättä. Lomakkeiden osoitteet
   (`…/muokkaa`, `#/uusi-resepti`, `#/uusi-viini`) ohjautuvat etusivulle. Annosmäärä ja kokkaustila toimivat kaikille.
@@ -178,10 +187,13 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 ## Tietokanta (Supabase)
 
 Kaikissa julkisissa tauluissa on RLS. Säännöt `to authenticated`:
-- **select** ehdolla `(select private.is_family())` – kaikki perheen jäsenet näkevät.
+- **select** ehdolla `(select private.is_family())` – kaikki perheen jäsenet näkevät. Poikkeukset (osioiden näkyvyys):
+  `wines` = `can_see('viinit')`; `menus`, `menu_pages` = `can_see('menut')`; `recipes` = is_family ja (ei kategoriatagia TAI
+  `tags && my_visible_cats()` TAI menu:-tagi ja `can_see('menut')`). Storage: `viinit/`-kuvat vain `can_see('viinit')`.
 - **insert/update/delete** ehdolla `(select private.can_edit())` – vain muokkausoikeus tai admin.
 
 **Uudelle taululle samat neljä policya (lukeminen is_family, kirjoitus can_edit) + `revoke all ... from anon`.**
+Jos taulu kuuluu johonkin osioon, lukusäännöksi `can_see('<osio>')`. Uusi osio: lisää se check-rajoitteeseen ja `SECTIONS`-listaan.
 
 **Storage:** yksityinen bucket `recipe-images` (vain `image/jpeg`, max 5 Mt). `storage.objects`-säännöt samalla
 mallilla: select `is_family()`, insert/update/delete `can_edit()` (ehtona `bucket_id = 'recipe-images'`).
@@ -197,19 +209,22 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 | `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa) |
 
 Yksityinen skeema `private` (ei API:ssa):
-- `family_members(email, is_admin, can_edit, added_at)` – pääsylista. Vain listalla olevat sähköpostit näkevät datan.
+- `family_members(email, is_admin, can_edit, hidden_sections text[], added_at)` – pääsylista. Vain listalla olevat sähköpostit näkevät datan.
+  `hidden_sections` ⊆ {arkiruoka, viikonloppuherkut, vauvanruoat, menut, viinit} (check-rajoite), oletus `{}`.
   `can_edit` oletus `false` (vain luku). Admin saa muokata `can_edit`-arvosta riippumatta.
 - `is_family()`, `is_admin()`, `can_edit()` (= is_admin or can_edit) – security definer -apufunktiot RLS:ää varten.
+- `my_hidden()` (adminilla `{}`), `can_see(osio)` (= is_family ja osio ei piilossa), `my_visible_cats()` – näkyvyys-RLS:ää varten.
 - `touch_updated_at()` – trigger.
 
 RPC-funktiot (public, security definer):
-- `am_i_admin()`, `can_i_edit()` – kirjautuneen omat oikeudet (sivu piilottaa napit niiden mukaan).
-- Vain admin (tarkistavat `is_admin()`:n itse): `admin_list_users()` (palauttaa myös `can_edit`, adminilla aina true),
+- `am_i_admin()`, `can_i_edit()`, `my_hidden_sections()` – kirjautuneen omat oikeudet ja piilotetut osiot.
+- Vain admin (tarkistavat `is_admin()`:n itse): `admin_list_users()` (palauttaa myös `can_edit`, adminilla aina true, ja
+  `hidden_sections`), `admin_set_hidden(p_email, p_hidden text[])` (ei adminille: "Admin näkee aina kaiken"),
   `admin_add_member(p_email, p_admin = false, p_can_edit = false)` (ei omia admin-oikeuksia pois),
   `admin_set_editor(p_email, p_can_edit)`, `admin_remove_member(p_email)` (ei omaa),
   `admin_set_admin(p_email, p_admin)` (ei omia oikeuksia pois; adminiksi tehty saa `can_edit = true`, joka jää voimaan
   admin-oikeuden poistuessa).
-- `backup_family_members()` – pääsylista varmuuskopiota varten. Vain `service_role` (salainen avain) voi kutsua.
+- `backup_family_members()` – pääsylista (myös `hidden_sections`) varmuuskopiota varten. Vain `service_role` (salainen avain) voi kutsua.
 - Advisorin varoitus "authenticated security definer function executable" näistä on tarkoituksellinen.
 - RLS-testaus SQL:llä: `do $$ … insert testijäsen; set_config('request.jwt.claims', …); set local role authenticated;
   … raise exception 'TULOS …' $$` – lopun virhe peruu kaiken, ja tulos näkyy virheviestissä.
