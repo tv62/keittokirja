@@ -50,8 +50,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Muistiinpanojen kansiot: Keitot ja Kastikkeet → `arkiruoka` (+ `keitto` / `kastike`), Perjantaiherkut → `viikonloppuherkut`.
   Tyhjinä jätettiin pois: Hummus leivän päälle, Sitruunainen kantarellispagetti, Valkosipulimarinoidut
   lampaankyljykset, Nopea linssibolognese. Wokkikastikkeesta puuttuu ohje (vain ainekset).
-- Vauvan ruoat: ei vielä reseptejä. Päärajauksena vain Top-lista; muut (esim. ikä) sovitaan käyttäjän kanssa.
-  (Arkiruokien ristiinmerkintä vauvalle kokeiltiin ja poistettiin 11/2026, ks. tagisäännöt.)
+- Vauvan ruoat: ei vielä omia reseptejä. 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`,
+  vauvaohje `baby_notes`-kentässä).
+  Päärajauksena vain Top-lista; muut (esim. ikä) sovitaan käyttäjän kanssa.
 - Seuraavaksi todennäköisesti: puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
@@ -97,6 +98,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | `#/reseptit`, `#/reseptit/viikonloppuherkut`, `#/reseptit/vauvanruoat` | reseptilista |
 | `#/reseptit/arkiruoka`, `#/reseptit/arkiruoka/<ryhmä>`, `#/reseptit/arkiruoka/kaikki` | arkiruoan valintasivu, ryhmän lista |
 | `#/resepti/<id>`, `#/resepti/<id>/muokkaa` | resepti, muokkaus |
+| `#/resepti/<id>/vauva` | resepti vauvan ruoista avattuna (näyttää `baby_notes`) |
 | `#/uusi-resepti`, `#/uusi-resepti/<kategoria>` | uusi resepti |
 | `#/menut`, `#/menut/<nimi, encodeURIComponent>` | menut, yksi menu |
 | `#/viinit`, `#/viinit/<id>`, `#/viinit/<id>/muokkaa`, `#/uusi-viini` | viinit |
@@ -155,7 +157,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   Tila `pic.kind`: `none` / `keep` / `new` / `removed` (Peru palauttaa edellisen). Kuvan valinta tekee lomakkeesta muutetun.
 - **Reseptilomake:** tagit valitaan napautettavista chipeistä (`editTags`). Valitun kategorian päärajaukset ensin,
   sitten muut käytössä olevat tagit aakkosjärjestyksessä. Uuden tagin voi kirjoittaa (pilkulla useita) ja lisätä
-  "Lisää"-napilla tai Enterillä. Ruutu ⭐ Top-listalla (`f_top`). Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
+  "Lisää"-napilla tai Enterillä. Ruudut ⭐ Top-listalla (`f_top`) ja 🍼 Näytä myös vauvan ruoissa (`f_baby`); kun jälkimmäinen on valittu,
+  näkyy kenttä 🍼 Vauvaohje (`f_babynotes` → `baby_notes`, tallennetaan vain ristiinmerkitylle, muuten null). Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
 - **Tallentamattomat muutokset:** resepti- ja viinilomake ottavat avattaessa tilannekuvan (`editSnap`, `wineSnap`).
   Peruuta, takaisin-pyyhkäisy ja muut siirtymät kysyvät "Hylätäänkö tallentamattomat muutokset?", jos lomaketta on muutettu.
 - **Hallinta** (vain admin): perheen pääsylista RPC-funktioiden kautta. Jokaisella rivillä oikeusmerkki
@@ -188,7 +191,7 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 
 | Taulu | Sarakkeet |
 |---|---|
-| `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_path (Storage-polku, esim. `<uuid>.jpg`), image_url (vanha ulkoinen osoite, ei enää lomakkeessa), notes, created_by, created_at, updated_at |
+| `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_path (Storage-polku, esim. `<uuid>.jpg`), image_url (vanha ulkoinen osoite, ei enää lomakkeessa), notes, baby_notes (vauvaohje, näkyy vain `…/vauva`-näkymässä), created_by, created_at, updated_at |
 | `menus` | id, name (uniikki, = reseptien `menu:`-tagin nimi), subtitle, description, sort |
 | `menu_pages` | id, menu_id, kind (`menu`/`viinilista`/`muu`), title, html, width, height, sort |
 | `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa) |
@@ -217,11 +220,15 @@ Redirect URL = sivun osoite.
 ## Tagisäännöt (recipes.tags)
 
 - **Kategoria (yksi):** `arkiruoka`, `viikonloppuherkut` tai `vauvanruoat`
-- **Vauvan ruoat ovat aina omia reseptejään** (käyttäjän päätös 11/2026): kategoria `vauvanruoat`, tehdään erikseen.
-  Muiden kategorioiden reseptejä EI merkitä vauvalle eikä niihin lisätä vauvaohjeita. (Broileri-linssikastikkeen
-  alkuperäisessä ohjeessa oleva vaihe "Ota alle vuoden ikäisen lapsen kastikeannos sivuun" on käyttäjän omaa tekstiä.)
-  Vauvaresepteissä alle 1-vuotiaalle EI: suola, liemikuutiot, hunaja, pinaatti, punajuuri, nokkonen, chili, alkoholi,
-  makkarat/pekoni/kinkku, feta/oliivit/kaprikset/soija.
+- **Myös vauvalle:** `vauvanruoat` voi olla toisena kategoriana pääkategorian lisäksi. Resepti näkyy molemmissa listoissa;
+  `catOf()` palauttaa ensimmäisen `CATS`-järjestyksessä, joten pääkategoria voittaa (takaisin-nappi, lomake). Lomakkeessa ruutu
+  "🍼 Näytä myös vauvan ruoissa" (`f_baby`, piilossa jos kategoria on jo vauvan ruoat).
+  **Vauvalisäykset näkyvät vain vauvan ruoista avattuna** (käyttäjän toive 11/2026): vauvaohje on omassa sarakkeessa
+  `baby_notes` (EI `notes`-kentässä, EI ohjeen vaiheissa). Vauvalistan rivi avaa `#/resepti/<id>/vauva` → `detailBaby`
+  → laatikko "🍼 Vauvalle" (`.babybox`) heti metarivin alle; takaisin-nappi → vauvan ruoat. Muualta avattuna resepti on
+  ennallaan (ei vauvaohjetta, ei vauvamerkkiä).
+  Alle 1-vuotiaalle EI: suola, liemikuutiot, hunaja, pinaatti, punajuuri, nokkonen, chili, alkoholi, makkarat/pekoni/kinkku,
+  feta/oliivit/kaprikset/soija.
 - **Top-lista:** `top`
 - **Menu:** `menu:<Menun nimi>` (iso alkukirjain säilyy, sama kuin `menus.name`)
 - **Päärajaukset:** arki = valintasivun ryhmät (`GRID`): `top`, `kana`, Liha = `nauta`|`lammas`, `poro`, Kala = `kala`|`katkarapu`,

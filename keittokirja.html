@@ -95,6 +95,9 @@
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
   .hidden { display: none !important; }
   .notes { white-space: pre-wrap; }
+  .babybox { margin: 14px 0 4px; padding: 12px 14px; border-radius: 12px; background: var(--card);
+    border: 1px solid var(--line); border-left: 4px solid #6aa5d8; }
+  .babybox strong { display: block; margin-bottom: 4px; }
   a { color: var(--accent); word-break: break-word; }
   .home { display: grid; gap: 14px; margin-top: 8px; }
   @media (min-width: 600px) { .home { grid-template-columns: 1fr 1fr; } .home .wide { grid-column: 1 / -1; } }
@@ -310,6 +313,13 @@
       <label style="display:flex;align-items:center;gap:8px;color:var(--ink)">
         <input type="checkbox" id="f_top" style="width:auto;margin:0"> ⭐ Top-listalla
       </label>
+      <label id="f_babywrap" style="display:flex;align-items:center;gap:8px;color:var(--ink)">
+        <input type="checkbox" id="f_baby" style="width:auto;margin:0"> 🍼 Näytä myös vauvan ruoissa
+      </label>
+      <div id="f_babynoteswrap">
+        <label for="f_babynotes">🍼 Vauvaohje <span class="muted">(näkyy vain, kun resepti avataan vauvan ruoista)</span></label>
+        <textarea id="f_babynotes" rows="2" placeholder="esim. Ota vauvan annos sivuun ennen suolaa ja liemikuutiota."></textarea>
+      </div>
       <label for="f_description">Lyhyt kuvaus</label>
       <input id="f_description">
       <div class="row">
@@ -814,7 +824,7 @@
         openCategory(b || null, c || null); return true;
       case "resepti": {
         const r = recipes.find((x) => x.id === b); if (!r) return false;
-        c === "muokkaa" ? openEditor(r) : openRecipe(r); return true;
+        c === "muokkaa" ? openEditor(r) : openRecipe(r, c === "vauva"); return true;
       }
       case "uusi-resepti": openEditor(null, CATS[b] ? b : null); return true;
       case "menut":
@@ -1175,7 +1185,8 @@
   };
   $("list").onclick = (e) => {
     const m = e.target.closest("[data-openmenu]"); if (m) return go(`#/menut/${enc(m.dataset.openmenu)}`);
-    const b = e.target.closest("[data-id]"); if (b) go(`#/resepti/${b.dataset.id}`);
+    const b = e.target.closest("[data-id]");
+    if (b) go(`#/resepti/${b.dataset.id}${currentCat === "vauvanruoat" ? "/vauva" : ""}`);
   };
   $("newBtn").onclick = () => go(currentCat ? `#/uusi-resepti/${currentCat}` : "#/uusi-resepti");
 
@@ -1257,8 +1268,10 @@
 
   // ---------- Resepti ----------
   let detailId = null;
-  function openRecipe(r) {
+  let detailBaby = false; // avattu vauvan ruoista (#/resepti/<id>/vauva) → vauvaohje näkyy
+  function openRecipe(r, baby) {
     detailId = r.id;
+    detailBaby = !!baby && (r.tags || []).includes("vauvanruoat");
     renderDetail(r);
     show("detailView");
     if (cookState(r).on) lockScreen(); else unlockScreen();
@@ -1291,6 +1304,7 @@
         ${r.prep_minutes ? `<span>⏱ ${r.prep_minutes} min</span>` : ""}
         ${plainTags(r).length ? `<span>🏷 ${esc(plainTags(r).join(", "))}</span>` : ""}
       </div>
+      ${detailBaby && r.baby_notes ? `<div class="babybox"><strong>🍼 Vauvalle</strong><div class="notes">${esc(r.baby_notes)}</div></div>` : ""}
       <div class="cookbar">
         ${r.servings ? `<div class="stepper" role="group" aria-label="Annosmäärä">
           <button type="button" data-act="less" aria-label="Vähemmän annoksia" ${st.servings <= 1 ? "disabled" : ""}>−</button>
@@ -1363,7 +1377,7 @@
   };
   $("backBtn").onclick = () => {
     const r = recipes.find((x) => x.id === detailId);
-    const c = r && catOf(r);
+    const c = detailBaby ? "vauvanruoat" : r && catOf(r);
     back(c ? `#/reseptit/${c}` : "#/reseptit");
   };
 
@@ -1599,8 +1613,8 @@
   // ---------- Reseptilomake ----------
   let editTags = new Set();
   const FORM_IDS = ["f_title", "f_category", "f_menu", "f_description", "f_servings", "f_prep",
-                    "f_ingredients", "f_instructions", "f_source", "f_notes", "f_newtag"];
-  const recipeFormState = () => JSON.stringify([...FORM_IDS.map((id) => $(id).value.trim()), $("f_top").checked, [...editTags].sort(), recipePic.kind]);
+                    "f_ingredients", "f_instructions", "f_source", "f_notes", "f_babynotes", "f_newtag"];
+  const recipeFormState = () => JSON.stringify([...FORM_IDS.map((id) => $(id).value.trim()), $("f_top").checked, $("f_baby").checked, [...editTags].sort(), recipePic.kind]);
 
   function openEditor(r, cat) {
     editingId = r ? r.id : null;
@@ -1614,6 +1628,9 @@
     $("f_category").value = r ? catOf(r) : (cat || "arkiruoka");
     $("f_menu").value = r ? (menuOf(r) || "") : "";
     $("f_top").checked = !!r && (r.tags || []).includes("top");
+    $("f_baby").checked = !!r && catOf(r) !== "vauvanruoat" && (r.tags || []).includes("vauvanruoat");
+    $("f_babynotes").value = r?.baby_notes || "";
+    syncBabyBox();
     $("menuList").innerHTML = [...new Set(recipes.map(menuOf).filter(Boolean))]
       .map((m) => `<option value="${esc(m)}"></option>`).join("");
     $("f_source").value = r?.source || "";
@@ -1653,7 +1670,15 @@
   }
   $("f_addtag").onclick = addNewTags;
   $("f_newtag").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); addNewTags(); } };
-  $("f_category").onchange = renderTagPick;
+  // "Näytä myös vauvan ruoissa": vauvanruoat-tagi toisena kategoriana (ei näytetä, jos kategoria on jo vauvan ruoat).
+  // Vauvaohje (baby_notes) kuuluu vain tällaisille resepteille ja näkyy vain vauvan ruoista avattuna.
+  const babyCross = () => $("f_baby").checked && !["vauvanruoat", ""].includes($("f_category").value);
+  function syncBabyBox() {
+    $("f_babywrap").classList.toggle("hidden", ["vauvanruoat", ""].includes($("f_category").value));
+    $("f_babynoteswrap").classList.toggle("hidden", !babyCross());
+  }
+  $("f_category").onchange = () => { renderTagPick(); syncBabyBox(); };
+  $("f_baby").onchange = syncBabyBox;
 
   $("cancelBtn").onclick = () => {
     const c = $("f_category").value;
@@ -1674,11 +1699,13 @@
       tags: [...new Set([
         ...($("f_category").value ? [$("f_category").value] : []),
         ...($("f_top").checked ? ["top"] : []),
+        ...(babyCross() ? ["vauvanruoat"] : []),
         ...($("f_menu").value.trim() ? ["menu:" + $("f_menu").value.trim().replace(/\s+/g, " ")] : []),
         ...editTags,
       ])],
       source: $("f_source").value.trim() || null,
       notes: $("f_notes").value.trim() || null,
+      baby_notes: babyCross() ? ($("f_babynotes").value.trim() || null) : null,
     };
     const old = editingId ? recipes.find((x) => x.id === editingId) : null;
     const saveTxt = $("saveBtn").textContent;
