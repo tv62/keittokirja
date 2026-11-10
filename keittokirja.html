@@ -313,6 +313,7 @@
           <option value="oma">Oma järjestys</option>
           <option value="az">Aakkosjärjestys</option>
           <option value="uusin">Uusimmat ensin</option>
+          <option value="vanhin">Vanhimmat ensin</option>
           <option value="nopein">Nopeimmat ensin</option>
         </select>
       </label>
@@ -374,6 +375,8 @@
       </div>
       <label for="f_source">Lähde (linkki tai kuka antoi)</label>
       <input id="f_source">
+      <label for="f_added">Lisäyspäivä</label>
+      <input id="f_added" type="date" style="width:auto;min-width:11em">
       <label>Kuva</label>
       <div id="f_imgbox">
         <img id="f_imgprev" class="imgprev hidden" alt="Reseptin kuva">
@@ -586,11 +589,15 @@
   let ordering = false;   // "Järjestä"-tila (raahaus)
   let sortMode = "oma";   // oma | az | uusin | nopein (muistetaan laitteella)
   try { sortMode = localStorage.getItem("kk_sort") || "oma"; } catch {}
+  const fiDate = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-"); return `${+d}.${+m}.${y}`; };
+  const todayIso = () => { const t = new Date(), z = (n) => String(n).padStart(2, "0"); return `${t.getFullYear()}-${z(t.getMonth() + 1)}-${z(t.getDate())}`; };
   const byTitle = (a, b) => (a.title || "").localeCompare(b.title || "", "fi");
   const SORTS = {
     oma: (a, b) => (a.sort_order ?? 1e9) - (b.sort_order ?? 1e9) || byTitle(a, b),
     az: byTitle,
-    uusin: (a, b) => (b.created_at || "").localeCompare(a.created_at || "") || byTitle(a, b),
+    // Lisäyspäivä (added_on, esim. Apple Muistiinpanojen luontipäivä); ilman päivää olevat aina loppuun
+    uusin: (a, b) => !a.added_on - !b.added_on || (b.added_on || "").localeCompare(a.added_on || "") || (b.created_at || "").localeCompare(a.created_at || "") || byTitle(a, b),
+    vanhin: (a, b) => !a.added_on - !b.added_on || (a.added_on || "").localeCompare(b.added_on || "") || (a.created_at || "").localeCompare(b.created_at || "") || byTitle(a, b),
     nopein: (a, b) => (a.prep_minutes ?? 1e9) - (b.prep_minutes ?? 1e9) || byTitle(a, b),
   };
   let editingId = null;
@@ -1310,7 +1317,8 @@
   function recipeItem(r, hideMenu, sorting) {
     const menu = hideMenu || hidden.has("menut") ? null : menuOf(r);
     const top = (r.tags || []).includes("top");
-    const meta = [r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
+    const meta = [["uusin", "vanhin"].includes(sortMode) && r.added_on ? "📅 " + fiDate(r.added_on) : "",
+      r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
       .filter(Boolean).map(esc).join(" · ");
     const thumb = thumbHtml(r, r.title);
     const tag = sorting ? "div" : "button";
@@ -1526,6 +1534,7 @@
       ${r.description ? `<p class="muted" style="margin:4px 0">${esc(r.description)}</p>` : ""}
       <div class="meta">
         ${r.prep_minutes ? `<span>⏱ ${r.prep_minutes} min</span>` : ""}
+        ${r.added_on ? `<span>📅 Lisätty ${fiDate(r.added_on)}</span>` : ""}
         ${plainTags(r).length ? `<span>🏷 ${esc(plainTags(r).join(", "))}</span>` : ""}
       </div>
       ${detailBaby && r.baby_notes ? `<div class="babybox"><strong>🍼 Vauvalle</strong><div class="notes">${esc(r.baby_notes)}</div></div>` : ""}
@@ -1837,7 +1846,7 @@
 
   // ---------- Reseptilomake ----------
   let editTags = new Set();
-  const FORM_IDS = ["f_title", "f_category", "f_menu", "f_description", "f_servings", "f_prep",
+  const FORM_IDS = ["f_title", "f_category", "f_menu", "f_description", "f_servings", "f_prep", "f_added",
                     "f_ingredients", "f_instructions", "f_source", "f_notes", "f_babynotes", "f_newtag"];
   const recipeFormState = () => JSON.stringify([...FORM_IDS.map((id) => $(id).value.trim()), $("f_top").checked, $("f_baby").checked, [...editTags].sort(), recipePic.kind]);
 
@@ -1848,6 +1857,7 @@
     $("f_description").value = r?.description || "";
     $("f_servings").value = r?.servings || "";
     $("f_prep").value = r?.prep_minutes || "";
+    $("f_added").value = r ? (r.added_on || "") : todayIso();
     $("f_ingredients").value = (r?.ingredients || []).map(asText).join("\n");
     $("f_instructions").value = (r?.instructions || []).map(asText).join("\n");
     const curCat = r ? catOf(r) : cat || Object.keys(CATS).find((c) => !hidden.has(c)) || "";
@@ -1923,6 +1933,7 @@
       description: $("f_description").value.trim() || null,
       servings: num($("f_servings").value),
       prep_minutes: num($("f_prep").value),
+      added_on: $("f_added").value || null,
       ingredients: lines($("f_ingredients").value),
       instructions: lines($("f_instructions").value),
       tags: [...new Set([

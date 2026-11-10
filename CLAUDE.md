@@ -41,7 +41,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     Tyhjät ryhmät piilotetaan. Ryhmän listassa ylhäällä "← Arkiruoka" ja päärajaukset yhdellä pyyhkäistävällä rivillä.
   - Muissa kategorioissa päärajaukset aina näkyvissä. Pikatagit aina piilossa "🏷 Tagit" -napin takana.
   - **Reseptien järjestys** (11/2026, käyttäjä valitsi "molemmat"): oma yhteinen järjestys (oletus, muokkaajat raahaavat)
-    + jokaisen oma lajitteluvalinta listan yläpuolella (Oma järjestys / Aakkosjärjestys / Uusimmat ensin / Nopeimmat ensin).
+    + jokaisen oma lajitteluvalinta listan yläpuolella (Oma järjestys / Aakkosjärjestys / Uusimmat ensin / Vanhimmat ensin /
+    Nopeimmat ensin). Uusimmat/Vanhimmat = lisäyspäivä `added_on`; ilman päivää olevat loppuun.
+  - **Lisäyspäivä** (11/2026): reseptisivulla "📅 Lisätty 18.1.2023", lomakkeessa kenttä Lisäyspäivä (uudelle tänään),
+    listarivillä päivä vain päivälajittelussa.
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
@@ -51,6 +54,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Reseptilähteet:**
   - Apple Muistiinpanot: vienti Pikakomennoilla (Etsi muistiinpanot → Yhdistä teksti, erotin `=====` → Tallenna tiedosto)
     ja tiedosto chattiin. iCloud-jakolinkkejä ei voi lukea.
+    Alkuperäinen päivä: Pikakomento Etsi muistiinpanot (Mikä tahansa: Kansio on …) → Toista kullekin → Teksti
+    "[Toistokohde: Nimi] | [Toistokohde: Luontipäivä]" → Yhdistä teksti (Toiston tulokset, uusi rivi) → Kopioi leikepöydälle.
+    Lista "Nimi | 18.1.2023 klo 9.31" → `added_on` täsmäyttämällä nimet (pienet kirjaimet, sulut ja muut kuin kirjaimet/numerot pois).
     Muistiinpanojen kuvat eivät tule viennissä mukaan, eikä Claude voi ladata kuvia Storageen (ei avainta). Käyttäjä lisää ne
     itse: Muistiinpanoissa kuvaa pitkään → Kopioi → keittokirjassa Muokkaa → 📋 Liitä kuva (tai iPadilla raahaus).
   - Verkkosivut (esim. Yhteishyvä, HS): linkkejä ei yleensä voi lukea, joten pyydä käyttäjää liittämään teksti.
@@ -58,6 +64,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 
 ## Työn tila (päivitä, kun jokin muuttuu)
 
+- Lisäyspäivä täytetty 69 reseptille Muistiinpanojen luontipäivistä (11/2026). Ilman päivää: Lapponia-menun 3 reseptiä
+  ja Hölskypotut. Muistiinpanoissa vielä tuomatta: kansiot Jälkiruoat ja Soseet ja sormiruoat (→ Vauvan ruoat).
 - Reseptit (n. 73): Lapponia alla piemontese -menun 3 reseptiä, Apple Muistiinpanojen arkiruoat erä 1 (11) ja
   erä 2 (marraskuu 2026: Keitot 6, Kastikkeet 9, Perjantaiherkut 15, Arkiruoka 28) sekä yksittäin lisättyjä.
   Muistiinpanojen kansiot: Keitot ja Kastikkeet → `arkiruoka` (+ `keitto` / `kastike`), Perjantaiherkut → `viikonloppuherkut`.
@@ -150,7 +158,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 - **Reseptilista:** päärajaukset `PRIMARY`-vakiossa kategorioittain (GRID-kategorioissa ryhmät), pikatagit piilossa "🏷 Tagit" -napin takana.
   "Menut"-rajaus (`@menu`) ryhmittelee menuittain, järjestys `COURSE_ORDER` = alkuruoka → illallinen → makeat.
 - **Järjestys** (`#sortBar`, piilossa valintasivulla ja Menut-ryhmittelyssä): `sortMode` (`SORTS`: oma = `sort_order`, az,
-  uusin = `created_at` desc, nopein = `prep_minutes`, tasatilanteessa nimi), muistetaan `localStorage`-avaimella `kk_sort`.
+  uusin/vanhin = `added_on` (null loppuun, sitten `created_at`), nopein = `prep_minutes`, tasatilanteessa nimi), muistetaan
+  `localStorage`-avaimella `kk_sort`. Apurit `fiDate(iso)` ja `todayIso()`.
   "↕ Järjestä" (`#orderBtn`, vain muokkaajalle ja vain omassa järjestyksessä) → `ordering`: rivit `<div class="item sorting">`
   + ≡-kahva (`.grip`, `touch-action:none`), napautus ei avaa reseptiä. Raahaus pointer-tapahtumilla (sormi ja hiiri),
   automaattivieritys reunoilla. `saveOrder(ids)`: näkyvät reseptit jakavat keskenään nykyiset `sort_order`-numeronsa uudessa
@@ -232,7 +241,7 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 
 | Taulu | Sarakkeet |
 |---|---|
-| `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_path (Storage-polku, esim. `<uuid>.jpg`), image_url (vanha ulkoinen osoite, ei enää lomakkeessa), notes, baby_notes (vauvaohje, näkyy vain `…/vauva`-näkymässä), sort_order (oma järjestys, uusi = max+1 triggerillä `recipes_default_sort`), created_by, created_at, updated_at |
+| `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_path (Storage-polku, esim. `<uuid>.jpg`), image_url (vanha ulkoinen osoite, ei enää lomakkeessa), notes, baby_notes (vauvaohje, näkyy vain `…/vauva`-näkymässä), added_on (date, lisäyspäivä, oletus current_date), sort_order (oma järjestys, uusi = max+1 triggerillä `recipes_default_sort`), created_by, created_at, updated_at |
 | `menus` | id, name (uniikki, = reseptien `menu:`-tagin nimi), subtitle, description, sort |
 | `menu_pages` | id, menu_id, kind (`menu`/`viinilista`/`muu`), title, html, width, height, sort |
 | `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa) |
