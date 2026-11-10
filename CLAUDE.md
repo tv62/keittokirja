@@ -42,10 +42,13 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 
 ## Työn tila (päivitä, kun jokin muuttuu)
 
-- Reseptit: Lapponia alla piemontese -menun 3 reseptiä (viikonloppuherkut) ja Apple Muistiinpanojen arkiruoat, erä 1 (11 reseptiä),
-  sekä yksittäin lisättyjä arkiruokia ja lisukkeita.
+- Reseptit (n. 73): Lapponia alla piemontese -menun 3 reseptiä, Apple Muistiinpanojen arkiruoat erä 1 (11) ja
+  erä 2 (marraskuu 2026: Keitot 6, Kastikkeet 9, Perjantaiherkut 15, Arkiruoka 28) sekä yksittäin lisättyjä.
+  Muistiinpanojen kansiot: Keitot ja Kastikkeet → `arkiruoka` (+ `keitto` / `kastike`), Perjantaiherkut → `viikonloppuherkut`.
+  Tyhjinä jätettiin pois: Hummus leivän päälle, Sitruunainen kantarellispagetti, Valkosipulimarinoidut
+  lampaankyljykset, Nopea linssibolognese. Wokkikastikkeesta puuttuu ohje (vain ainekset).
 - Vauvan ruoat -osio tehty, ei vielä reseptejä. Päärajauksena vain Top-lista; muut (esim. ikä) sovitaan käyttäjän kanssa.
-- Seuraavaksi todennäköisesti: viikonloppuherkut Apple Muistiinpanoista, uudet menut Claude Designista.
+- Seuraavaksi todennäköisesti: puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
@@ -206,7 +209,8 @@ Redirect URL = sivun osoite.
 - **Menu:** `menu:<Menun nimi>` (iso alkukirjain säilyy, sama kuin `menus.name`)
 - **Päärajaukset:** arki = `top`, `kana`, `nauta`, `kasvis`, `lisuke` (otsikko "Lisukkeet"); viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`;
   vauvan ruoat = `top`
-- **Muut tagit** pienillä kirjaimilla: esim. `kala`, `keitto`, `uuniruoka`, `pasta`, `poro`, `feta`, `linssi`, `marjat`, `peruna`
+- **Muut tagit** pienillä kirjaimilla: esim. `kala`, `keitto`, `uuniruoka`, `pasta`, `poro`, `feta`, `linssi`, `marjat`, `peruna`,
+  `kastike`, `marinadi`, `katkarapu`, `pizza`, `lammas`, `papu`, `helppo`, `sienet`
 - Lisukkeet (perunat, salaatit ym.) saavat `lisuke`-tagin. Kasvisruoka-lisuke voi saada myös `kasvis`-tagin.
 - Kategoria-, top- ja menu-tagit ovat "metatageja" (`isMeta`), eikä niitä näytetä tavallisina tageina.
 
