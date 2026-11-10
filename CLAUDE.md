@@ -30,6 +30,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
+  - Reseptikuvat aina neliöitä ja värillisiä. Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
+    alkukirjain). Puhelimessa kuva reseptin lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä.
+    (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
 - **Reseptilähteet:**
   - Apple Muistiinpanot: vienti Pikakomennoilla (Etsi muistiinpanot → Yhdistä teksti, erotin `=====` → Tallenna tiedosto)
     ja tiedosto chattiin. iCloud-jakolinkkejä ei voi lukea.
@@ -63,6 +66,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
 - Headless-Chromium ei anna Wake Lockia, joten kokkaustila näyttää siinä "ei pysty pitämään näyttöä päällä".
+- Kuvat: stubiin `storage.from(b).upload/createSignedUrls/remove` (upload → `URL.createObjectURL(blob)`).
+  Kuvan valinta `page.set_input_files("#f_file", polku)`. Ennen rajauksen raahausta `scroll_into_view_if_needed()`,
+  muuten hiiri osuu näkymän ulkopuolelle. Kuvien koon voi tarkistaa `createImageBitmap`-funktiolla.
 - Google Fonts ei lataudu testiympäristössä (verkkoesto); ne virheet voi ohittaa.
 
 ## Sovelluksen rakenne (keittokirja.html)
@@ -115,6 +121,15 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     palaa näkyviin) ja aineksen tai vaiheen voi napauttaa tehdyksi (yliviivaus). Ensimmäinen tekemätön vaihe korostetaan.
   - Annosmäärä ja kokkaustilan rastit säilyvät muistissa (`cook`-Map) reseptikohtaisesti, kunnes sivu ladataan
     uudelleen, kokkaus lopetetaan tai resepti tallennetaan.
+- **Reseptikuva** (`imgUrl(r, small)`, `rimg-top` / `rimg-end`): sama kuva renderöidään kahteen kohtaan, ja CSS näyttää
+  alle 600 px leveällä lopussa, muuten ylhäällä (max 440 px). Listan pikkukuva `.thumb` 60 px, ilman kuvaa `.thumb.ph`
+  (alkukirjain). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
+- **Kuvan lisäys lomakkeessa:** "📷 Lisää kuva" (`<label for="f_file">`, `accept="image/*"` → iPhonessa kamera tai
+  kuvakirjasto). Neliörajaus canvasilla: siirto sormella, suurennus liukusäätimellä (1–3×) tai kahdella sormella,
+  oletuksena keskeltä. Tallennettaessa `uploadCropped()`: 1200×1200 JPEG (laatu 0,85, n. 350 kt) ja 240×240
+  pikkukuva (n. 16 kt), pienennys vaiheittain. Vaihto/poisto poistaa vanhat tiedostot vasta onnistuneen tallennuksen
+  jälkeen, ja epäonnistunut tallennus poistaa juuri ladatut. Reseptin poisto poistaa myös kuvat.
+  Tila `imgState.kind`: `none` / `keep` / `new` / `removed` (Peru palauttaa edellisen). Kuvan valinta tekee lomakkeesta muutetun.
 - **Reseptilomake:** tagit valitaan napautettavista chipeistä (`editTags`). Valitun kategorian päärajaukset ensin,
   sitten muut käytössä olevat tagit aakkosjärjestyksessä. Uuden tagin voi kirjoittaa (pilkulla useita) ja lisätä
   "Lisää"-napilla tai Enterillä. Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
@@ -140,11 +155,16 @@ Kaikissa julkisissa tauluissa on RLS. Säännöt `to authenticated`:
 - **insert/update/delete** ehdolla `(select private.can_edit())` – vain muokkausoikeus tai admin.
 
 **Uudelle taululle samat neljä policya (lukeminen is_family, kirjoitus can_edit) + `revoke all ... from anon`.**
-Sama koskee myöhemmin Supabase Storagen kuvia.
+
+**Storage:** yksityinen bucket `recipe-images` (vain `image/jpeg`, max 5 Mt). `storage.objects`-säännöt samalla
+mallilla: select `is_family()`, insert/update/delete `can_edit()` (ehtona `bucket_id = 'recipe-images'`).
+Tiedostot `<uuid>.jpg` (1200×1200) ja `<uuid>-pk.jpg` (240×240). Sivu hakee allekirjoitetut osoitteet
+(`createSignedUrls`, voimassa 7 vrk) kaikille kuville kerralla `loadAll()`:ssa (`signImages()`).
+Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuville.
 
 | Taulu | Sarakkeet |
 |---|---|
-| `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_url, notes, created_by, created_at, updated_at |
+| `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_path (Storage-polku, esim. `<uuid>.jpg`), image_url (vanha ulkoinen osoite, ei enää lomakkeessa), notes, created_by, created_at, updated_at |
 | `menus` | id, name (uniikki, = reseptien `menu:`-tagin nimi), subtitle, description, sort |
 | `menu_pages` | id, menu_id, kind (`menu`/`viinilista`/`muu`), title, html, width, height, sort |
 | `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_url |
@@ -216,8 +236,8 @@ Nykyiset menut: **Lapponia alla piemontese** (menukortti + viinilista, 3 resepti
 ## Tunnetut asiat ja ideat
 
 - "Leaked password protection" ei ole päällä (saattaa vaatia maksullisen Supabase-tason).
-- Kuvien lataus (Supabase Storage) puuttuu. Kuvat ovat nyt URL-osoitteita.
-  **Seuraavaksi sovittu:** kuvat suoraan kameralla (Supabase Storage, pikkukuvat listaan).
+- Viinien kuvat ovat yhä URL-osoitteita (lomakkeen "Kuvan osoite"). Reseptien kuvanlisäyksen voi tarvittaessa
+  laajentaa viineihin samalla mallilla.
 - Ehdotettuja, ei vielä tehty (ulkoasu): ainesten väliotsikot ("Kastike:") otsikoiksi; "Hallinta" ja
   "Kirjaudu ulos" vievät iPhonella kaksi riviä (uloskirjautuminen Hallinta-sivulle?); iPadilla vaakatasossa
   ainekset ja ohje rinnakkain; ohjeen vaiheisiin isommat numerot; oma Koti-valikon kuvake (apple-touch-icon).

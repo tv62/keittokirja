@@ -173,6 +173,22 @@
   /* Vain lukuoikeus: lisäys- ja muokkausnapit piiloon (tietokanta estää muokkauksen joka tapauksessa) */
   .readonly .edit-only { display: none !important; }
   .badge.ro { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+  /* Reseptikuvat: aina neliö. Listalla pikkukuva vasemmalla, ilman kuvaa nimen alkukirjain. */
+  .item.rec { padding: 10px 14px 10px 10px; }
+  .thumb { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; flex: none; background: var(--chip); }
+  .thumb.ph { display: flex; align-items: center; justify-content: center; color: var(--muted); font: 600 1.5rem Georgia, serif; }
+  .rimg { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 12px; background: var(--chip); }
+  .rimg-top { max-width: 440px; margin: 0 auto 16px; }
+  .rimg-end { display: none; margin-top: 22px; }
+  /* Puhelimessa kuva reseptin loppuun, isommalla näytöllä (iPad) ylös */
+  @media (max-width: 599px) { .rimg-top { display: none; } .rimg-end { display: block; } }
+  .imgprev { width: 150px; height: 150px; border-radius: 12px; object-fit: cover; display: block; }
+  .cropcv { display: block; width: 100%; max-width: 360px; aspect-ratio: 1 / 1; border-radius: 12px; background: var(--chip);
+            touch-action: none; cursor: grab; }
+  .hint { font-size: .85rem; color: var(--muted); margin: 6px 0; }
+  input[type=range] { padding: 0; border: none; background: none; max-width: 360px; accent-color: var(--accent); min-height: 44px; }
+  label.btn { display: inline-flex; align-items: center; margin: 0; font-size: 1rem; color: var(--ink); min-height: 44px; }
+  .vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -293,8 +309,22 @@
       </div>
       <label for="f_source">Lähde (linkki tai kuka antoi)</label>
       <input id="f_source">
-      <label for="f_image">Kuvan osoite</label>
-      <input id="f_image" type="url" placeholder="https://…">
+      <label>Kuva</label>
+      <div id="f_imgbox">
+        <img id="f_imgprev" class="imgprev hidden" alt="Reseptin kuva">
+        <div id="f_cropwrap" class="hidden">
+          <canvas id="f_crop" class="cropcv" aria-label="Kuvan rajaus"></canvas>
+          <p class="hint">Siirrä kuvaa sormella. Suurenna liukusäätimellä tai kahdella sormella.</p>
+          <input type="range" id="f_zoom" min="1" max="3" step="0.01" value="1" aria-label="Suurennus">
+        </div>
+        <p id="f_imgnote" class="hint hidden"></p>
+        <div class="actions" style="margin-top:8px">
+          <label for="f_file" class="btn" id="f_imgpick">📷 Lisää kuva</label>
+          <button type="button" id="f_imgundo" class="hidden">Peru</button>
+          <button type="button" id="f_imgdel" class="danger hidden">Poista kuva</button>
+        </div>
+        <input type="file" id="f_file" accept="image/*" class="vh" tabindex="-1">
+      </div>
       <label for="f_notes">Muistiinpanot</label>
       <textarea id="f_notes" style="min-height:80px"></textarea>
       <div class="actions">
@@ -480,6 +510,29 @@
   const wineHay = (w) => [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.occasion, w.own_notes, w.description];
   const menuHay = (m) => [m.name, m.subtitle, m.description];
 
+  // ---------- Kuvat (Supabase Storage, yksityinen bucket) ----------
+  // Kuva <uuid>.jpg (1200×1200) ja pikkukuva <uuid>-pk.jpg (240×240). Näytetään allekirjoitetuilla osoitteilla.
+  const BUCKET = "recipe-images";
+  const thumbPath = (p) => p.replace(/\.jpg$/, "-pk.jpg");
+  const imgUrls = {}; // storage-polku → allekirjoitettu osoite
+  async function signImages(list) {
+    const paths = list.flatMap((r) => (r.image_path ? [r.image_path, thumbPath(r.image_path)] : [])).filter((p) => !imgUrls[p]);
+    if (!paths.length) return;
+    try {
+      const { data, error } = await sb.storage.from(BUCKET).createSignedUrls(paths, 7 * 24 * 3600);
+      if (!error) for (const d of data || []) if (d.signedUrl && !d.error) imgUrls[d.path] = d.signedUrl;
+    } catch {}
+  }
+  // small = listan pikkukuva. Vanhat kuvaosoitteet (image_url) toimivat edelleen.
+  function imgUrl(r, small) {
+    if (r.image_path) return imgUrls[small ? thumbPath(r.image_path) : r.image_path] || null;
+    return safeUrl(r.image_url);
+  }
+  async function removeImage(path) {
+    if (!path) return;
+    try { await sb.storage.from(BUCKET).remove([path, thumbPath(path)]); } catch {}
+  }
+
   const VIEWS = ["loadView", "authView", "homeView", "listView", "detailView", "editView", "adminView",
                  "menusView", "menuView", "winesView", "wineView", "wineEditView"];
   function show(view) {
@@ -658,6 +711,7 @@
       return;
     }
     recipes = r.data;
+    await signImages(recipes);
     if (!m.error) menus = m.data;
     if (!w.error) wines = w.data;
     isAdmin = a.data === true;
@@ -858,7 +912,10 @@
     const top = (r.tags || []).includes("top");
     const meta = [r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
       .filter(Boolean).map(esc).join(" · ");
-    return `<button class="item card" data-id="${r.id}">
+    const tu = imgUrl(r, true);
+    const thumb = tu ? `<img class="thumb" src="${esc(tu)}" alt="" loading="lazy">`
+      : `<span class="thumb ph" aria-hidden="true">${esc((r.title || "?").trim().charAt(0).toUpperCase())}</span>`;
+    return `<button class="item card rec" data-id="${r.id}">${thumb}
       <div class="body"><div class="t">${esc(r.title)}</div><div class="m">${meta}</div></div>
       ${menu || top ? `<div class="side">
         ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
@@ -973,7 +1030,9 @@
     const st = cookState(r);
     if (r.servings && !st.servings) st.servings = r.servings;
     const f = r.servings ? st.servings / r.servings : 1;
-    const img = safeUrl(r.image_url);
+    const big = imgUrl(r, false);
+    // Sama kuva kahteen kohtaan: CSS näyttää puhelimessa lopussa (rimg-end), isommalla näytöllä ylhäällä (rimg-top).
+    const pic = (cls) => (big ? `<img class="rimg ${cls}" src="${esc(big)}" alt="${esc(r.title)}">` : "");
     const src = r.source ? (safeUrl(r.source) ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>` : esc(r.source)) : "";
     const menu = menuOf(r);
     const isTop = (r.tags || []).includes("top");
@@ -987,7 +1046,7 @@
     const lockNote = st.lockOk ? "Näyttö pysyy päällä." : "Tämä selain ei pysty pitämään näyttöä päällä.";
     $("detail").classList.toggle("cooking", st.on);
     $("detail").innerHTML = `
-      ${img ? `<img class="hero" src="${esc(img)}" alt="">` : ""}
+      ${pic("rimg-top")}
       <div class="dhead">
         <h2>${esc(r.title)}</h2>
         ${menu ? `<button class="menu-badge" data-openmenu="${esc(menu)}" aria-label="Avaa menu ${esc(menu)}">${esc(menu)}</button>` : ""}
@@ -1012,6 +1071,7 @@
       ${steps ? `<h3>Ohje</h3><ol class="steps">${steps}</ol>` : ""}
       ${r.notes ? `<h3>Muistiinpanot</h3><p class="notes">${esc(r.notes)}</p>` : ""}
       ${src ? `<h3>Lähde</h3><p>${src}</p>` : ""}
+      ${pic("rimg-end")}
       ${canEdit ? `<div class="actions">
         <button type="button" data-act="top">${isTop ? "★ Poista Top-listalta" : "⭐ Lisää Top-listalle"}</button>
         <button type="button" data-act="edit">Muokkaa</button>
@@ -1286,8 +1346,124 @@
   // ---------- Reseptilomake ----------
   let editTags = new Set();
   const FORM_IDS = ["f_title", "f_category", "f_menu", "f_description", "f_servings", "f_prep",
-                    "f_ingredients", "f_instructions", "f_source", "f_image", "f_notes", "f_newtag"];
-  const recipeFormState = () => JSON.stringify([...FORM_IDS.map((id) => $(id).value.trim()), $("f_top").checked, [...editTags].sort()]);
+                    "f_ingredients", "f_instructions", "f_source", "f_notes", "f_newtag"];
+  const recipeFormState = () => JSON.stringify([...FORM_IDS.map((id) => $(id).value.trim()), $("f_top").checked, [...editTags].sort(), imgState.kind]);
+
+  // ---------- Reseptin kuva lomakkeessa ----------
+  // imgState.kind: "none" (ei kuvaa), "keep" (nykyinen kuva), "new" (uusi kuva rajattavana), "removed" (poistetaan tallennettaessa)
+  let imgState = { kind: "none" };
+  function renderImgBox() {
+    const k = imgState.kind;
+    $("f_imgprev").classList.toggle("hidden", k !== "keep");
+    if (k === "keep") $("f_imgprev").src = imgState.url;
+    $("f_cropwrap").classList.toggle("hidden", k !== "new");
+    msg($("f_imgnote"), k === "removed" ? "Kuva poistetaan, kun tallennat." : "");
+    $("f_imgpick").textContent = k === "keep" || k === "new" ? "📷 Vaihda kuva" : "📷 Lisää kuva";
+    $("f_imgundo").classList.toggle("hidden", !(k === "new" || k === "removed"));
+    $("f_imgdel").classList.toggle("hidden", k !== "keep");
+    if (k === "new") requestAnimationFrame(drawCrop);
+  }
+  // Rajausneliö lähdekuvan pikseleinä. zoom 1 = koko lyhyempi sivu, 3 = kolmasosa.
+  function cropRect() {
+    const { el, crop } = imgState, iw = el.naturalWidth, ih = el.naturalHeight;
+    const s = Math.min(iw, ih) / crop.zoom;
+    crop.cx = Math.min(iw - s / 2, Math.max(s / 2, crop.cx));
+    crop.cy = Math.min(ih - s / 2, Math.max(s / 2, crop.cy));
+    return { sx: crop.cx - s / 2, sy: crop.cy - s / 2, s };
+  }
+  function drawCrop() {
+    if (imgState.kind !== "new") return;
+    const cv = $("f_crop"), px = Math.round((cv.clientWidth || 300) * (window.devicePixelRatio || 1));
+    if (cv.width !== px) { cv.width = px; cv.height = px; }
+    const { sx, sy, s } = cropRect(), c = cv.getContext("2d");
+    c.imageSmoothingQuality = "high";
+    c.drawImage(imgState.el, sx, sy, s, s, 0, 0, px, px);
+  }
+  function setZoom(z) {
+    if (imgState.kind !== "new") return;
+    imgState.crop.zoom = Math.min(3, Math.max(1, z));
+    $("f_zoom").value = imgState.crop.zoom;
+    drawCrop();
+  }
+  $("f_zoom").oninput = (e) => setZoom(+e.target.value);
+  // Siirto yhdellä sormella, suurennus kahdella sormella.
+  const ptrs = new Map();
+  let pinch = null;
+  $("f_crop").addEventListener("pointerdown", (e) => {
+    $("f_crop").setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 2 && imgState.kind === "new") {
+      const [a, b] = [...ptrs.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: imgState.crop.zoom };
+    }
+  });
+  $("f_crop").addEventListener("pointermove", (e) => {
+    const p = ptrs.get(e.pointerId);
+    if (!p || imgState.kind !== "new") return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    p.x = e.clientX; p.y = e.clientY;
+    if (ptrs.size >= 2 && pinch) {
+      const [a, b] = [...ptrs.values()];
+      return setZoom(pinch.z * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d);
+    }
+    const k = cropRect().s / ($("f_crop").clientWidth || 300);
+    imgState.crop.cx -= dx * k; imgState.crop.cy -= dy * k;
+    drawCrop();
+  });
+  const ptrUp = (e) => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; };
+  $("f_crop").addEventListener("pointerup", ptrUp);
+  $("f_crop").addEventListener("pointercancel", ptrUp);
+
+  $("f_file").onchange = () => {
+    const file = $("f_file").files && $("f_file").files[0];
+    $("f_file").value = ""; // sama kuva voidaan valita uudelleen
+    if (!file) return;
+    const url = URL.createObjectURL(file), el = new Image();
+    el.onload = () => {
+      const prev = imgState.kind === "new" ? imgState.prev : imgState;
+      imgState = { kind: "new", el, url, prev, crop: { cx: el.naturalWidth / 2, cy: el.naturalHeight / 2, zoom: 1 } };
+      $("f_zoom").value = 1;
+      renderImgBox();
+    };
+    el.onerror = () => { URL.revokeObjectURL(url); msg($("f_imgnote"), "Kuvaa ei voitu avata. Kokeile toista kuvaa.", true); };
+    el.src = url;
+  };
+  $("f_imgundo").onclick = () => {
+    if (imgState.kind === "new") URL.revokeObjectURL(imgState.url);
+    imgState = imgState.prev || { kind: "none" };
+    renderImgBox();
+  };
+  $("f_imgdel").onclick = () => { imgState = { kind: "removed", prev: imgState }; renderImgBox(); };
+
+  // Rajattu neliö haluttuun kokoon. Iso pienennys tehdään kahdessa vaiheessa, jotta kuva pysyy terävänä.
+  function squareCanvas(src, sx, sy, s, size) {
+    if (s > size * 2) {
+      const mid = squareCanvas(src, sx, sy, s, size * 2);
+      return squareCanvas(mid, 0, 0, size * 2, size);
+    }
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const x = c.getContext("2d");
+    x.imageSmoothingQuality = "high";
+    x.drawImage(src, sx, sy, s, s, 0, 0, size, size);
+    return c;
+  }
+  const toJpeg = (c, q) => new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("Kuvan muunto epäonnistui"))), "image/jpeg", q));
+  const newId = () => (crypto.randomUUID ? crypto.randomUUID()
+    : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => { const r = (Math.random() * 16) | 0; return (ch === "x" ? r : (r & 3) | 8).toString(16); }));
+  // Tallentaa rajatun kuvan ja pikkukuvan. Palauttaa storage-polun.
+  async function uploadCropped() {
+    const { sx, sy, s } = cropRect();
+    const big = squareCanvas(imgState.el, sx, sy, s, 1200), small = squareCanvas(big, 0, 0, 1200, 240);
+    const [b1, b2] = await Promise.all([toJpeg(big, 0.85), toJpeg(small, 0.8)]);
+    const path = `${newId()}.jpg`, opts = { contentType: "image/jpeg", cacheControl: "31536000", upsert: false };
+    const st = sb.storage.from(BUCKET);
+    let res = await st.upload(path, b1, opts);
+    if (res.error) throw res.error;
+    res = await st.upload(thumbPath(path), b2, opts);
+    if (res.error) { await removeImage(path); throw res.error; }
+    return path;
+  }
 
   function openEditor(r, cat) {
     editingId = r ? r.id : null;
@@ -1304,8 +1480,10 @@
     $("menuList").innerHTML = [...new Set(recipes.map(menuOf).filter(Boolean))]
       .map((m) => `<option value="${esc(m)}"></option>`).join("");
     $("f_source").value = r?.source || "";
-    $("f_image").value = r?.image_url || "";
     $("f_notes").value = r?.notes || "";
+    const cur = r ? imgUrl(r, false) : null;
+    imgState = cur ? { kind: "keep", url: cur } : { kind: "none" };
+    renderImgBox();
     editTags = new Set(r ? plainTags(r) : []);
     $("f_newtag").value = "";
     renderTagPick();
@@ -1364,16 +1542,39 @@
         ...editTags,
       ])],
       source: $("f_source").value.trim() || null,
-      image_url: $("f_image").value.trim() || null,
       notes: $("f_notes").value.trim() || null,
     };
+    const old = editingId ? recipes.find((x) => x.id === editingId) : null;
+    const saveTxt = $("saveBtn").textContent;
     $("saveBtn").disabled = true;
+    msg($("editMsg"), "");
+    let newPath = null;
+    try {
+      if (imgState.kind === "new") {
+        $("saveBtn").textContent = "Tallennetaan kuvaa…";
+        newPath = await uploadCropped();
+        row.image_path = newPath; row.image_url = null;
+      } else if (imgState.kind === "removed") {
+        row.image_path = null; row.image_url = null;
+      }
+    } catch (err) {
+      $("saveBtn").disabled = false; $("saveBtn").textContent = saveTxt;
+      return msg($("editMsg"), "Kuvan tallennus epäonnistui: " + (err.message || err), true);
+    }
+    $("saveBtn").textContent = "Tallennetaan…";
     const q = editingId
       ? sb.from("recipes").update(row).eq("id", editingId).select().single()
       : sb.from("recipes").insert(row).select().single();
     const { data, error } = await q;
-    $("saveBtn").disabled = false;
-    if (error) return msg($("editMsg"), "Tallennus epäonnistui: " + error.message, true);
+    $("saveBtn").disabled = false; $("saveBtn").textContent = saveTxt;
+    if (error) {
+      if (newPath) removeImage(newPath); // ei jätetä irrallisia kuvia
+      return msg($("editMsg"), "Tallennus epäonnistui: " + error.message, true);
+    }
+    // Vanha kuva pois, jos se vaihdettiin tai poistettiin.
+    if (old && old.image_path && (newPath || imgState.kind === "removed")) removeImage(old.image_path);
+    if (newPath) await signImages([data]);
+    if (imgState.kind === "new") URL.revokeObjectURL(imgState.url);
     const i = recipes.findIndex((x) => x.id === data.id);
     if (i >= 0) recipes[i] = data; else recipes.push(data);
     recipes.sort((a, b) => a.title.localeCompare(b.title, "fi"));
@@ -1391,6 +1592,7 @@
     if (error) return alert("Poisto epäonnistui: " + error.message);
     recipes = recipes.filter((x) => x.id !== r.id);
     cook.delete(r.id);
+    removeImage(r.image_path);
     const c = catOf(r);
     leaveDeleted(c ? `#/reseptit/${c}` : "#/reseptit");
   };
