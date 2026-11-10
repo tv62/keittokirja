@@ -41,7 +41,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 
 ## Työn tila (päivitä, kun jokin muuttuu)
 
-- Reseptit: Lapponia alla piemontese -menun 3 reseptiä (viikonloppuherkut) ja Apple Muistiinpanojen arkiruoat, erä 1 (11 reseptiä).
+- Reseptit: Lapponia alla piemontese -menun 3 reseptiä (viikonloppuherkut) ja Apple Muistiinpanojen arkiruoat, erä 1 (11 reseptiä),
+  sekä yksittäin lisättyjä arkiruokia ja lisukkeita.
 - Seuraavaksi todennäköisesti: viikonloppuherkut Apple Muistiinpanoista, uudet menut Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
@@ -199,8 +200,9 @@ Redirect URL = sivun osoite.
 - **Kategoria (yksi):** `arkiruoka` tai `viikonloppuherkut`
 - **Top-lista:** `top`
 - **Menu:** `menu:<Menun nimi>` (iso alkukirjain säilyy, sama kuin `menus.name`)
-- **Päärajaukset:** arki = `top`, `kana`, `nauta`, `kasvis`; viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`
-- **Muut tagit** pienillä kirjaimilla: esim. `kala`, `keitto`, `uuniruoka`, `pasta`, `poro`, `feta`, `linssi`, `marjat`
+- **Päärajaukset:** arki = `top`, `kana`, `nauta`, `kasvis`, `lisuke` (otsikko "Lisukkeet"); viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`
+- **Muut tagit** pienillä kirjaimilla: esim. `kala`, `keitto`, `uuniruoka`, `pasta`, `poro`, `feta`, `linssi`, `marjat`, `peruna`
+- Lisukkeet (perunat, salaatit ym.) saavat `lisuke`-tagin. Kasvisruoka-lisuke voi saada myös `kasvis`-tagin.
 - Kategoria-, top- ja menu-tagit ovat "metatageja" (`isMeta`), eikä niitä näytetä tavallisina tageina.
 
 ## Reseptien lisääminen
