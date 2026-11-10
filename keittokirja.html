@@ -108,6 +108,20 @@
   select { appearance: none; -webkit-appearance: none; }
   .search button { flex: none; white-space: nowrap; }
   .chips.primary { margin-bottom: 10px; }
+  /* Valintasivu (GRID) ennen reseptilistaa */
+  .subgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  @media (min-width: 600px) { .subgrid { grid-template-columns: 1fr 1fr 1fr; } }
+  .subcard { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%; padding: 13px 14px;
+    border-radius: 14px; background: var(--card); border: 1px solid var(--line);
+    font-family: Georgia, serif; font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+  .subcard .e { font-size: 1.7rem; line-height: 1; }
+  .subcard .s { display: block; margin-top: 3px; font: 400 .85rem/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--muted); }
+  .subcard.wide { grid-column: 1 / -1; }
+  .subcard:active { transform: scale(.98); }
+  /* Ryhmälistan päärajaukset yhdellä pyyhkäistävällä rivillä */
+  .chips.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: -16px; padding-right: 16px; }
+  .chips.scroll::-webkit-scrollbar { display: none; }
+  .chips.scroll .chip { flex-shrink: 0; }
   .chips.primary .chip { padding: 7px 14px; font-size: .92rem; border-color: var(--line); background: var(--card); }
   .chips.primary .chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .chip.ghost { background: transparent !important; border: 1px dashed var(--line) !important; color: var(--muted) !important; }
@@ -256,12 +270,14 @@
 
   <!-- Lista -->
   <section id="listView" class="hidden">
-    <button class="link" data-home="1">← Etusivu</button>
+    <button class="link" data-home="1" id="listHome">← Etusivu</button>
+    <button class="link hidden" id="toGrid"></button>
     <h2 id="listTitle" style="margin:6px 0 14px">Kaikki reseptit</h2>
     <div class="search">
       <input id="q" type="search" placeholder="Hae nimellä tai aineksella…" autocomplete="off" enterkeyhint="search">
       <button class="primary edit-only" id="newBtn">+ Uusi</button>
     </div>
+    <div class="subgrid hidden" id="subGrid"></div>
     <div class="chips primary" id="primaryChips"></div>
     <div class="chips hidden" id="tagChips"></div>
     <div id="listMsg" class="msg hidden"></div>
@@ -488,10 +504,20 @@
   const CATS = { arkiruoka: "Arkiruoka", viikonloppuherkut: "Viikonloppuherkut", vauvanruoat: "Vauvan ruoat" };
   // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu.
   const PRIMARY = {
-    arkiruoka: [["top", "⭐ Top-lista"], ["kana", "Kana"], ["nauta", "Nauta"], ["kasvis", "Kasvis"], ["lisuke", "Lisukkeet"], ["kastike", "Kastikkeet"]],
     viikonloppuherkut: [["top", "⭐ Top-lista"], ["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
     vauvanruoat: [["top", "⭐ Top-lista"]],
   };
+  // Valintasivu ennen listaa (vain näille kategorioille): ryhmä = [avain, emoji, otsikko, tagit (mikä tahansa riittää)].
+  // Osoitteet #/reseptit/<kategoria> (valintasivu) ja #/reseptit/<kategoria>/<avain | "kaikki"> (lista).
+  const GRID = {
+    arkiruoka: { all: "Kaikki arkiruoat", groups: [
+      ["top", "⭐", "Top-lista", ["top"]], ["kana", "🐔", "Kana", ["kana"]], ["liha", "🥩", "Liha", ["nauta", "lammas"]],
+      ["poro", "🦌", "Poro", ["poro"]], ["kala", "🐟", "Kala", ["kala", "katkarapu"]], ["kasvis", "🥕", "Kasvis", ["kasvis"]],
+      ["keitto", "🍲", "Keitot", ["keitto"]], ["pasta", "🍝", "Pastat", ["pasta"]], ["lisuke", "🥔", "Lisukkeet", ["lisuke"]],
+      ["kastike", "🥣", "Kastikkeet", ["kastike"]],
+    ] },
+  };
+  const gridGroup = (cat, k) => GRID[cat]?.groups.find((g) => g[0] === k);
   const COURSE_ORDER = ["alkuruoka", "illallinen", "makeat"];
   const isMeta = (t) => !!CATS[t] || t === "top" || t.startsWith("menu:");
   const menuOf = (r) => { const t = (r.tags || []).find((x) => x.startsWith("menu:")); return t ? t.slice(5) : null; };
@@ -785,7 +811,10 @@
     if (!canEdit && (c === "muokkaa" || a === "uusi-resepti" || a === "uusi-viini")) return false;
     switch (a) {
       case undefined: openHome(); return true;
-      case "reseptit": if (b && !CATS[b]) return false; openCategory(b || null); return true;
+      case "reseptit":
+        if (b && !CATS[b]) return false;
+        if (c && !(GRID[b] && (c === "kaikki" || gridGroup(b, c)))) return false;
+        openCategory(b || null, c || null); return true;
       case "resepti": {
         const r = recipes.find((x) => x.id === b); if (!r) return false;
         c === "muokkaa" ? openEditor(r) : openRecipe(r); return true;
@@ -1033,9 +1062,11 @@
   // ---------- Lista ----------
   let listOpened = false;
   function resetListFilters() { activeTag = null; activePrimary = null; showTags = false; $("q").value = ""; }
-  function openCategory(cat) {
+  function openCategory(cat, group) {
     // Rajaukset säilyvät, kun reseptistä palataan takaisin samaan listaan.
     if (!listOpened || cat !== currentCat) resetListFilters();
+    else if (GRID[cat] && !group && activePrimary) resetListFilters(); // ryhmästä takaisin valintasivulle
+    if (GRID[cat]) activePrimary = group;
     listOpened = true;
     currentCat = cat;
     $("listTitle").textContent = currentCat ? CATS[currentCat] : "Kaikki reseptit";
@@ -1047,10 +1078,34 @@
     const ws = words($("q").value);
     const base = currentCat ? recipes.filter((r) => (r.tags || []).includes(currentCat)) : recipes;
 
+    // Valintasivu (GRID-kategoriat ilman valittua ryhmää ja hakua)
+    const grid = GRID[currentCat];
+    const grp = grid && gridGroup(currentCat, activePrimary);
+    const gridMode = !!grid && !activePrimary && !ws.length && !activeTag;
+    for (const id of ["primaryChips", "list"]) $(id).classList.toggle("hidden", gridMode);
+    $("subGrid").classList.toggle("hidden", !gridMode);
+    $("listHome").classList.toggle("hidden", !!grid && !!activePrimary);
+    $("toGrid").classList.toggle("hidden", !grid || !activePrimary);
+    if (grid) {
+      $("toGrid").textContent = "← " + CATS[currentCat];
+      $("listTitle").textContent = !activePrimary ? CATS[currentCat] : grp ? `${grp[1]} ${grp[2]}` : "📖 " + grid.all;
+    }
+    if (gridMode) {
+      const n = (tags) => base.filter((r) => tags.some((t) => (r.tags || []).includes(t))).length;
+      const card = (k, e, label, c, cls = "") =>
+        `<button class="subcard ${cls}" data-group="${esc(k)}"><span class="e">${e}</span><span>${esc(label)}<span class="s">${c} ${c === 1 ? "resepti" : "reseptiä"}</span></span></button>`;
+      $("subGrid").innerHTML = grid.groups.filter((g) => n(g[3])).map(([k, e, label, tags]) => card(k, e, label, n(tags))).join("") +
+        card("kaikki", "📖", grid.all, base.length, "wide");
+      $("tagChips").classList.add("hidden");
+      msg($("listMsg"), base.length ? "" : "Tässä kategoriassa ei ole vielä reseptejä.");
+      return;
+    }
+
     // Päärajaukset + Tagit-nappi
-    const prim = PRIMARY[currentCat] || [];
+    const prim = grid ? grid.groups.map(([k, , label]) => [k, label]) : (PRIMARY[currentCat] || []);
+    $("primaryChips").classList.toggle("scroll", !!grid);
     $("primaryChips").innerHTML =
-      (prim.length ? [["", "Kaikki"], ...prim] : []).map(([k, label]) =>
+      (prim.length ? [[grid ? "kaikki" : "", "Kaikki"], ...prim] : []).map(([k, label]) =>
         `<button class="chip ${(activePrimary || "") === k ? "on" : ""}" data-prim="${esc(k)}">${esc(label)}</button>`).join("") +
       `<button class="chip ghost ${showTags ? "on" : ""}" data-tagtoggle="1" aria-expanded="${showTags}">🏷 Tagit${activeTag ? " · " + esc(activeTag) : ""} ${showTags ? "▴" : "▾"}</button>`;
 
@@ -1064,7 +1119,8 @@
     const shown = base.filter((r) => {
       const tg = r.tags || [];
       if (activePrimary === "@menu" && !menuOf(r)) return false;
-      if (activePrimary && activePrimary !== "@menu" && !tg.includes(activePrimary)) return false;
+      if (grp && !grp[3].some((t) => tg.includes(t))) return false;
+      if (!grid && activePrimary && activePrimary !== "@menu" && !tg.includes(activePrimary)) return false;
       if (activeTag && !tg.includes(activeTag)) return false;
       return matches(recipeHay(r), ws);
     });
@@ -1081,6 +1137,9 @@
     } else {
       $("list").innerHTML = shown.map((r) => recipeItem(r)).join("") || empty;
     }
+    // Pyyhkäistävällä rivillä valittu rajaus näkyviin
+    const on = grid && $("primaryChips").querySelector(".chip.on");
+    if (on) { const c = $("primaryChips"); c.scrollLeft = on.offsetLeft - c.offsetLeft - (c.clientWidth - on.offsetWidth) / 2; }
   }
 
   const courseRank = (r) => { const i = COURSE_ORDER.findIndex((c) => (r.tags || []).includes(c)); return i < 0 ? 99 : i; };
@@ -1103,9 +1162,14 @@
   $("primaryChips").onclick = (e) => {
     if (e.target.closest("[data-tagtoggle]")) { showTags = !showTags; return renderList(); }
     const b = e.target.closest("[data-prim]"); if (!b) return;
+    if (GRID[currentCat]) { go(`#/reseptit/${currentCat}/${b.dataset.prim}`, { replace: true }); return; }
     activePrimary = b.dataset.prim || null;
     renderList();
   };
+  $("subGrid").onclick = (e) => {
+    const b = e.target.closest("[data-group]"); if (b) go(`#/reseptit/${currentCat}/${b.dataset.group}`);
+  };
+  $("toGrid").onclick = () => back(`#/reseptit/${currentCat}`);
   $("q").oninput = renderList;
   $("q").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("q").blur(); } };
   $("tagChips").onclick = (e) => {
@@ -1571,10 +1635,11 @@
   }
 
   // Tagivalitsin: valmiit tagit napautettavina. Valitun kategorian päärajaukset ensin.
-  const primaryTagsOf = (cat) => (PRIMARY[cat] || []).map(([k]) => k).filter((k) => !isMeta(k) && !k.startsWith("@"));
+  const primaryTagsOf = (cat) => (GRID[cat] ? GRID[cat].groups.flatMap((g) => g[3]) : (PRIMARY[cat] || []).map(([k]) => k))
+    .filter((k) => !isMeta(k) && !k.startsWith("@"));
   function renderTagPick() {
     const first = primaryTagsOf($("f_category").value);
-    const rest = new Set([...recipes.flatMap(plainTags), ...Object.keys(PRIMARY).flatMap(primaryTagsOf), ...editTags]);
+    const rest = new Set([...recipes.flatMap(plainTags), ...[...Object.keys(PRIMARY), ...Object.keys(GRID)].flatMap(primaryTagsOf), ...editTags]);
     first.forEach((t) => rest.delete(t));
     const all = [...first, ...[...rest].sort((a, b) => a.localeCompare(b, "fi"))];
     $("f_tagpick").innerHTML = all.map((t) =>

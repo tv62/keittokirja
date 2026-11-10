@@ -27,7 +27,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Käyttöliittymäpäätökset, joita ei muuteta kysymättä:**
   - Etusivulla viisi korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinit ja niiden alla oma osio
     🍼 Vauvan ruoat (luokka `wide`: iPadilla molempien sarakkeiden levyinen).
-  - Päärajaukset aina näkyvissä, pikatagit piilossa "🏷 Tagit" -napin takana.
+  - **Arkiruoka avautuu valintasivuna** (hyväksytty 11/2026): 2 saraketta ruutuja (iPadilla 3), emoji + nimi + määrä:
+    Top-lista, Kana, Liha, Poro, Kala, Kasvis, Keitot, Pastat, Lisukkeet, Kastikkeet + leveä "Kaikki arkiruoat".
+    Tyhjät ryhmät piilotetaan. Ryhmän listassa ylhäällä "← Arkiruoka" ja päärajaukset yhdellä pyyhkäistävällä rivillä.
+  - Muissa kategorioissa päärajaukset aina näkyvissä. Pikatagit aina piilossa "🏷 Tagit" -napin takana.
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
@@ -91,7 +94,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | Osoite | Näkymä |
 |---|---|
 | `#/` | etusivu |
-| `#/reseptit`, `#/reseptit/arkiruoka`, `#/reseptit/viikonloppuherkut`, `#/reseptit/vauvanruoat` | reseptilista |
+| `#/reseptit`, `#/reseptit/viikonloppuherkut`, `#/reseptit/vauvanruoat` | reseptilista |
+| `#/reseptit/arkiruoka`, `#/reseptit/arkiruoka/<ryhmä>`, `#/reseptit/arkiruoka/kaikki` | arkiruoan valintasivu, ryhmän lista |
 | `#/resepti/<id>`, `#/resepti/<id>/muokkaa` | resepti, muokkaus |
 | `#/uusi-resepti`, `#/uusi-resepti/<kategoria>` | uusi resepti |
 | `#/menut`, `#/menut/<nimi, encodeURIComponent>` | menut, yksi menu |
@@ -116,9 +120,16 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   piilotetaan ja tulokset näytetään ryhmiteltynä. Haku säilyy, kun tuloksesta palataan. Otsikko "🍲 Keittokirja"
   vie etusivulle ja tyhjentää haun. `data-home`-elementti = takaisin etusivulle.
 - **Haku kaikkialla:** `words()` + `matches()`: jokaisen hakusanan pitää löytyä (esim. "kana pasta").
-- **Kategoriat** `CATS`-vakiossa. Uusi kategoria: `CATS` + `PRIMARY` + etusivun kortti (`data-cat`, laskuri `cnt_<kategoria>`)
+- **Kategoriat** `CATS`-vakiossa. Uusi kategoria: `CATS` + `PRIMARY` (tai `GRID`) + etusivun kortti (`data-cat`, laskuri `cnt_<kategoria>`)
   + `<option>` lomakkeen `#f_category`-valintaan. Reititys, lista, haku ja lomake toimivat sen jälkeen automaattisesti.
-- **Reseptilista:** päärajaukset `PRIMARY`-vakiossa kategorioittain, pikatagit piilossa "🏷 Tagit" -napin takana.
+- **Valintasivu (`GRID`):** `GRID[kategoria] = { all, groups: [[avain, emoji, otsikko, tagit]] }` (nyt vain arkiruoka).
+  Ryhmään kuuluu resepti, jolla on mikä tahansa ryhmän tageista (`gridGroup()`). Ryhmä tulee osoitteesta:
+  `openCategory(cat, group)` asettaa `activePrimary = group`. `renderList()`: `gridMode` = GRID-kategoria ilman ryhmää,
+  hakua ja tagia → `#subGrid` näkyy, chipit ja lista piiloon. Haku valintasivulla näyttää suoraan listan.
+  Ruutu → `go(.../<ryhmä>)` (uusi historiarivi), chip → `go(..., {replace:true})`, joten takaisin-ele vie aina valintasivulle.
+  `#toGrid` ("← Arkiruoka") = `back(#/reseptit/<kategoria>)`; `#listHome` piilossa ryhmälistassa. Ryhmästä valintasivulle
+  palatessa haku ja tagi nollataan; reseptistä palatessa ne säilyvät. Chip-rivi `.chips.scroll`, valittu keskitetään.
+- **Reseptilista:** päärajaukset `PRIMARY`-vakiossa kategorioittain (GRID-kategorioissa ryhmät), pikatagit piilossa "🏷 Tagit" -napin takana.
   "Menut"-rajaus (`@menu`) ryhmittelee menuittain, järjestys `COURSE_ORDER` = alkuruoka → illallinen → makeat.
 - **Reseptirivi** (`recipeItem`): menumerkki ja ⭐ (top) rivin oikeassa laidassa.
 - **Resepti:** menumerkki oikeassa yläkulmassa avaa menun. Napit "⭐ Lisää Top-listalle" ja "Muokkaa"
@@ -213,7 +224,8 @@ Redirect URL = sivun osoite.
   Merkittyjen `notes`-kenttään rivi "🍼 Vauvalle (alle 1 v): jätä suola ja liemikuutio pois …".
 - **Top-lista:** `top`
 - **Menu:** `menu:<Menun nimi>` (iso alkukirjain säilyy, sama kuin `menus.name`)
-- **Päärajaukset:** arki = `top`, `kana`, `nauta`, `kasvis`, `lisuke` ("Lisukkeet"), `kastike` ("Kastikkeet"); viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`;
+- **Päärajaukset:** arki = valintasivun ryhmät (`GRID`): `top`, `kana`, Liha = `nauta`|`lammas`, `poro`, Kala = `kala`|`katkarapu`,
+  `kasvis`, Keitot = `keitto`, Pastat = `pasta`, `lisuke`, `kastike`; viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`;
   vauvan ruoat = `top`
 - **Muut tagit** pienillä kirjaimilla: esim. `kala`, `keitto`, `uuniruoka`, `pasta`, `poro`, `feta`, `linssi`, `marjat`, `peruna`,
   `kastike`, `marinadi`, `katkarapu`, `pizza`, `lammas`, `papu`, `helppo`, `sienet`
