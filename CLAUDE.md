@@ -25,7 +25,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Oikeudet:** uusi jäsen saa oletuksena vain lukea. Admin antaa muokkausoikeuden Hallinta-sivulla. Admin saa aina muokata.
 - **Käyttäjä haluaa, että Claude tekee muutokset suoraan** (Supabase + push GitHubiin), ei tiedostojen siirtelyä.
 - **Käyttöliittymäpäätökset, joita ei muuteta kysymättä:**
-  - Etusivulla neljä korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinit.
+  - Etusivulla viisi korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinit ja niiden alla oma osio
+    🍼 Vauvan ruoat (luokka `wide`: iPadilla molempien sarakkeiden levyinen).
   - Päärajaukset aina näkyvissä, pikatagit piilossa "🏷 Tagit" -napin takana.
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
@@ -43,6 +44,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 
 - Reseptit: Lapponia alla piemontese -menun 3 reseptiä (viikonloppuherkut) ja Apple Muistiinpanojen arkiruoat, erä 1 (11 reseptiä),
   sekä yksittäin lisättyjä arkiruokia ja lisukkeita.
+- Vauvan ruoat -osio tehty, ei vielä reseptejä. Päärajauksena vain Top-lista; muut (esim. ikä) sovitaan käyttäjän kanssa.
 - Seuraavaksi todennäköisesti: viikonloppuherkut Apple Muistiinpanoista, uudet menut Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
@@ -85,7 +87,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | Osoite | Näkymä |
 |---|---|
 | `#/` | etusivu |
-| `#/reseptit`, `#/reseptit/arkiruoka`, `#/reseptit/viikonloppuherkut` | reseptilista |
+| `#/reseptit`, `#/reseptit/arkiruoka`, `#/reseptit/viikonloppuherkut`, `#/reseptit/vauvanruoat` | reseptilista |
 | `#/resepti/<id>`, `#/resepti/<id>/muokkaa` | resepti, muokkaus |
 | `#/uusi-resepti`, `#/uusi-resepti/<kategoria>` | uusi resepti |
 | `#/menut`, `#/menut/<nimi, encodeURIComponent>` | menut, yksi menu |
@@ -105,11 +107,13 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 
 ### Näkymät
 
-- **Etusivu:** hakukenttä (`#hq`) ja kortit Arkiruoka, Viikonloppuherkut (`data-cat`), Menut ja Viinit (`data-nav`).
-  Haku etsii resepteistä (nimi, kuvaus, ainekset, tagit, menu), menuista ja viineistä. Haun aikana kortit
+- **Etusivu:** hakukenttä (`#hq`) ja kortit Arkiruoka, Viikonloppuherkut, Vauvan ruoat (`data-cat`), Menut ja Viinit (`data-nav`).
+  Haku etsii resepteistä (nimi, kuvaus, kategorian nimi, ainekset, tagit, menu), menuista ja viineistä. Haun aikana kortit
   piilotetaan ja tulokset näytetään ryhmiteltynä. Haku säilyy, kun tuloksesta palataan. Otsikko "🍲 Keittokirja"
   vie etusivulle ja tyhjentää haun. `data-home`-elementti = takaisin etusivulle.
 - **Haku kaikkialla:** `words()` + `matches()`: jokaisen hakusanan pitää löytyä (esim. "kana pasta").
+- **Kategoriat** `CATS`-vakiossa. Uusi kategoria: `CATS` + `PRIMARY` + etusivun kortti (`data-cat`, laskuri `cnt_<kategoria>`)
+  + `<option>` lomakkeen `#f_category`-valintaan. Reititys, lista, haku ja lomake toimivat sen jälkeen automaattisesti.
 - **Reseptilista:** päärajaukset `PRIMARY`-vakiossa kategorioittain, pikatagit piilossa "🏷 Tagit" -napin takana.
   "Menut"-rajaus (`@menu`) ryhmittelee menuittain, järjestys `COURSE_ORDER` = alkuruoka → illallinen → makeat.
 - **Reseptirivi** (`recipeItem`): menumerkki ja ⭐ (top) rivin oikeassa laidassa.
@@ -197,10 +201,11 @@ Redirect URL = sivun osoite.
 
 ## Tagisäännöt (recipes.tags)
 
-- **Kategoria (yksi):** `arkiruoka` tai `viikonloppuherkut`
+- **Kategoria (yksi):** `arkiruoka`, `viikonloppuherkut` tai `vauvanruoat`
 - **Top-lista:** `top`
 - **Menu:** `menu:<Menun nimi>` (iso alkukirjain säilyy, sama kuin `menus.name`)
-- **Päärajaukset:** arki = `top`, `kana`, `nauta`, `kasvis`, `lisuke` (otsikko "Lisukkeet"); viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`
+- **Päärajaukset:** arki = `top`, `kana`, `nauta`, `kasvis`, `lisuke` (otsikko "Lisukkeet"); viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`;
+  vauvan ruoat = `top`
 - **Muut tagit** pienillä kirjaimilla: esim. `kala`, `keitto`, `uuniruoka`, `pasta`, `poro`, `feta`, `linssi`, `marjat`, `peruna`
 - Lisukkeet (perunat, salaatit ym.) saavat `lisuke`-tagin. Kasvisruoka-lisuke voi saada myös `kasvis`-tagin.
 - Kategoria-, top- ja menu-tagit ovat "metatageja" (`isMeta`), eikä niitä näytetä tavallisina tageina.

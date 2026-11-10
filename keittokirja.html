@@ -97,7 +97,7 @@
   .notes { white-space: pre-wrap; }
   a { color: var(--accent); word-break: break-word; }
   .home { display: grid; gap: 14px; margin-top: 8px; }
-  @media (min-width: 600px) { .home { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 600px) { .home { grid-template-columns: 1fr 1fr; } .home .wide { grid-column: 1 / -1; } }
   .cat {
     display: flex; align-items: center; gap: 18px; width: 100%; text-align: left;
     padding: 28px 22px; border-radius: 16px; font-family: Georgia, serif; font-size: 1.35rem; font-weight: 600;
@@ -243,6 +243,9 @@
         <button class="cat card" data-nav="wines">
           <span class="e">🍷</span><span>Viinit<span class="s" id="cnt_wines"></span></span>
         </button>
+        <button class="cat card wide" data-cat="vauvanruoat">
+          <span class="e">🍼</span><span>Vauvan ruoat<span class="s" id="cnt_vauvanruoat"></span></span>
+        </button>
       </div>
       <div class="actions" style="justify-content:space-between;align-items:center">
         <button class="link" data-cat="">Kaikki reseptit →</button>
@@ -282,6 +285,7 @@
       <select id="f_category">
         <option value="arkiruoka">🥘 Arkiruoka</option>
         <option value="viikonloppuherkut">🥂 Viikonloppuherkut</option>
+        <option value="vauvanruoat">🍼 Vauvan ruoat</option>
         <option value="">Ei kategoriaa</option>
       </select>
       <label for="f_menu">Menu (valinnainen)</label>
@@ -478,11 +482,12 @@
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = (id) => document.getElementById(id);
 
-  const CATS = { arkiruoka: "Arkiruoka", viikonloppuherkut: "Viikonloppuherkut" };
+  const CATS = { arkiruoka: "Arkiruoka", viikonloppuherkut: "Viikonloppuherkut", vauvanruoat: "Vauvan ruoat" };
   // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu.
   const PRIMARY = {
     arkiruoka: [["top", "⭐ Top-lista"], ["kana", "Kana"], ["nauta", "Nauta"], ["kasvis", "Kasvis"], ["lisuke", "Lisukkeet"]],
     viikonloppuherkut: [["top", "⭐ Top-lista"], ["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
+    vauvanruoat: [["top", "⭐ Top-lista"]],
   };
   const COURSE_ORDER = ["alkuruoka", "illallinen", "makeat"];
   const isMeta = (t) => !!CATS[t] || t === "top" || t.startsWith("menu:");
@@ -519,7 +524,7 @@
     const hay = fields.filter((x) => x != null).join(" ").toLowerCase();
     return ws.every((w) => hay.includes(w));
   };
-  const recipeHay = (r) => [r.title, r.description, menuOf(r), ...(r.ingredients || []).map(asText), ...plainTags(r)];
+  const recipeHay = (r) => [r.title, r.description, CATS[catOf(r)], menuOf(r),...(r.ingredients || []).map(asText), ...plainTags(r)];
   const wineHay = (w) => [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.occasion, w.own_notes, w.description];
   const menuHay = (m) => [m.name, m.subtitle, m.description];
 
