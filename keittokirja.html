@@ -208,6 +208,12 @@
   .cropcv { display: block; width: 100%; max-width: 360px; aspect-ratio: 1 / 1; border-radius: 12px; background: var(--chip);
             touch-action: none; cursor: grab; }
   .hint { font-size: .85rem; color: var(--muted); margin: 6px 0; }
+  .hint.err { color: var(--danger); }
+  /* Kuvan raahaus lomakkeeseen (iPad: Muistiinpanot ja Safari rinnakkain) */
+  .dropon { outline: 3px dashed var(--accent); outline-offset: -6px; border-radius: 14px; }
+  .dropon::after { content: "Pudota kuva tähän"; position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+                   background: var(--accent); color: var(--accent-ink); padding: 10px 18px; border-radius: 999px;
+                   font-weight: 600; pointer-events: none; z-index: 50; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
   input[type=range] { padding: 0; border: none; background: none; max-width: 360px; accent-color: var(--accent); min-height: 44px; }
   label.btn { display: inline-flex; align-items: center; margin: 0; font-size: 1rem; color: var(--ink); min-height: 44px; }
   .vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
@@ -355,6 +361,7 @@
         <p id="f_imgnote" class="hint hidden"></p>
         <div class="actions" style="margin-top:8px">
           <label for="f_file" class="btn" id="f_imgpick">📷 Lisää kuva</label>
+          <button type="button" id="f_imgpaste" class="hidden">📋 Liitä kuva</button>
           <button type="button" id="f_imgundo" class="hidden">Peru</button>
           <button type="button" id="f_imgdel" class="danger hidden">Poista kuva</button>
         </div>
@@ -469,6 +476,7 @@
         <p id="w_imgnote" class="hint hidden"></p>
         <div class="actions" style="margin-top:8px">
           <label for="w_file" class="btn" id="w_imgpick">📷 Lisää kuva</label>
+          <button type="button" id="w_imgpaste" class="hidden">📋 Liitä kuva</button>
           <button type="button" id="w_imgundo" class="hidden">Peru</button>
           <button type="button" id="w_imgdel" class="danger hidden">Poista kuva</button>
         </div>
@@ -692,20 +700,77 @@
     cv.addEventListener("pointerup", up);
     cv.addEventListener("pointercancel", up);
 
-    el("file").onchange = () => {
-      const file = el("file").files && el("file").files[0];
-      el("file").value = ""; // sama kuva voidaan valita uudelleen
-      if (!file) return;
-      const url = URL.createObjectURL(file), img = new Image();
+    // Kuva tiedostosta, leikepöydältä tai raahaamalla → rajattavaksi.
+    function loadBlob(blob) {
+      const url = URL.createObjectURL(blob), img = new Image();
       img.onload = () => {
         const prev = st.kind === "new" ? st.prev : st;
+        if (st.kind === "new") URL.revokeObjectURL(st.url);
         st = { kind: "new", img, url, prev, crop: { cx: img.naturalWidth / 2, cy: img.naturalHeight / 2, zoom: 1 } };
         el("zoom").value = 1;
         render();
       };
       img.onerror = () => { URL.revokeObjectURL(url); msg(el("imgnote"), "Kuvaa ei voitu avata. Kokeile toista kuvaa.", true); };
       img.src = url;
+    }
+    el("file").onchange = () => {
+      const file = el("file").files && el("file").files[0];
+      el("file").value = ""; // sama kuva voidaan valita uudelleen
+      if (file) loadBlob(file);
     };
+
+    // 📋 Liitä kuva: esim. Muistiinpanoissa kuvaa pitkään → Kopioi. iPhone/iPad näyttää vielä "Liitä"-kuplan.
+    // clipboard.read() kutsutaan heti napautuksessa (Safari vaatii).
+    const NO_IMG = "Leikepöydällä ei ole kuvaa. Kopioi kuva ensin: esim. Muistiinpanoissa paina kuvaa pitkään ja valitse Kopioi.";
+    if (navigator.clipboard && navigator.clipboard.read) el("imgpaste").classList.remove("hidden");
+    el("imgpaste").onclick = () => {
+      msg(el("imgnote"), "");
+      navigator.clipboard.read().then(async (items) => {
+        for (const it of items) {
+          const t = it.types.find((x) => x.startsWith("image/"));
+          if (t) return loadBlob(await it.getType(t));
+        }
+        msg(el("imgnote"), NO_IMG, true);
+      }).catch(() => msg(el("imgnote"), "Kuvaa ei saatu liitettyä. Paina 📋 Liitä kuva ja sitten esiin tulevaa Liitä-kuplaa. " +
+        "Jos se ei auta, kopioi kuva uudelleen.", true));
+    };
+
+    // Raahaus: kuvan voi pudottaa mihin kohtaan tahansa lomaketta. Teksti raahautuu kenttiin tavalliseen tapaan.
+    const form = el("imgbox").closest("section");
+    const isOpen = () => !form.classList.contains("hidden");
+    const hasFile = (dt) => !!dt && [...dt.types].some((t) => t === "Files" || t.startsWith("image/"));
+    const imageFile = (dt) => {
+      const files = Array.from(dt.files || []);
+      for (const it of Array.from(dt.items || [])) if (it.kind === "file") { const f = it.getAsFile(); if (f && !files.includes(f)) files.push(f); }
+      return files.find((f) => f.type.startsWith("image/")) || files.find((f) => !f.type) || null;
+    };
+    let depth = 0;
+    const dropOff = () => { depth = 0; form.classList.remove("dropon"); };
+    form.addEventListener("dragenter", (e) => { if (!hasFile(e.dataTransfer)) return; e.preventDefault(); depth++; form.classList.add("dropon"); });
+    form.addEventListener("dragover", (e) => { if (!hasFile(e.dataTransfer)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; });
+    form.addEventListener("dragleave", (e) => { if (!hasFile(e.dataTransfer)) return; if (--depth <= 0) dropOff(); });
+    form.addEventListener("drop", (e) => {
+      if (!hasFile(e.dataTransfer)) return;
+      e.preventDefault();
+      dropOff();
+      const f = imageFile(e.dataTransfer);
+      if (f) loadBlob(f);
+      else msg(el("imgnote"), "Kuvaa ei voitu ottaa vastaan. Tallenna kuva ensin ja lisää se 📷-napilla.", true);
+      if (f) el("imgbox").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    window.addEventListener("dragend", dropOff);
+
+    // Näppäimistöltä liittäminen (⌘V / Ctrl+V), kun lomake on auki. Tekstikenttään liitetty teksti toimii kuten ennen.
+    document.addEventListener("paste", (e) => {
+      if (!isOpen() || !e.clipboardData) return;
+      const inText = e.target && e.target.closest && e.target.closest("input, textarea");
+      if (inText && e.clipboardData.types.includes("text/plain")) return;
+      const f = imageFile(e.clipboardData);
+      if (!f || !f.type.startsWith("image/")) return;
+      e.preventDefault();
+      loadBlob(f);
+      el("imgbox").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
     el("imgundo").onclick = () => {
       if (st.kind === "new") URL.revokeObjectURL(st.url);
       st = st.prev || { kind: "none" };

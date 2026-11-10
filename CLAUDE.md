@@ -48,6 +48,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Reseptilähteet:**
   - Apple Muistiinpanot: vienti Pikakomennoilla (Etsi muistiinpanot → Yhdistä teksti, erotin `=====` → Tallenna tiedosto)
     ja tiedosto chattiin. iCloud-jakolinkkejä ei voi lukea.
+    Muistiinpanojen kuvat eivät tule viennissä mukaan, eikä Claude voi ladata kuvia Storageen (ei avainta). Käyttäjä lisää ne
+    itse: Muistiinpanoissa kuvaa pitkään → Kopioi → keittokirjassa Muokkaa → 📋 Liitä kuva (tai iPadilla raahaus).
   - Verkkosivut (esim. Yhteishyvä, HS): linkkejä ei yleensä voi lukea, joten pyydä käyttäjää liittämään teksti.
   - Claude Design -canvasit (menukortit ja viinilistat): ks. "Kuvitetun menun tuominen".
 
@@ -88,6 +90,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - Kuvat: stubiin `storage.from(b).upload/createSignedUrls/remove` (upload → `URL.createObjectURL(blob)`).
   Kuvan valinta `page.set_input_files("#f_file" / "#w_file", polku)`, tila `recipePic.state` / `winePic.state`. Ennen rajauksen raahausta `scroll_into_view_if_needed()`,
   muuten hiiri osuu näkymän ulkopuolelle. Kuvien koon voi tarkistaa `createImageBitmap`-funktiolla.
+  Leikepöytä: tarjoa sivu `https://testi.local/…`-osoitteesta (`ctx.route` + `fulfill`, turvallinen konteksti) ja
+  `ctx.grant_permissions(["clipboard-read","clipboard-write"], origin=…)`; kuva leikepöydälle `navigator.clipboard.write([new ClipboardItem(…)])`.
+  Raahaus/⌘V: `new DataTransfer()` + `items.add(new File(…))` ja `DragEvent("dragenter"/"dragover"/"drop")` / `ClipboardEvent("paste")`.
 - Google Fonts ei lataudu testiympäristössä (verkkoesto); ne virheet voi ohittaa.
 
 ## Sovelluksen rakenne (keittokirja.html)
@@ -156,8 +161,16 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   renderöidään kahteen kohtaan, ja CSS näyttää alle 600 px leveällä sivun lopussa (ennen nappeja), muuten ylhäällä
   (max 440 px). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
 - **Kuvan lisäys lomakkeessa:** yhteinen `imagePicker(p)` (`recipePic` = "f", `winePic` = "w"; elementit
-  `<p>_imgprev, _cropwrap, _crop, _zoom, _imgnote, _imgpick, _imgundo, _imgdel, _file`). "📷 Lisää kuva" on
-  `<label for="<p>_file">`, `accept="image/*"` → iPhonessa kamera tai kuvakirjasto. Neliörajaus canvasilla: siirto
+  `<p>_imgbox, _imgprev, _cropwrap, _crop, _zoom, _imgnote, _imgpick, _imgpaste, _imgundo, _imgdel, _file`). "📷 Lisää kuva" on
+  `<label for="<p>_file">`, `accept="image/*"` → iPhonessa kamera tai kuvakirjasto. Kaikki lähteet → `loadBlob(blob)` → rajaus.
+  - **📋 Liitä kuva** (`_imgpaste`, 11/2026, esim. Apple Muistiinpanojen kuville: kuvaa pitkään → Kopioi): `navigator.clipboard.read()`
+    kutsutaan suoraan napautuksessa (Safari vaatii; iOS näyttää vielä "Liitä"-kuplan). Nappi näkyy vain, jos selain tukee.
+    Ei kuvaa → punainen ohje `_imgnote`:ssa (`.hint.err`). Myös ⌘V/Ctrl+V lomakkeessa (`paste`-tapahtuma, vain jos lomake auki;
+    tekstikenttään liitetty teksti ohitetaan).
+  - **Raahaus** (iPad: Muistiinpanot ja Safari rinnakkain): kuvatiedoston voi pudottaa mihin tahansa lomakkeen `<section>`iin.
+    Raahatessa luokka `.dropon` (katkoviivareunus + kiinteä "Pudota kuva tähän" -kupla). Tekstin raahaus kenttiin ennallaan
+    (vain `Files`/`image/*`-tyypit otetaan kiinni).
+  Neliörajaus canvasilla: siirto
   sormella, suurennus liukusäätimellä (1–3×) tai kahdella sormella, oletuksena keskeltä. `pic.upload(kansio)`:
   1200×1200 JPEG (laatu 0,85, n. 350 kt) ja 240×240 pikkukuva (n. 16 kt), pienennys vaiheittain.
   Tallennus: `applyPic()` ennen rivin tallennusta, `finishPic()` sen jälkeen (vanha kuva poistetaan vasta onnistuneen
