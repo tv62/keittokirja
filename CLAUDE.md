@@ -46,6 +46,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **Lisäyspäivä** (11/2026): reseptisivulla "📅 Lisätty 18.1.2023", lomakkeessa kenttä Lisäyspäivä (uudelle tänään),
     listarivillä päivä vain päivälajittelussa.
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
+  - **Tagit listarivillä pelkkinä kuvakkeina** (käyttäjän toive 11/2026, esim. 🐔 = kana). Tagit-valinnassa, lomakkeessa ja
+    reseptisivulla kuvake + nimi, jotta merkitykset oppii. Päärajaus-chipeissä kuvake + nimi.
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
   - Resepti- ja viinikuvat aina neliöitä ja värillisiä. Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
@@ -77,7 +79,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   lisäyspäivät mukana). Annosmäärät arvioitu vauvan ateriana (pihvit 5, lihasose 8, peruna-kesäkurpitsa 6,
   peruna-porkkana-linssi 8, kesäkurpitsa-parsakaali-herne 4). Peruna-kesäkurpitsasta puuttuu ohje (vain ainekset ja
   tarjoiluvinkit). Lisäksi 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`, vauvaohje `baby_notes`-kentässä).
-  Päärajauksena vain Top-lista; muut (esim. ikä) sovitaan käyttäjän kanssa.
+  Päärajaukset (11/2026): ⭐ Top-lista, 🥄 Soseet, 🖐️ Sormiruoat. Omat vauvan reseptit ovat omassa järjestyksessä
+  ristiinmerkittyjen arkiruokien jälkeen (muokkaaja voi raahata).
 - Seuraavaksi todennäköisesti: puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
@@ -168,7 +171,11 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   + ≡-kahva (`.grip`, `touch-action:none`), napautus ei avaa reseptiä. Raahaus pointer-tapahtumilla (sormi ja hiiri),
   automaattivieritys reunoilla. `saveOrder(ids)`: näkyvät reseptit jakavat keskenään nykyiset `sort_order`-numeronsa uudessa
   järjestyksessä (muiden listojen suhteellinen järjestys säilyy) → RPC `set_recipe_order(p_ids, p_pos)`; virheessä palautus.
-- **Reseptirivi** (`recipeItem`): menumerkki ja ⭐ (top) rivin oikeassa laidassa.
+- **Reseptirivi** (`recipeItem`): menumerkki ja ⭐ (top) rivin oikeassa laidassa. Metarivillä (päivä ·) aika · tagit
+  kuvakkeina `tagIcons(r)`: järjestys `TAG_ICON`-vakion mukaan (pääaines → ruokalaji → tapa), sama kuvake yhdistetään
+  (esim. 🥔 = peruna + lisuke), nimi `aria-label`/`title`-attribuutissa, kuvakkeeton tagi tekstinä perässä.
+  `tagLabel(t)` = kuvake + nimi (Tagit-chipit, lomake, reseptisivu). Päärajaus-chipien kuvake: `PRIM_ICON` (top, @menu),
+  muuten `TAG_ICON`; GRID-chipeissä ryhmän emoji.
 - **Resepti:** menumerkki oikeassa yläkulmassa avaa menun. Napit "⭐ Lisää Top-listalle" ja "Muokkaa"
   (Poista on lomakkeen alaosassa, ettei sitä paina vahingossa).
   - **Annosmäärä:** −/+ -napit (vain jos `servings` on annettu). `scaleLine()` kertoo ainesrivin kaikki luvut
@@ -292,11 +299,15 @@ Redirect URL = sivun osoite.
 - **Menu:** `menu:<Menun nimi>` (iso alkukirjain säilyy, sama kuin `menus.name`)
 - **Päärajaukset:** arki = valintasivun ryhmät (`GRID`): `top`, `kana`, Liha = `nauta`|`lammas`, `poro`, Kala = `kala`|`katkarapu`,
   `kasvis`, Keitot = `keitto`, Pastat = `pasta`, `lisuke`, `kastike`; viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`;
-  vauvan ruoat = `top`
+  vauvan ruoat = `top`, `sose`, `sormiruoka`
 - **Muut tagit** pienillä kirjaimilla: esim. `kala`, `keitto`, `uuniruoka`, `pasta`, `poro`, `feta`, `linssi`, `marjat`, `peruna`,
   `kastike`, `marinadi`, `katkarapu`, `pizza`, `lammas`, `papu`, `helppo`, `sienet`; vauvan ruoissa `sose`, `sormiruoka`
 - Lisukkeet (perunat, salaatit ym.) saavat `lisuke`-tagin. Kasvisruoka-lisuke voi saada myös `kasvis`-tagin.
 - Kategoria-, top- ja menu-tagit ovat "metatageja" (`isMeta`), eikä niitä näytetä tavallisina tageina.
+- **Kuvakkeet** `TAG_ICON`-vakiossa (keittokirja.html). Uudelle tagille lisää kuvake sinne (muuten se näkyy listarivillä tekstinä).
+  Nykyiset: kana 🐔, nauta 🐄, lammas 🐑, poro 🦌, kala 🐟, katkarapu 🦐, kasvis 🥕, linssi 🫛, papu 🫘, peruna 🥔, sienet 🍄,
+  feta 🧀, marjat 🫐, keitto 🍲, pasta 🍝, pizza 🍕, kastike 🥣, marinadi 🫙, lisuke 🥔, sose 🥄, sormiruoka 🖐️, alkuruoka 🥗,
+  illallinen 🍽️, makeat 🍰, uuniruoka 🔥, pata 🫕, helppo 👌.
 
 ## Reseptien lisääminen
 

@@ -86,6 +86,8 @@
   .item { display: block; text-align: left; width: 100%; padding: 14px 16px; border-radius: 14px; }
   .item .t { font-weight: 600; font-size: 1.05rem; }
   .item .m { color: var(--muted); font-size: .88rem; margin-top: 2px; }
+  .item .m .ticons { font-size: 1.05rem; line-height: 1; white-space: nowrap; }
+  .item .m .ti + .ti { margin-left: 3px; }
   .meta { color: var(--muted); font-size: .9rem; display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0; }
   ul.ing { padding-left: 20px; margin: 0; }
   ul.ing li { margin: 4px 0; }
@@ -554,11 +556,24 @@
   // Etusivun osiot, jotka admin voi piilottaa käyttäjältä (private.family_members.hidden_sections, RLS estää datan).
   const SECTIONS = [["arkiruoka", "🥘", "Arki"], ["viikonloppuherkut", "🥂", "Viikonloppu"], ["vauvanruoat", "🍼", "Vauva"],
     ["menut", "📜", "Menut"], ["viinit", "🍷", "Viinit"]];
-  // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu.
+  // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu. Kuvake tulee TAG_ICON/PRIM_ICON-vakiosta.
   const PRIMARY = {
-    viikonloppuherkut: [["top", "⭐ Top-lista"], ["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
-    vauvanruoat: [["top", "⭐ Top-lista"]],
+    viikonloppuherkut: [["top", "Top-lista"], ["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
+    vauvanruoat: [["top", "Top-lista"], ["sose", "Soseet"], ["sormiruoka", "Sormiruoat"]],
   };
+  // Tagien kuvakkeet. Listarivillä tagit näkyvät pelkkinä kuvakkeina tässä järjestyksessä (pääaines → ruokalaji → tapa),
+  // samanlaiset kuvakkeet yhdistetään. Tagi ilman kuvaketta näkyy tekstinä. Muualla (Tagit-valinta, lomake, resepti) kuvake + nimi.
+  const TAG_ICON = {
+    kana: "🐔", nauta: "🐄", lammas: "🐑", poro: "🦌", kala: "🐟", katkarapu: "🦐", kasvis: "🥕", linssi: "🫛", papu: "🫘",
+    peruna: "🥔", sienet: "🍄", feta: "🧀", marjat: "🫐",
+    keitto: "🍲", pasta: "🍝", pizza: "🍕", kastike: "🥣", marinadi: "🫙", lisuke: "🥔", sose: "🥄", sormiruoka: "🖐️",
+    alkuruoka: "🥗", illallinen: "🍽️", makeat: "🍰",
+    uuniruoka: "🔥", pata: "🫕", helppo: "👌",
+  };
+  const PRIM_ICON = { top: "⭐", "@menu": "📜" };
+  const TAG_ORDER = Object.keys(TAG_ICON);
+  const tagRank = (t) => { const i = TAG_ORDER.indexOf(t); return i < 0 ? 1e9 : i; };
+  const tagLabel = (t) => (TAG_ICON[t] ? TAG_ICON[t] + " " : "") + t;
   // Valintasivu ennen listaa (vain näille kategorioille): ryhmä = [avain, emoji, otsikko, tagit (mikä tahansa riittää)].
   // Osoitteet #/reseptit/<kategoria> (valintasivu) ja #/reseptit/<kategoria>/<avain | "kaikki"> (lista).
   const GRID = {
@@ -1259,19 +1274,20 @@
     }
 
     // Päärajaukset + Tagit-nappi
-    const prim = grid ? grid.groups.map(([k, , label]) => [k, label])
-      : (PRIMARY[currentCat] || []).filter(([k]) => !(k === "@menu" && hidden.has("menut")));
+    const prim = grid ? grid.groups.map(([k, e, label]) => [k, `${e} ${label}`])
+      : (PRIMARY[currentCat] || []).filter(([k]) => !(k === "@menu" && hidden.has("menut")))
+        .map(([k, label]) => [k, `${PRIM_ICON[k] || TAG_ICON[k] || ""} ${label}`.trim()]);
     $("primaryChips").classList.toggle("scroll", !!grid);
     $("primaryChips").innerHTML =
       (prim.length ? [[grid ? "kaikki" : "", "Kaikki"], ...prim] : []).map(([k, label]) =>
         `<button class="chip ${(activePrimary || "") === k ? "on" : ""}" data-prim="${esc(k)}">${esc(label)}</button>`).join("") +
-      `<button class="chip ghost ${showTags ? "on" : ""}" data-tagtoggle="1" aria-expanded="${showTags}">🏷 Tagit${activeTag ? " · " + esc(activeTag) : ""} ${showTags ? "▴" : "▾"}</button>`;
+      `<button class="chip ghost ${showTags ? "on" : ""}" data-tagtoggle="1" aria-expanded="${showTags}">🏷 Tagit${activeTag ? " · " + esc(tagLabel(activeTag)) : ""} ${showTags ? "▴" : "▾"}</button>`;
 
     // Pikatagit (piilossa oletuksena)
     const tags = [...new Set(base.flatMap(plainTags))].sort((a, b) => a.localeCompare(b, "fi"));
     $("tagChips").classList.toggle("hidden", !showTags);
     $("tagChips").innerHTML = tags.map((t) =>
-      `<button class="chip ${t === activeTag ? "on" : ""}" data-tag="${esc(t)}">${esc(t)}</button>`).join("");
+      `<button class="chip ${t === activeTag ? "on" : ""}" data-tag="${esc(t)}">${esc(tagLabel(t))}</button>`).join("");
 
     msg($("listMsg"), base.length ? "" : "Tässä kategoriassa ei ole vielä reseptejä.");
     const shown = base.filter((r) => {
@@ -1314,12 +1330,22 @@
 
   const courseRank = (r) => { const i = COURSE_ORDER.findIndex((c) => (r.tags || []).includes(c)); return i < 0 ? 99 : i; };
   const byCourse = (a, b) => courseRank(a) - courseRank(b);
+  // Listarivin tagit kuvakkeina (nimi aria-label/title), tuntemattomat tekstinä perässä.
+  function tagIcons(r) {
+    const byIcon = new Map(), rest = [];
+    for (const t of plainTags(r).sort((a, b) => tagRank(a) - tagRank(b))) {
+      if (TAG_ICON[t]) byIcon.set(TAG_ICON[t], [...(byIcon.get(TAG_ICON[t]) || []), t]); else rest.push(t);
+    }
+    const ic = [...byIcon].map(([e, ts]) =>
+      `<span class="ti" role="img" aria-label="${esc(ts.join(", "))}" title="${esc(ts.join(", "))}">${e}</span>`).join("");
+    return [ic && `<span class="ticons">${ic}</span>`, rest.length && esc(rest.join(", "))].filter(Boolean).join(" ");
+  }
   function recipeItem(r, hideMenu, sorting) {
     const menu = hideMenu || hidden.has("menut") ? null : menuOf(r);
     const top = (r.tags || []).includes("top");
-    const meta = [["uusin", "vanhin"].includes(sortMode) && r.added_on ? "📅 " + fiDate(r.added_on) : "",
-      r.prep_minutes ? r.prep_minutes + " min" : "", plainTags(r).join(", ")]
-      .filter(Boolean).map(esc).join(" · ");
+    const meta = [...[["uusin", "vanhin"].includes(sortMode) && r.added_on ? "📅 " + fiDate(r.added_on) : "",
+      r.prep_minutes ? r.prep_minutes + " min" : ""].filter(Boolean).map(esc), tagIcons(r)]
+      .filter(Boolean).join(" · ");
     const thumb = thumbHtml(r, r.title);
     const tag = sorting ? "div" : "button";
     return `<${tag} class="item card withpic${sorting ? " sorting" : ""}" data-id="${r.id}">${thumb}
@@ -1535,7 +1561,7 @@
       <div class="meta">
         ${r.prep_minutes ? `<span>⏱ ${r.prep_minutes} min</span>` : ""}
         ${r.added_on ? `<span>📅 Lisätty ${fiDate(r.added_on)}</span>` : ""}
-        ${plainTags(r).length ? `<span>🏷 ${esc(plainTags(r).join(", "))}</span>` : ""}
+        ${plainTags(r).length ? `<span>${esc(plainTags(r).sort((a, b) => tagRank(a) - tagRank(b)).map((t) => TAG_ICON[t] ? tagLabel(t) : "🏷 " + t).join(", "))}</span>` : ""}
       </div>
       ${detailBaby && r.baby_notes ? `<div class="babybox"><strong>🍼 Vauvalle</strong><div class="notes">${esc(r.baby_notes)}</div></div>` : ""}
       <div class="cookbar">
@@ -1892,7 +1918,7 @@
     first.forEach((t) => rest.delete(t));
     const all = [...first, ...[...rest].sort((a, b) => a.localeCompare(b, "fi"))];
     $("f_tagpick").innerHTML = all.map((t) =>
-      `<button type="button" class="chip ${editTags.has(t) ? "on" : ""}" data-tag="${esc(t)}" aria-pressed="${editTags.has(t)}">${esc(t)}</button>`).join("");
+      `<button type="button" class="chip ${editTags.has(t) ? "on" : ""}" data-tag="${esc(t)}" aria-pressed="${editTags.has(t)}">${esc(tagLabel(t))}</button>`).join("");
   }
   $("f_tagpick").onclick = (e) => {
     const b = e.target.closest("[data-tag]"); if (!b) return;
