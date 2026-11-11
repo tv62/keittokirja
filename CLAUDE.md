@@ -42,6 +42,11 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     napautus avaa täyteen kokoon (käyttäjän toive). Tähteet: reseptiä lisätessä "Riittää 1 / 2 / 3 ateriaan", ehdotus =
     annosmäärä ÷ perheen annosta per ateria (oletus 2), lisäateriat seuraaviin vapaisiin lounaisiin merkinnällä "🔁 tähteet".
     Vain muokkausoikeudella voi muokata. Ostoslista ja toiveet myöhemmin (backlog).
+  - **Ruokaehdotukset** (11/2026, käyttäjän päätökset): "💡 Ehdota ruokia" täyttää viikon tyhjät ateriat (tänään ja tulevat,
+    päivälliset ja lounaat) ehdotuksilla; yksittäiseen ateriaan 💡 "+ Lisää" -napin vieressä. Ehdotuskortissa ✓ Hyväksy ja
+    ✕ Hylkää (näyttää heti toisen), ylhäällä "✓ Hyväksy kaikki". pe–su päivälliselle myös viikonloppuherkkujen illalliset.
+    **Sunnuntain päivällinen ehdotetaan 3 aterialle** (tähteet alkuviikon lounaiksi; sunnuntaina tehdään ruokaa alkuviikolle).
+    Ehdotukset ovat vain ehdottajan laitteella, kunnes ne hyväksytään (koko perheelle näkyvät ehdotukset = Toiveet, backlog).
   - **Arkiruoka avautuu valintasivuna** (hyväksytty 11/2026): 2 saraketta ruutuja (iPadilla 3), emoji + nimi + määrä:
     Top-lista, Kana, Liha, Poro, Kala, Kasvis, Keitot, Pastat, Lisukkeet, Kastikkeet + leveä "Kaikki arkiruoat".
     Tyhjät ryhmät piilotetaan. Ryhmän listassa ylhäällä "← Arkiruoka" ja päärajaukset yhdellä pyyhkäistävällä rivillä.
@@ -94,8 +99,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   tarjoiluvinkit). Lisäksi 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`, vauvaohje `baby_notes`-kentässä).
   Päärajaukset (11/2026): ⭐ Top-lista, 🥄 Soseet, 🖐️ Sormiruoat. Omat vauvan reseptit ovat omassa järjestyksessä
   ristiinmerkittyjen arkiruokien jälkeen (muokkaaja voi raahata).
-- 🗓️ Viikkosuunnitelma versio 1 julkaistu 11.11.2026 (ilman ostoslistaa). Kaikki nykyiset jäsenet näkevät osion (heillä ei ollut
-  piilotuksia); uusi jäsen ei näe sitä oletuksena.
+- 🗓️ Viikkosuunnitelma versio 1 julkaistu 11.11.2026 (ilman ostoslistaa), ruokaehdotukset samana päivänä. Kaikki nykyiset
+  jäsenet näkevät osion (heillä ei ollut piilotuksia); uusi jäsen ei näe sitä oletuksena.
 - Seuraavaksi todennäköisesti: Viikkosuunnitelman ostoslista (backlog), puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut
   Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
@@ -280,6 +285,20 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     annokset (vain alkuperäinen reseptirivi), vapaan tekstin nimi, 📖 Avaa resepti, Poista. Poisto kysyy erikseen, poistetaanko
     myös tähteet; jos ei, tähteet jäävät (FK `leftover_of` → null).
   - Näytettävä nimi on reseptin nykyinen nimi (`titleOf`), `meal_plan.title` on varalla (vapaa teksti, poistettu tai piilotettu resepti).
+  - **Ehdotukset** (vain muistissa, ei tietokannassa ennen hyväksyntää; nollautuvat viikkoa vaihdettaessa `resetSuggestions()`).
+    Tila: `suggOn` (koko viikko), `suggAsked` (yksittäin pyydetyt / hylätyt paikat), `suggPick` (paikka → valittu resepti,
+    pysyy kunnes hyväksytään tai hylätään), `suggRejected` (viikon hylätyt reseptit). `computeSuggestions()` (ajetaan joka
+    `renderPlan()`:ssa) laskee `sugg` (paikka → { rid, meals, servings, slots }) ja `suggReserved` (ehdotuksen tähteiden paikat,
+    näkyvät "🔁 Tähteet ehdotuksesta: …"): ensin päivälliset, sitten lounaat, vain tänään ja tulevat päivät. Ateriat
+    `suggMealsFor` = sunnuntain päivällinen 3, muuten `suggestMeals`; tähteet `leftoverSlots(…, busy)` ohittaa toisten ehdotusten paikat.
+    Valinta `chooseSuggestion`: joukko `suggPool` (pääruoat: ei `NOT_MAIN` = kastike/marinadi/lisuke/alkuruoka/makeat;
+    arkiruoka + pe–su päivälliselle viikonloppuherkkujen illallinen/pasta), pois hylätyt, muiden paikkojen valinnat ja ±14 päivän
+    sisällä suunnitellut (jos ei löydy, sallitaan muut kuin saman viikon). Painotettu arvonta `suggScore`: lounas ≤ 30 min,
+    arkipäivällinen ≤ 45 min, pe–la viikonloppuherkut ×1,5, sunnuntaina isot satsit (≥ 6 annosta, pata/keitto/uuni/linssi),
+    Top ×2, pääaines (`proteinOf`: kala/poro/liha/kana/kasvis) ei samaa viereisinä päivinä (×0,15), ≥ 2 kertaa viikossa ×0,4,
+    puuttuva kala tai kasvis ×1,8. ✓ = `acceptSuggestions(keys)` (alkuperäiset yhdellä insertillä, tähteet toisella),
+    ✕ = `rejectSuggestion`, nimen napautus = `openSuggestion` → Riittää-sivu ehdotuksen arvoilla (`pick.fromSugg`: tallennus ja
+    Peruuta palaavat yhden askeleen).
 - **Menut:** menukortti- ja viinilistasivut välilehtinä, alla menun reseptit.
 - **Viinit:** lista (pikkukuva, haku, tyyppirajaus, omat tähdet), viinin sivu (kuva, Muokkaa), lomake (kuva,
   tähtivalitsin 1–5, Poista alaosassa).
