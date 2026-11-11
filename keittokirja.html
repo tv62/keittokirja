@@ -309,7 +309,9 @@
   .sugbar button { min-height: 44px; flex: 1 1 0; padding: 9px 10px; font-size: .92rem; white-space: nowrap; text-align: center; }
   .sugbar .hint { margin: 0; }
   .sugg { border: 1px dashed var(--accent); border-radius: 12px; padding: 8px 10px 10px; margin: 2px 0 4px; background: var(--bg); }
-  .sgh { font-size: .8rem; font-weight: 600; color: var(--accent); }
+  .sgh { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .8rem; font-weight: 600; color: var(--accent); }
+  .sgskip { border: none; background: none; color: var(--muted); font-size: .85rem; font-weight: 400; min-height: 44px;
+    padding: 0 2px 0 10px; margin: -12px -4px -10px 0; }
   .sugg .pm + .pm { margin-top: 0; }
   .sgbtns { display: flex; gap: 8px; margin-top: 6px; }
   .sgbtns button { flex: 1; min-height: 44px; text-align: center; }
@@ -2376,8 +2378,9 @@
     const co = t.closest("[data-collapse]"); if (co) { openPast.delete(co.dataset.collapse); return renderPlan(); }
     const sok = t.closest("[data-sok]"); if (sok) return acceptSuggestions([sok.dataset.sok], sok);
     const sno = t.closest("[data-sno]"); if (sno) return rejectSuggestion(sno.dataset.sno);
+    const ssk = t.closest("[data-sskip]"); if (ssk) return skipSuggestion(ssk.dataset.sskip);
     const sop = t.closest("[data-sopen]"); if (sop) return openSuggestion(sop.dataset.sopen);
-    const s1 = t.closest("[data-sone]"); if (s1) { suggAsked.add(s1.dataset.sone); suggNone.delete(s1.dataset.sone); return renderPlan(); }
+    const s1 = t.closest("[data-sone]"); if (s1) { suggSkip.delete(s1.dataset.sone); suggAsked.add(s1.dataset.sone); return renderPlan(); }
     const op = t.closest("[data-open]"); if (op) { const it = planItems.find((x) => x.id === op.dataset.open); if (it) openFromPlan(it); return; }
     const mo = t.closest("[data-item]"); if (mo) return go(`#/viikko/ruoka/${mo.dataset.item}`);
     const ad = t.closest("[data-add]"); if (ad) { const [d, m] = ad.dataset.add.split("|"); return go(`#/viikko/lisaa/${d}/${m}`); }
@@ -2454,15 +2457,21 @@
   const suggestMeals = (r) => r.servings ? Math.min(3, Math.max(1, Math.floor(r.servings / ppm + 1e-9))) : 1;
   const servingsFor = (r, n) => Math.min(99, Math.max(r.servings || 0, Math.ceil(n * ppm - 1e-9)));
   // Tähteet seuraaviin vapaisiin lounaisiin (ei jo suunnitellun ruoan päälle). keep = jo valitut paikat säilyvät.
-  // busy(paikka) = lisäksi varattu (esim. toisen ehdotuksen tähteet).
+  // Tähteet seuraaviin vapaisiin kotiaterioihin alkuperäisen päivän jälkeen (käyttäjän päätös 11/2026): arkena (ma–pe)
+  // lounas syödään yleensä töissä, joten tähteet menevät seuraavaksi päivälliseksi; viikonloppuna myös lounaaksi.
+  // keep = jo valitut paikat säilyvät, busy(paikka) = lisäksi varattu (esim. toisen ehdotuksen tähteet tai tyhjäksi jätetty).
+  const isWeekendDay = (day) => [6, 0].includes(dateOf(day).getDay());
+  const isHomeMeal = (day, meal) => meal === "paivallinen" || isWeekendDay(day);
   function leftoverSlots(day, n, keep, busy) {
     const res = (keep || []).slice(0, n), used = new Set(res.map((s) => s.day + "|" + s.meal));
+    const take = (d, m) => { res.push({ day: d, meal: m }); used.add(d + "|" + m); };
     let d = addDays(day, 1);
-    for (let i = 0; i < 35 && res.length < n; i++, d = addDays(d, 1)) {
-      if (used.has(d + "|lounas") || slotItems(d, "lounas").length || (busy && busy(d + "|lounas"))) continue;
-      res.push({ day: d, meal: "lounas" }); used.add(d + "|lounas");
-    }
-    for (d = addDays(day, 1); res.length < n; d = addDays(d, 1)) res.push({ day: d, meal: "lounas" });
+    for (let i = 0; i < 35 && res.length < n; i++, d = addDays(d, 1))
+      for (const m of ["lounas", "paivallinen"]) {
+        const k = d + "|" + m;
+        if (res.length < n && isHomeMeal(d, m) && !used.has(k) && !slotItems(d, m).length && !(busy && busy(k))) take(d, m);
+      }
+    for (d = addDays(day, 1); res.length < n; d = addDays(d, 1)) if (!used.has(d + "|paivallinen")) take(d, "paivallinen");
     return res;
   }
   function openPick(day, meal, r) {
@@ -2587,8 +2596,9 @@
   let sugg = new Map();             // laskettu: paikka → { key, day, meal, rid, meals, servings, slots }
   let suggReserved = new Map();     // paikka → ehdotus, jonka tähteet tulevat siihen
   let suggNone = new Set();         // paikat, joihin ei löytynyt enää ehdotettavaa
+  const suggSkip = new Set();       // "Jätä tyhjäksi": paikat, joihin ei ehdoteta (esim. syödään muualla)
   let suggBusy = false;
-  function resetSuggestions() { suggOn = false; suggAsked.clear(); suggPick.clear(); suggRejected.clear(); suggNone = new Set(); }
+  function resetSuggestions() { suggOn = false; suggAsked.clear(); suggPick.clear(); suggRejected.clear(); suggSkip.clear(); suggNone = new Set(); }
   const NOT_MAIN = ["kastike", "marinadi", "lisuke", "alkuruoka", "makeat"];
   const PROTEIN = [["kala", ["kala", "katkarapu"]], ["poro", ["poro"]], ["liha", ["nauta", "lammas"]], ["kana", ["kana"]],
     ["kasvis", ["kasvis", "linssi", "papu"]]];
@@ -2665,12 +2675,15 @@
     if (!canEdit || !planWeek) return;
     const today = todayIso();
     const days = [0, 1, 2, 3, 4, 5, 6].map((i) => addDays(planWeek, i)).filter((d) => d >= today);
-    const busy = (k) => sugg.has(k) || suggReserved.has(k);
+    const busy = (k) => sugg.has(k) || suggReserved.has(k) || suggSkip.has(k);
     for (const meal of ["paivallinen", "lounas"]) {
       for (const day of days) {
         const key = day + "|" + meal;
         if (slotItems(day, meal).length || suggReserved.has(key)) { suggPick.delete(key); if (slotItems(day, meal).length) suggAsked.delete(key); continue; }
-        if (!suggOn && !suggAsked.has(key)) continue;
+        if (suggSkip.has(key)) continue;
+        // Arkilounaita ei ehdoteta automaattisesti (syödään yleensä töissä), vain 💡-napista pyydettynä.
+        const auto = suggOn && isHomeMeal(day, meal);
+        if (!auto && !suggAsked.has(key)) continue;
         let r = recipes.find((x) => x.id === suggPick.get(key));
         if (!r) { r = chooseSuggestion(day, meal); if (!r) { suggNone.add(key); continue; } suggPick.set(key, r.id); }
         const meals = suggMealsFor(r, day, meal);
@@ -2688,9 +2701,9 @@
     const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r), s.meals > 1 ? `riittää ${s.meals} ateriaan` : ""].filter(Boolean).join(" · ");
     const left = s.slots.length ? `<span class="pm">🔁 tähteet: ${esc(s.slots.map(slotLabel).join(", "))}</span>` : "";
     const star = (r.tags || []).includes("top") ? " ⭐" : "", dis = suggBusy ? "disabled" : "";
-    return `<div class="sugg"><div class="sgh">💡 Ehdotus</div>
+    return `<div class="sugg"><div class="sgh"><span>💡 Ehdotus</span><button type="button" class="sgskip" data-sskip="${s.key}" ${dis}>Jätä tyhjäksi ✕</button></div>
       <div class="pi"><button type="button" class="pbody" data-sopen="${s.key}">${thumb}<span class="ptxt"><span class="pt">${esc(r.title)}${star}</span><span class="pm">${meta}</span>${left}</span></button></div>
-      <div class="sgbtns"><button type="button" class="primary" data-sok="${s.key}" ${dis}>✓ Hyväksy</button><button type="button" data-sno="${s.key}" ${dis}>✕ Hylkää</button></div></div>`;
+      <div class="sgbtns"><button type="button" class="primary" data-sok="${s.key}" ${dis}>✓ Hyväksy</button><button type="button" data-sno="${s.key}" ${dis}>↻ Toinen</button></div></div>`;
   }
   function renderSugBar() {
     const show = canEdit && addDays(planWeek, 6) >= todayIso();
@@ -2708,9 +2721,13 @@
     if (b.dataset.sug === "off") { suggOn = false; suggAsked.clear(); suggPick.clear(); }
     renderPlan();
   };
-  function rejectSuggestion(key) {
+  function rejectSuggestion(key) { // ↻ Toinen: tämä resepti pois, tilalle uusi ehdotus
     const s = sugg.get(key); if (!s) return;
-    suggRejected.add(s.rid); suggPick.delete(key); suggAsked.add(key); // paikka pysyy ehdotettavana → uusi ehdotus
+    suggRejected.add(s.rid); suggPick.delete(key); suggAsked.add(key);
+    renderPlan();
+  }
+  function skipSuggestion(key) { // Jätä tyhjäksi: ei ehdotusta tähän ateriaan (💡 pyytää taas)
+    suggSkip.add(key); suggPick.delete(key); suggAsked.delete(key);
     renderPlan();
   }
   // Nimen napautus: Riittää-sivu valmiiksi ehdotuksen arvoilla (ateriat, annokset, tähteiden paikat).
