@@ -71,6 +71,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Muistiinpanojen kansiot: Keitot ja Kastikkeet → `arkiruoka` (+ `keitto` / `kastike`), Perjantaiherkut → `viikonloppuherkut`.
   Tyhjinä jätettiin pois: Hummus leivän päälle, Sitruunainen kantarellispagetti, Valkosipulimarinoidut
   lampaankyljykset, Nopea linssibolognese. Wokkikastikkeesta puuttuu ohje (vain ainekset).
+  Kaikilla resepteillä on annosmäärä: 28 puuttuvaa arvioitiin 11/2026 käyttäjän hyväksymänä (epävarmimmat: Poropizza 4 =
+  puolikas 25 cm pizza/hlö, Osso buco 6 = kiekko/hlö).
 - Vauvan ruoat: ei vielä omia reseptejä. 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`,
   vauvaohje `baby_notes`-kentässä).
   Päärajauksena vain Top-lista; muut (esim. ikä) sovitaan käyttäjän kanssa.
@@ -300,6 +302,9 @@ Redirect URL = sivun osoite.
 - Jos vaiheissa mainittu aines (esim. vesi) puuttuu luettelosta, lisää se luetteloon.
 - Väliotsikot aineslistassa omana rivinään, esim. `"Kastike:"`.
 - `prep_minutes` = valmistusaika ilman marinointia tai hyytymistä. Mainitse ne `notes`-kentässä.
+- `servings` aina mukaan (annosmäärä tarvitaan −/+ -skaalaukseen). Jos lähteessä ei ole, arvioi ainesten perusteella ja
+  kerro arvio: pääruoka n. 100–150 g lihaa/kalaa tai 75–100 g kuivaa pastaa per hlö, keitto n. 2,5 dl nestettä per hlö,
+  kastikkeet/dipit/marinadit lisukkeena (tyypillisesti 4), alkuruoka-bruschetta 2 palaa per hlö.
 - Jos kategoriaa ei kerrota, päättele se ja kerro valinta. Lisää sopivat päärajaustagit (kana/nauta/kasvis jne.).
 - Pelkkä linkki → tallenna `source` ja pyydä käyttäjää liittämään ohjeen teksti (iCloud ja monet sivut estävät lukemisen).
 - Käytä SQL:ssä dollar-quotingia (`$t$...$t$`, `$j$[...]$j$::jsonb`).
