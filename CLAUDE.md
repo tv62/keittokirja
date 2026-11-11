@@ -41,14 +41,20 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     joka päivä lounas ja päivällinen (myös arkena). Menneet päivät harmaina ja tiivistettynä (vain päivä + ruokien nimet),
     napautus avaa täyteen kokoon (käyttäjän toive). Tähteet: reseptiä lisätessä "Riittää 1 / 2 / 3 ateriaan", ehdotus =
     annosmäärä ÷ perheen annosta per ateria (oletus 2), lisäateriat merkinnällä "🔁 tähteet" seuraaviin vapaisiin kotiaterioihin:
-    **arkena (ma–pe) seuraavaksi päivälliseksi** (lounas syödään yleensä töissä tai lounasravintolassa), viikonloppuna myös lounaaksi.
+    **arkena (ma–pe) seuraavaksi päivälliseksi** (lounas syödään yleensä töissä tai lounasravintolassa; arkilounaalta saman
+    päivän päivälliseksi), viikonloppuna myös lounaaksi. **Pe, la ja su päivällinen ovat omia ruokiaan** (pe nopea herkkuruoka,
+    la viikon työläin illallinen, su ruokaa alkuviikolle), joten tähteitä ei laiteta niille automaattisesti.
     Vain muokkausoikeudella voi muokata. Ostoslista ja toiveet myöhemmin (backlog).
   - **Ruokaehdotukset** (11/2026, käyttäjän päätökset): "💡 Ehdota ruokia" täyttää viikon tyhjät päivälliset ja viikonlopun
     lounaat (tänään ja tulevat) ehdotuksilla. **Arkilounaita ei ehdoteta automaattisesti** (syödään töissä), vain 💡-napista,
     joka on jokaisessa tyhjässä ateriassa "+ Lisää" -napin vieressä. Ehdotuskortissa ✓ Hyväksy, ↻ Toinen (näyttää heti toisen)
     ja oikeassa yläkulmassa "Jätä tyhjäksi ✕" (ei ehdotusta, esim. syödään muualla; kohta jää tyhjäksi), ylhäällä
-    "✓ Hyväksy kaikki". pe–su päivälliselle myös viikonloppuherkkujen illalliset.
-    **Sunnuntain päivällinen ehdotetaan 3 aterialle** (tähteet maanantain ja tiistain päivällisiksi; sunnuntaina tehdään ruokaa alkuviikolle).
+    "✓ Hyväksy kaikki". pe–su päivälliselle myös viikonloppuherkkujen illalliset: **perjantaina tyypillisesti herkkuruoka, mutta
+    nopea; lauantaina viikon työläin illallinen**; lounaiksi kevyttä ja nopeaa (myös viikonloppuna; ei työlästä lounasta ja
+    päivällistä samana päivänä). **Sunnuntain päivällinen ehdotetaan 3 aterialle** (tähteet maanantain ja tiistain päivällisiksi;
+    sunnuntaina tehdään ruokaa alkuviikolle). Ehdotuksen tähteet näkyvät samalla korostusvärillä kuin ehdotus.
+    Rivitasolla pyydetyn ehdotuksen tähteet tulevat heti näkyviin: hyväksytyt ruoat pysyvät paikallaan, hyväksymätön ehdotus
+    siirtyy seuraavaan samanlaiseen paikkaan (arkiruoka ei siirrä pe–la illallista).
     Ehdotukset ovat vain ehdottajan laitteella, kunnes ne hyväksytään (koko perheelle näkyvät ehdotukset = Toiveet, backlog).
   - **Arkiruoka avautuu valintasivuna** (hyväksytty 11/2026): 2 saraketta ruutuja (iPadilla 3), emoji + nimi + määrä:
     Top-lista, Kana, Liha, Poro, Kala, Kasvis, Keitot, Pastat, Lisukkeet, Kastikkeet + leveä "Kaikki arkiruoat".
@@ -281,9 +287,10 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   - **Lisäys** (`openPlanAdd`, `renderPlanAdd`): ✏️ Oma merkintä (vapaa teksti) tai resepti: haku (kaikista näkyvistä
     resepteistä), kategoriachipit (näkyvät kategoriat), ryhmächipit (`GRID`-ryhmät / vauvalla `PRIMARY`), järjestys (sama `sortMode`).
   - **Riittää** (`openPick`, `renderPick`, `savePick`, tila `pick`): 1 / 2 / 3 ateriaan, ehdotus `suggestMeals` = floor(servings ÷ ppm),
-    annokset `servingsFor` = max(reseptin annokset, ateriat × ppm). Tähteet `leftoverSlots`: seuraavat vapaat kotiateriat
-    (`isHomeMeal` = päivällinen tai la/su lounas, eli arkena seuraava päivällinen) alkuperäistä seuraavasta päivästä alkaen
-    (valitut säilyvät, kun ateriamäärää muutetaan); jokaisen paikan voi vaihtaa valinnasta (myös arkilounaaksi)
+    annokset `servingsFor` = max(reseptin annokset, ateriat × ppm). Tähteet `leftoverSlots(päivä, ateria, n, keep, busy, maxDay)`:
+    seuraavat vapaat paikat aikajärjestyksessä (`slotsAfter`) heti valmistuksen jälkeen, joille `leftoverOk` = kotiateria
+    (`isHomeMeal`: päivällinen tai la/su lounas) eikä oma päivällinen (`isOwnDinner`: pe/la/su päivällinen); ilman `maxDay`:ta
+    varalla seuraavat päivälliset (valitut säilyvät, kun ateriamäärää muutetaan); jokaisen paikan voi vaihtaa valinnasta (myös arkilounaaksi)
     (5 viikkoa eteenpäin, varatut merkitty). "noin [2] annosta" -valinta tallentaa `plan_settings.portions_per_meal`.
   - **Muokkaus** (`openPlanItem`, `renderPlanItem`, tila `piState`): päivä + ateria (siirto, uusi `sort` kohdeaterian loppuun),
     annokset (vain alkuperäinen reseptirivi), vapaan tekstin nimi, 📖 Avaa resepti, Poista. Poisto kysyy erikseen, poistetaanko
@@ -294,14 +301,20 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     pysyy kunnes hyväksytään tai hylätään), `suggRejected` (viikon hylätyt reseptit), `suggSkip` (tyhjäksi jätetyt paikat,
     `skipSuggestion`; 💡 poistaa paikan sieltä). `computeSuggestions()` (ajetaan joka
     `renderPlan()`:ssa) laskee `sugg` (paikka → { rid, meals, servings, slots }) ja `suggReserved` (ehdotuksen tähteiden paikat,
-    näkyvät "🔁 Tähteet ehdotuksesta: …"): ensin päivälliset, sitten lounaat, vain tänään ja tulevat päivät. Automaattisesti
-    (`suggOn`) vain kotiateriat (`isHomeMeal`), arkilounas vain `suggAsked`-pyynnöstä. Ateriat `suggMealsFor` = sunnuntain
-    päivällinen 3, muuten `suggestMeals`; tähteet `leftoverSlots(…, busy)` ohittaa toisten ehdotusten ja tyhjäksi jätettyjen paikat.
+    näkyvät korostettuna "💡 Ehdotuksen tähteet", `.sresv` sama tausta kuin `.sugg`), vain tänään ja tulevat päivät:
+    1) päivällisille valitaan ensin resepti (`suggPick`), jotta lounas tietää saman päivän päivällisen työläyden (`ctx.dinnerPrep`);
+    2) paikat **aikajärjestyksessä** (ma lounas, ma päivällinen, …). Automaattisesti (`suggOn`) vain kotiateriat, arkilounas vain
+    `suggAsked`-pyynnöstä. Tähteet `leftoverSlots(…, busy = varatut/tyhjäksi jätetyt, maxDay)` enintään 2 pv päähän ja viikon
+    sisällä (vain sunnuntain päivällisen tähteet ma–ti); ateriamäärä = 1 + löytyneet paikat. Suunnitellut ruoat estävät tähteet
+    (pysyvät paikallaan); jos tähteet tulevat hyväksymättömän ehdotuksen paikalle, sen resepti siirtyy (`carry`) seuraavaan saman
+    tyypin (`slotKind`: arkipäivällinen / viikonlopun lounas) vapaaseen paikkaan (avain vaihtuu, `suggAsked` siirtyy mukana);
+    viikon lopussa siirtymättä jääneet pudotetaan. Ateriat `suggMealsFor` = sunnuntain päivällinen 3, muuten `suggestMeals`.
     Valinta `chooseSuggestion`: joukko `suggPool` (pääruoat: ei `NOT_MAIN` = kastike/marinadi/lisuke/alkuruoka/makeat;
     arkiruoka + pe–su päivälliselle viikonloppuherkkujen illallinen/pasta), pois hylätyt, muiden paikkojen valinnat ja ±14 päivän
-    sisällä suunnitellut (jos ei löydy, sallitaan muut kuin saman viikon). Painotettu arvonta `suggScore`: lounas ≤ 30 min,
-    arkipäivällinen ≤ 45 min, pe–la viikonloppuherkut ×1,5, sunnuntaina isot satsit (≥ 6 annosta, pata/keitto/uuni/linssi),
-    Top ×2, pääaines (`proteinOf`: kala/poro/liha/kana/kasvis) ei samaa viereisinä päivinä (×0,15), ≥ 2 kertaa viikossa ×0,4,
+    sisällä suunnitellut (jos ei löydy, sallitaan muut kuin saman viikon). Painotettu arvonta `suggScore`: lounas kevyt ja nopea
+    (≤ 20 min ×1,5, ≤ 30 ×1, keitto/kasvis/helppo/pasta ×1,3, uuni/pata ×0,5; jos saman päivän päivällinen ≥ 60 min, lounas ≤ 20 min),
+    arkipäivällinen ≤ 45 min, pe nopea (≤ 45 min) ja herkku (viikonloppuherkut/pizza ×10), la työläs (≥ 90 min ×2,5, ≥ 60 ×1,6,
+    viikonloppuherkut ×1,8), su isot satsit (≥ 6 annosta, pata/keitto/uuni/linssi), Top ×2, pääaines (`proteinOf`: kala/poro/liha/kana/kasvis) ei samaa viereisinä päivinä (×0,15), ≥ 2 kertaa viikossa ×0,4,
     puuttuva kala tai kasvis ×1,8. ✓ = `acceptSuggestions(keys)` (alkuperäiset yhdellä insertillä, tähteet toisella),
     ↻ Toinen = `rejectSuggestion`, Jätä tyhjäksi = `skipSuggestion`, nimen napautus = `openSuggestion` → Riittää-sivu ehdotuksen arvoilla (`pick.fromSugg`: tallennus ja
     Peruuta palaavat yhden askeleen).

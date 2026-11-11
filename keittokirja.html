@@ -308,14 +308,17 @@
   .sugbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: -4px 0 12px; }
   .sugbar button { min-height: 44px; flex: 1 1 0; padding: 9px 10px; font-size: .92rem; white-space: nowrap; text-align: center; }
   .sugbar .hint { margin: 0; }
-  .sugg { border: 1px dashed var(--accent); border-radius: 12px; padding: 8px 10px 10px; margin: 2px 0 4px; background: var(--bg); }
+  .sugg, .sresv { border: 1px dashed var(--accent); border-radius: 12px; padding: 8px 10px 10px; margin: 2px 0 4px;
+    background: var(--bg); background: color-mix(in srgb, var(--accent) 8%, var(--card)); }
+  .sresv { padding: 8px 12px 10px; }
+  .sresv .sgh { min-height: 20px; }
+  .sresv .pt { margin-top: 2px; }
   .sgh { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .8rem; font-weight: 600; color: var(--accent); }
   .sgskip { border: none; background: none; color: var(--muted); font-size: .85rem; font-weight: 400; min-height: 44px;
     padding: 0 2px 0 10px; margin: -12px -4px -10px 0; }
   .sugg .pm + .pm { margin-top: 0; }
   .sgbtns { display: flex; gap: 8px; margin-top: 6px; }
   .sgbtns button { flex: 1; min-height: 44px; text-align: center; }
-  .sresv { border: 1px dashed var(--dash); border-radius: 10px; padding: 10px 12px; margin: 2px 0 4px; color: var(--muted); font-size: .88rem; }
   .addrow { display: flex; gap: 8px; }
   .addrow .addslot { flex: 1; }
   .sugone { flex: none; width: 52px; min-height: 44px; margin: 2px 0 4px; padding: 0; border: 1px dashed var(--dash); background: transparent; font-size: 1.1rem; }
@@ -2347,7 +2350,12 @@
       if (its.length) body = its.map(planItemHtml).join("");
       else if (!canEdit) body = `<div class="pempty">–</div>`;
       else if (s) body = suggHtml(s);
-      else if (resv) body = `<div class="sresv">🔁 Tähteet ehdotuksesta: ${esc(recipes.find((x) => x.id === resv.rid)?.title || "")}</div>`;
+      else if (resv) {
+        const from = `${mondayOf(resv.day) === mondayOf(day) ? WD[dateOf(resv.day).getDay()] : dayShort(resv.day)} ${MEAL_FROM[resv.meal]}`;
+        body = `<div class="sresv"><div class="sgh"><span>💡 Ehdotuksen tähteet</span></div>
+          <span class="pt">${esc(recipes.find((x) => x.id === resv.rid)?.title || "")}</span>
+          <span class="pm"><span class="left">🔁 tähteet</span> ${esc(from)}</span></div>`;
+      }
       else body = `${suggNone.has(key) ? `<div class="pempty">Ei enempää ehdotuksia tähän ateriaan.</div>` : ""}<div class="addrow">
           <button type="button" class="addslot" data-add="${day}|${m}">+ Lisää ${MEAL_LC[m]}</button>${
           day >= today ? `<button type="button" class="sugone" data-sone="${key}" aria-label="Ehdota ruokaa: ${esc(dayShort(day))} ${MEAL_LC[m]}" title="Ehdota ruokaa">💡</button>` : ""}</div>`;
@@ -2456,28 +2464,36 @@
   let pick = null; // { day, meal, rid, meals, servings, slots: [{ day, meal }] }
   const suggestMeals = (r) => r.servings ? Math.min(3, Math.max(1, Math.floor(r.servings / ppm + 1e-9))) : 1;
   const servingsFor = (r, n) => Math.min(99, Math.max(r.servings || 0, Math.ceil(n * ppm - 1e-9)));
-  // Tähteet seuraaviin vapaisiin lounaisiin (ei jo suunnitellun ruoan päälle). keep = jo valitut paikat säilyvät.
-  // Tähteet seuraaviin vapaisiin kotiaterioihin alkuperäisen päivän jälkeen (käyttäjän päätös 11/2026): arkena (ma–pe)
-  // lounas syödään yleensä töissä, joten tähteet menevät seuraavaksi päivälliseksi; viikonloppuna myös lounaaksi.
-  // keep = jo valitut paikat säilyvät, busy(paikka) = lisäksi varattu (esim. toisen ehdotuksen tähteet tai tyhjäksi jätetty).
+  // Tähteet (käyttäjän päätökset 11/2026): seuraaviin vapaisiin kotiaterioihin heti valmistuksen jälkeen. Arkena (ma–pe)
+  // lounas syödään yleensä töissä, joten tähteet menevät seuraavaksi päivälliseksi (arkilounaalta saman päivän päivälliseksi);
+  // viikonloppuna myös lounaaksi. Pe, la ja su päivällinen ovat omia ruokiaan (perjantaiherkku, lauantain työläs illallinen,
+  // sunnuntaina ruokaa alkuviikolle), joten tähteitä ei laiteta niille automaattisesti.
+  // keep = jo valitut paikat säilyvät, busy(paikka) = lisäksi varattu, maxDay = viimeinen sallittu päivä (ehdotuksilla 2 pv).
   const isWeekendDay = (day) => [6, 0].includes(dateOf(day).getDay());
   const isHomeMeal = (day, meal) => meal === "paivallinen" || isWeekendDay(day);
-  function leftoverSlots(day, n, keep, busy) {
+  const isOwnDinner = (day, meal) => meal === "paivallinen" && [5, 6, 0].includes(dateOf(day).getDay());
+  const leftoverOk = (day, meal) => isHomeMeal(day, meal) && !isOwnDinner(day, meal);
+  function* slotsAfter(day, meal) { // seuraavat ateriat aikajärjestyksessä (5 viikkoa)
+    let d = day, m = meal;
+    for (let i = 0; i < 70; i++) { if (m === "lounas") m = "paivallinen"; else { d = addDays(d, 1); m = "lounas"; } yield [d, m]; }
+  }
+  function leftoverSlots(day, meal, n, keep, busy, maxDay) {
     const res = (keep || []).slice(0, n), used = new Set(res.map((s) => s.day + "|" + s.meal));
-    const take = (d, m) => { res.push({ day: d, meal: m }); used.add(d + "|" + m); };
-    let d = addDays(day, 1);
-    for (let i = 0; i < 35 && res.length < n; i++, d = addDays(d, 1))
-      for (const m of ["lounas", "paivallinen"]) {
-        const k = d + "|" + m;
-        if (res.length < n && isHomeMeal(d, m) && !used.has(k) && !slotItems(d, m).length && !(busy && busy(k))) take(d, m);
-      }
-    for (d = addDays(day, 1); res.length < n; d = addDays(d, 1)) if (!used.has(d + "|paivallinen")) take(d, "paivallinen");
+    for (const [d, m] of slotsAfter(day, meal)) {
+      if (res.length >= n || (maxDay && d > maxDay)) break;
+      const k = d + "|" + m;
+      if (leftoverOk(d, m) && !used.has(k) && !slotItems(d, m).length && !(busy && busy(k))) { res.push({ day: d, meal: m }); used.add(k); }
+    }
+    if (!maxDay) for (const [d, m] of slotsAfter(day, meal)) { // varalla: seuraavat päivälliset
+      if (res.length >= n) break;
+      if (m === "paivallinen" && !used.has(d + "|" + m)) { res.push({ day: d, meal: m }); used.add(d + "|" + m); }
+    }
     return res;
   }
   function openPick(day, meal, r) {
     if (!pick || pick.day !== day || pick.meal !== meal || pick.rid !== r.id) {
       const n = suggestMeals(r);
-      pick = { day, meal, rid: r.id, meals: n, servings: servingsFor(r, n), slots: leftoverSlots(day, n - 1) };
+      pick = { day, meal, rid: r.id, meals: n, servings: servingsFor(r, n), slots: leftoverSlots(day, meal, n - 1) };
     }
     renderPick();
     show("planPickView");
@@ -2537,7 +2553,7 @@
     const m = e.target.closest("[data-meals]");
     if (m) {
       pick.meals = +m.dataset.meals; pick.servings = servingsFor(r, pick.meals);
-      pick.slots = leftoverSlots(pick.day, pick.meals - 1, pick.slots);
+      pick.slots = leftoverSlots(pick.day, pick.meal, pick.meals - 1, pick.slots);
       return renderPick();
     }
     const b = e.target.closest("[data-act]"); if (!b) return;
@@ -2557,7 +2573,7 @@
       const v = Number(e.target.value); if (!(v > 0)) return;
       ppm = v;
       pick.meals = suggestMeals(r); pick.servings = servingsFor(r, pick.meals);
-      pick.slots = leftoverSlots(pick.day, pick.meals - 1, pick.slots);
+      pick.slots = leftoverSlots(pick.day, pick.meal, pick.meals - 1, pick.slots);
       renderPick();
       const { error } = await sb.from("plan_settings").upsert({ id: 1, portions_per_meal: v });
       if (error) msg($("ppMsg"), "Asetuksen tallennus epäonnistui: " + error.message, true);
@@ -2605,7 +2621,7 @@
   const proteinOf = (r) => (PROTEIN.find(([, ts]) => ts.some((t) => (r.tags || []).includes(t))) || ["muu"])[0];
   const isWeekendDinner = (day, meal) => meal === "paivallinen" && [5, 6, 0].includes(dateOf(day).getDay()); // pe, la, su
   const isSundayDinner = (day, meal) => meal === "paivallinen" && dateOf(day).getDay() === 0;
-  // Sunnuntaina tehdään ruokaa myös alkuviikolle: päivällinen 3 aterialle (tähteet ma ja ti lounaiksi).
+  // Sunnuntaina tehdään ruokaa myös alkuviikolle: päivällinen 3 aterialle (tähteet ma ja ti päivällisiksi).
   const suggMealsFor = (r, day, meal) => isSundayDinner(day, meal) ? 3 : suggestMeals(r);
   // Ehdotettavat: arkiruoan pääruoat; pe–su päivälliselle myös viikonloppuherkkujen illalliset ja pastat.
   function suggPool(day, meal) {
@@ -2614,36 +2630,50 @@
       return !NOT_MAIN.some((x) => t.includes(x)) &&
         (t.includes("arkiruoka") || (weekend && t.includes("viikonloppuherkut") && (t.includes("illallinen") || t.includes("pasta")))); });
   }
-  // Pääainekset lähipäivinä (suunnitellut + ehdotetut, tähteet mukaan) ja määrät viikolla.
+  // Pääainekset lähipäivinä (suunnitellut + valitut ehdotukset + ehdotusten tähteet) ja määrät viikolla.
+  // dinnerPrep = saman päivän päivällisen valmistusaika (ei työlästä lounasta ja päivällistä samana päivänä).
   function suggContext(day) {
     const byId = (id) => recipes.find((x) => x.id === id);
+    const picks = [...suggPick].map(([k, rid]) => { const [d, m] = k.split("|"); return { d, m, r: byId(rid) }; }).filter((x) => x.r);
     const groupsOn = (d) => {
       const g = new Set();
       for (const x of planItems) if (x.day === d) { const r = recipeOf(x); if (r) g.add(proteinOf(r)); }
-      for (const s of sugg.values()) if (s.day === d || s.slots.some((sl) => sl.day === d)) { const r = byId(s.rid); if (r) g.add(proteinOf(r)); }
+      for (const p of picks) if (p.d === d) g.add(proteinOf(p.r));
+      for (const s of sugg.values()) if (s.slots.some((sl) => sl.day === d)) { const r = byId(s.rid); if (r) g.add(proteinOf(r)); }
       return g;
     };
     const adjacent = new Set([...groupsOn(addDays(day, -1)), ...groupsOn(day), ...groupsOn(addDays(day, 1))]);
     const count = {}, mon = mondayOf(day), sun = addDays(mon, 6);
     const add = (r) => { if (r) { const g = proteinOf(r); count[g] = (count[g] || 0) + 1; } };
     for (const x of planItems) if (!x.leftover && x.day >= mon && x.day <= sun) add(recipeOf(x));
-    for (const s of sugg.values()) add(byId(s.rid));
-    return { adjacent, count };
+    for (const p of picks) if (p.d >= mon && p.d <= sun) add(p.r);
+    let dinnerPrep = 0;
+    for (const x of slotItems(day, "paivallinen")) if (!x.leftover) dinnerPrep = Math.max(dinnerPrep, recipeOf(x)?.prep_minutes || 0);
+    const dp = picks.find((p) => p.d === day && p.m === "paivallinen");
+    if (dp) dinnerPrep = Math.max(dinnerPrep, dp.r.prep_minutes || 0);
+    return { adjacent, count, dinnerPrep };
   }
   function suggScore(r, day, meal, ctx) {
-    const tags = r.tags || [], has = (t) => tags.includes(t), p = r.prep_minutes || 45;
-    const weekend = isWeekendDinner(day, meal), sunday = isSundayDinner(day, meal);
+    const tags = r.tags || [], has = (t) => tags.includes(t), p = r.prep_minutes || 45, dow = dateOf(day).getDay();
     const fancy = has("viikonloppuherkut") && !has("arkiruoka");
     let w = 1;
-    if (meal === "lounas") w *= p <= 30 ? 1 : p <= 45 ? 0.5 : 0.15;   // lounaaksi nopeita
-    else if (!weekend) w *= p <= 45 ? 1 : p <= 75 ? 0.35 : 0.1;      // arkipäivällinen noin 45 min
-    else if (p > 150) w *= 0.5;
-    if (weekend && !sunday && fancy) w *= 1.5;                        // pe–la viikonloppuherkkuja
-    if (sunday) {                                                     // su: isompi satsi alkuviikolle
+    if (meal === "lounas") {                                          // lounaaksi kevyttä ja nopeaa (myös viikonloppuna)
+      w *= p <= 20 ? 1.5 : p <= 30 ? 1 : p <= 45 ? 0.35 : 0.08;
+      if (["keitto", "kasvis", "helppo", "pasta"].some(has)) w *= 1.3;
+      if (["uuniruoka", "pata"].some(has)) w *= 0.5;
+      if (ctx.dinnerPrep >= 60) w *= p <= 20 ? 1 : p <= 30 ? 0.5 : 0.05; // päivällinen työläs → lounas erityisen nopea
+    } else if (dow === 5) {                                           // pe: herkkuruoka, mutta nopea
+      w *= p <= 45 ? 1 : p <= 60 ? 0.4 : 0.05;
+      if (fancy || has("pizza")) w *= 10;                             // tyypillisesti herkkuruoka
+    } else if (dow === 6) {                                           // la: viikon työläin illallinen
+      w *= p >= 90 ? 2.5 : p >= 60 ? 1.6 : p >= 40 ? 0.8 : 0.4;
+      if (fancy) w *= 1.8;
+    } else if (dow === 0) {                                           // su: iso satsi alkuviikolle
       if ((r.servings || 0) >= 6) w *= 2;
       if (["pata", "keitto", "uuniruoka", "linssi"].some(has)) w *= 1.5;
       if (fancy) w *= 0.5;
-    }
+      if (p > 180) w *= 0.5;
+    } else w *= p <= 45 ? 1 : p <= 75 ? 0.35 : 0.1;                  // arkipäivällinen noin 45 min
     if (has("top")) w *= 2;
     const g = proteinOf(r), n = ctx.count[g] || 0;
     if (g !== "muu") {
@@ -2670,28 +2700,56 @@
     }
     return null;
   }
+  // Ehdotukset aikajärjestyksessä (ma lounas, ma päivällinen, ti lounas…). Ehdotuksen tähteet varaavat seuraavat kotiateriat
+  // enintään 2 päivän päähän. Hyväksytyt (suunnitellut) ruoat pysyvät paikallaan; hyväksymätön ehdotus, jonka paikalle tulee
+  // tähteitä, siirtyy seuraavaan samanlaiseen paikkaan (arkipäivällinen → seuraava arkipäivällinen, viikonlopun lounas → seuraava
+  // viikonlopun lounas). Pe–su päivällisille ei tule tähteitä, joten niitä ei siirretä.
+  const slotKind = (d, m) => m === "lounas" ? (isWeekendDay(d) ? "vkl-lounas" : "arkilounas") : isOwnDinner(d, m) ? "oma-" + dateOf(d).getDay() : "arki";
   function computeSuggestions() {
     sugg = new Map(); suggReserved = new Map(); suggNone = new Set();
     if (!canEdit || !planWeek) return;
     const today = todayIso();
     const days = [0, 1, 2, 3, 4, 5, 6].map((i) => addDays(planWeek, i)).filter((d) => d >= today);
-    const busy = (k) => sugg.has(k) || suggReserved.has(k) || suggSkip.has(k);
-    for (const meal of ["paivallinen", "lounas"]) {
-      for (const day of days) {
-        const key = day + "|" + meal;
-        if (slotItems(day, meal).length || suggReserved.has(key)) { suggPick.delete(key); if (slotItems(day, meal).length) suggAsked.delete(key); continue; }
-        if (suggSkip.has(key)) continue;
-        // Arkilounaita ei ehdoteta automaattisesti (syödään yleensä töissä), vain 💡-napista pyydettynä.
-        const auto = suggOn && isHomeMeal(day, meal);
-        if (!auto && !suggAsked.has(key)) continue;
-        let r = recipes.find((x) => x.id === suggPick.get(key));
-        if (!r) { r = chooseSuggestion(day, meal); if (!r) { suggNone.add(key); continue; } suggPick.set(key, r.id); }
-        const meals = suggMealsFor(r, day, meal);
-        const s = { key, day, meal, rid: r.id, meals, servings: servingsFor(r, meals), slots: [] };
-        sugg.set(key, s);
-        s.slots = leftoverSlots(day, meals - 1, null, busy);
-        for (const sl of s.slots) suggReserved.set(sl.day + "|" + sl.meal, s);
+    const byId = (id) => id && recipes.find((x) => x.id === id);
+    const planned = (d, m) => slotItems(d, m).length > 0;
+    // Arkilounaita ei ehdoteta automaattisesti (syödään yleensä töissä), vain 💡-napista pyydettynä.
+    const wanted = (d, m) => (suggOn && isHomeMeal(d, m)) || suggAsked.has(d + "|" + m);
+    // Päivällisille valitaan ruoka ensin, jotta saman päivän lounas tietää, onko päivällinen työläs.
+    for (const d of days) {
+      const k = d + "|paivallinen";
+      if (!planned(d, "paivallinen") && !suggSkip.has(k) && wanted(d, "paivallinen") && !byId(suggPick.get(k))) {
+        const r = chooseSuggestion(d, "paivallinen"); if (r) suggPick.set(k, r.id);
       }
+    }
+    const carry = []; // siirtyvät ehdotukset { rid, kind, asked }
+    for (const d of days) for (const m of ["lounas", "paivallinen"]) {
+      const k = d + "|" + m, kind = slotKind(d, m);
+      if (planned(d, m)) { suggPick.delete(k); suggAsked.delete(k); continue; }
+      if (suggReserved.has(k)) { // tähteet tulevat tähän → oma ehdotus siirtyy eteenpäin
+        if (byId(suggPick.get(k))) carry.push({ rid: suggPick.get(k), kind, asked: suggAsked.has(k) });
+        suggPick.delete(k); suggAsked.delete(k);
+        continue;
+      }
+      if (suggSkip.has(k)) continue;
+      let r = null;
+      const ci = carry.findIndex((c) => c.kind === kind);
+      if (ci >= 0) {
+        const c = carry.splice(ci, 1)[0], own = suggPick.get(k);
+        if (byId(own) && own !== c.rid) carry.push({ rid: own, kind, asked: suggAsked.has(k) });
+        r = byId(c.rid); suggPick.set(k, c.rid);
+        if (c.asked) suggAsked.add(k);
+      } else {
+        if (!wanted(d, m)) continue;
+        r = byId(suggPick.get(k));
+        if (!r) { r = chooseSuggestion(d, m); if (!r) { suggNone.add(k); continue; } suggPick.set(k, r.id); }
+      }
+      // Enintään 2 päivän päähän; vain sunnuntain päivällisen tähteet jatkuvat seuraavalle viikolle (ma–ti päivälliset).
+      const sun = addDays(mondayOf(d), 6), maxDay = isSundayDinner(d, m) || addDays(d, 2) < sun ? addDays(d, 2) : sun;
+      const slots = leftoverSlots(d, m, suggMealsFor(r, d, m) - 1, null, (x) => suggReserved.has(x) || suggSkip.has(x), maxDay);
+      const meals = 1 + slots.length;
+      const s = { key: k, day: d, meal: m, rid: r.id, meals, servings: servingsFor(r, meals), slots };
+      sugg.set(k, s);
+      for (const sl of slots) suggReserved.set(sl.day + "|" + sl.meal, s);
     }
   }
   function suggHtml(s) {
