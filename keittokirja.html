@@ -2482,9 +2482,9 @@
   let pick = null; // { day, meal, rid, meals, servings, slots: [{ day, meal }] }
   const suggestMeals = (r) => r.servings ? Math.min(3, Math.max(1, Math.floor(r.servings / ppm + 1e-9))) : 1;
   const servingsFor = (r, n) => Math.min(99, Math.max(r.servings || 0, Math.ceil(n * ppm - 1e-9)));
-  // Tähteet (käyttäjän päätökset 11/2026): seuraaviin vapaisiin kotiaterioihin heti valmistuksen jälkeen. Arkena (ma–pe)
-  // lounas syödään yleensä töissä, joten tähteet menevät seuraavaksi päivälliseksi (arkilounaalta saman päivän päivälliseksi);
-  // viikonloppuna myös lounaaksi. Pe, la ja su päivällinen ovat omia ruokiaan (perjantaiherkku, lauantain työläs illallinen,
+  // Tähteet (käyttäjän päätökset 11/2026): seuraaviin vapaisiin kotiaterioihin, aina seuraavasta päivästä alkaen (lounaalle
+  // valmistetun ruoan tähteitä ei samalle päivälle). Arkena (ma–pe) lounas syödään yleensä töissä, joten tähteet menevät
+  // seuraavaksi päivälliseksi; viikonloppuna myös lounaaksi. Pe, la ja su päivällinen ovat omia ruokiaan (perjantaiherkku, lauantain työläs illallinen,
   // sunnuntaina ruokaa alkuviikolle), joten tähteitä ei laiteta niille automaattisesti.
   // keep = jo valitut paikat säilyvät, busy(paikka) = lisäksi varattu, maxDay = viimeinen sallittu päivä (ehdotuksilla 2 pv).
   const isWeekendDay = (day) => [6, 0].includes(dateOf(day).getDay());
@@ -2500,11 +2500,12 @@
     for (const [d, m] of slotsAfter(day, meal)) {
       if (res.length >= n || (maxDay && d > maxDay)) break;
       const k = d + "|" + m;
+      if (d === day) continue; // ei samalle päivälle (lounaan tähteet aikaisintaan seuraavana päivänä)
       if (leftoverOk(d, m) && !used.has(k) && !slotItems(d, m).length && !(busy && busy(k))) { res.push({ day: d, meal: m }); used.add(k); }
     }
     if (!maxDay) for (const [d, m] of slotsAfter(day, meal)) { // varalla: seuraavat päivälliset
       if (res.length >= n) break;
-      if (m === "paivallinen" && !used.has(d + "|" + m)) { res.push({ day: d, meal: m }); used.add(d + "|" + m); }
+      if (d !== day && m === "paivallinen" && !used.has(d + "|" + m)) { res.push({ day: d, meal: m }); used.add(d + "|" + m); }
     }
     return res;
   }

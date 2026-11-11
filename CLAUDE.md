@@ -41,8 +41,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     joka päivä lounas ja päivällinen (myös arkena). Menneet päivät harmaina ja tiivistettynä (vain päivä + ruokien nimet),
     napautus avaa täyteen kokoon (käyttäjän toive). Tähteet: reseptiä lisätessä "Riittää 1 / 2 / 3 ateriaan", ehdotus =
     annosmäärä ÷ perheen annosta per ateria (oletus 2), lisäateriat merkinnällä "🔁 tähteet" seuraaviin vapaisiin kotiaterioihin:
-    **arkena (ma–pe) seuraavaksi päivälliseksi** (lounas syödään yleensä töissä tai lounasravintolassa; arkilounaalta saman
-    päivän päivälliseksi), viikonloppuna myös lounaaksi. **Pe, la ja su päivällinen ovat omia ruokiaan** (pe valmistetaan tavallinen
+    **arkena (ma–pe) seuraavaksi päivälliseksi** (lounas syödään yleensä töissä tai lounasravintolassa), viikonloppuna myös
+    lounaaksi. **Tähteet aina seuraavasta päivästä alkaen** (lounaalle valmistetun ruoan tähteitä ei samalle päivälle, käyttäjän
+    päätös 11/2026; Riittää-sivulla saman päivän päivällisen voi valita itse). **Pe, la ja su päivällinen ovat omia ruokiaan** (pe valmistetaan tavallinen
     arkiruoka, la pääherkkupäivä ja viikon työläin illallinen, su iso satsi seuraavalle viikolle), joten tähteitä ei laiteta niille automaattisesti.
     **Siirto raahaamalla** (käyttäjän toive 11/2026): ruokaa tai ehdotusta pidetään hetki sormella ja raahataan toiselle aterialle;
     jos siellä on jo ruoka tai ehdotus, paikat vaihtuvat. Jos tähteet joutuisivat ennen ruoan valmistusta tai yli 2 päivän päähän
@@ -293,7 +294,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     resepteistä), kategoriachipit (näkyvät kategoriat), ryhmächipit (`GRID`-ryhmät / vauvalla `PRIMARY`), järjestys (sama `sortMode`).
   - **Riittää** (`openPick`, `renderPick`, `savePick`, tila `pick`): 1 / 2 / 3 ateriaan, ehdotus `suggestMeals` = floor(servings ÷ ppm),
     annokset `servingsFor` = max(reseptin annokset, ateriat × ppm). Tähteet `leftoverSlots(päivä, ateria, n, keep, busy, maxDay)`:
-    seuraavat vapaat paikat aikajärjestyksessä (`slotsAfter`) heti valmistuksen jälkeen, joille `leftoverOk` = kotiateria
+    seuraavat vapaat paikat aikajärjestyksessä (`slotsAfter`) seuraavasta päivästä alkaen (ei koskaan samalle päivälle), joille `leftoverOk` = kotiateria
     (`isHomeMeal`: päivällinen tai la/su lounas) eikä oma päivällinen (`isOwnDinner`: pe/la/su päivällinen); ilman `maxDay`:ta
     varalla seuraavat päivälliset (valitut säilyvät, kun ateriamäärää muutetaan); jokaisen paikan voi vaihtaa valinnasta (myös arkilounaaksi)
     (5 viikkoa eteenpäin, varatut merkitty). "noin [2] annosta" -valinta tallentaa `plan_settings.portions_per_meal`.
