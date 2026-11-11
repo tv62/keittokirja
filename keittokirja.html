@@ -134,6 +134,8 @@
   .chips.primary .chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .chip.ghost { background: transparent !important; border: 1px dashed var(--line) !important; color: var(--muted) !important; }
   .chip.ghost.on { border-style: solid !important; color: var(--ink) !important; }
+  .chips.primary .chip.ico { font-size: 1.3rem; padding: 4px 12px; min-width: 52px; justify-content: center; }
+  .chips.primary .chip.ghost.ico { font-size: 1.1rem; }
   .item { display: flex; align-items: center; gap: 12px; }
   .item .body { flex: 1; min-width: 0; }
   .menu-badge {
@@ -1274,14 +1276,15 @@
     }
 
     // Päärajaukset + Tagit-nappi
-    const prim = grid ? grid.groups.map(([k, e, label]) => [k, `${e} ${label}`])
+    // Päärajaukset pelkkinä emojeina (nimi aria-label/title), "Kaikki" tekstinä.
+    const prim = grid ? grid.groups.map(([k, e, label]) => [k, e, label])
       : (PRIMARY[currentCat] || []).filter(([k]) => !(k === "@menu" && hidden.has("menut")))
-        .map(([k, label]) => [k, `${PRIM_ICON[k] || TAG_ICON[k] || ""} ${label}`.trim()]);
+        .map(([k, label]) => [k, PRIM_ICON[k] || TAG_ICON[k] || "", label]);
     $("primaryChips").classList.toggle("scroll", !!grid);
     $("primaryChips").innerHTML =
-      (prim.length ? [[grid ? "kaikki" : "", "Kaikki"], ...prim] : []).map(([k, label]) =>
-        `<button class="chip ${(activePrimary || "") === k ? "on" : ""}" data-prim="${esc(k)}">${esc(label)}</button>`).join("") +
-      `<button class="chip ghost ${showTags ? "on" : ""}" data-tagtoggle="1" aria-expanded="${showTags}">🏷 Tagit${activeTag ? " · " + esc(tagLabel(activeTag)) : ""} ${showTags ? "▴" : "▾"}</button>`;
+      (prim.length ? [[grid ? "kaikki" : "", "", "Kaikki"], ...prim] : []).map(([k, e, label]) =>
+        `<button class="chip ${e ? "ico" : ""} ${(activePrimary || "") === k ? "on" : ""}" data-prim="${esc(k)}"${e ? ` aria-label="${esc(label)}" title="${esc(label)}"` : ""}>${e || esc(label)}</button>`).join("") +
+      `<button class="chip ghost ico ${showTags ? "on" : ""}" data-tagtoggle="1" aria-expanded="${showTags}" aria-label="Tagit${activeTag ? ": " + esc(activeTag) : ""}" title="Tagit">🏷${activeTag ? " " + esc(TAG_ICON[activeTag] || activeTag) : ""} ${showTags ? "▴" : "▾"}</button>`;
 
     // Pikatagit (piilossa oletuksena)
     const tags = [...new Set(base.flatMap(plainTags))].sort((a, b) => a.localeCompare(b, "fi"));
