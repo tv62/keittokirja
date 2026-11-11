@@ -47,7 +47,11 @@
     padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
   }
   .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
-  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 16px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 10px; }
+  header .hbtns { display: flex; gap: 2px; justify-content: flex-end; }
+  /* Adminilla yläpalkissa vain ratas; uloskirjautuminen on Hallinta-sivulla */
+  header .gear { font-size: 1.35rem; line-height: 1; min-width: 44px; min-height: 44px; padding: 0; }
+  .admintop { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   h1 { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; margin: 0; font-weight: 600; }
   h1 button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; text-align: left; white-space: nowrap; }
   header h1 { flex: none; }
@@ -223,6 +227,30 @@
   .rimg-end { display: none; margin-top: 22px; }
   /* Puhelimessa kuva reseptin loppuun, isommalla näytöllä (iPad) ylös */
   @media (max-width: 599px) { .rimg-top { display: none; } .rimg-end { display: block; } }
+  /* iPad vaakatasossa (ja iso näyttö): ainekset ja ohje rinnakkain, kuva otsikon oikealla puolella.
+     Ainekset pysyvät näkyvissä (sticky), kun pitkää ohjetta vieritetään. */
+  @media (min-width: 960px) and (orientation: landscape) {
+    .v-detail .wrap { max-width: 1160px; }
+    .dtop .cookbar { justify-content: flex-start; gap: 16px; }
+    .dtop.haspic { display: grid; grid-template-columns: 1fr 210px; gap: 28px; align-items: start; }
+    .dtop.haspic .rimg-top { order: 2; width: 210px; margin: 0; }
+    .dcols.two { display: grid; grid-template-columns: minmax(300px, 2fr) 3fr; gap: 40px; align-items: start; }
+    .dcols.two .dcol-ing { position: sticky; top: 12px; max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px);
+      overflow-y: auto; overscroll-behavior: contain; }
+  }
+  /* Ohjeen vaiheet: iso numero (käyttäjän valinta B, 11/2026); kokkaustilassa tehty vaihe ✓ */
+  ol.steps { list-style: none; padding-left: 0; counter-reset: step; }
+  ol.steps li { counter-increment: step; position: relative; padding-left: 44px; min-height: 30px; }
+  ol.steps li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 34px; text-align: right;
+    color: var(--accent); font: 600 1.7rem/1 Georgia, "Times New Roman", serif; }
+  .cooking ol.steps li { padding-left: 60px; }
+  .cooking ol.steps li::before { left: 10px; top: 10px; }
+  ol.steps li.done::before { content: "✓"; color: var(--muted); font: 600 1.4rem/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  /* Ainesten väliotsikot ("Kastike:") otsikkoina ilman luettelomerkkiä; kaksoispiste piilotetaan näytöllä */
+  ul.ing li.sub { list-style: none; margin: 16px 0 4px -20px; font: 600 1.05rem/1.35 Georgia, "Times New Roman", serif; }
+  ul.ing li.sub:first-child { margin-top: 2px; }
+  .cooking ul.ing li.sub { border-bottom: none; padding: 18px 0 2px; margin: 0 0 0 -20px; }
+  .cooking ul.ing li.sub:first-child { padding-top: 0; }
   .imgprev { width: 150px; height: 150px; border-radius: 12px; object-fit: cover; display: block; }
   .cropcv { display: block; width: 100%; max-width: 360px; aspect-ratio: 1 / 1; border-radius: 12px; background: var(--chip);
             touch-action: none; cursor: grab; }
@@ -344,8 +372,8 @@
 <div class="wrap">
   <header>
     <h1><button id="titleBtn" type="button" aria-label="Keittokirja – etusivulle"><img class="logo" src="pata.svg" alt="" width="58" height="32">Keittokirja</button></h1>
-    <div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end">
-      <button id="adminBtn" class="link hidden">⚙️ Hallinta</button>
+    <div class="hbtns">
+      <button id="adminBtn" class="link gear hidden" aria-label="Hallinta" title="Hallinta">⚙️</button>
       <button id="logoutBtn" class="link hidden">Kirjaudu ulos</button>
     </div>
   </header>
@@ -688,7 +716,10 @@
 
   <!-- Käyttäjien hallinta -->
   <section id="adminView" class="hidden">
-    <button class="link" id="adminBackBtn">← Etusivu</button>
+    <div class="admintop">
+      <button class="link" id="adminBackBtn">← Etusivu</button>
+      <button class="link" id="adminLogoutBtn">Kirjaudu ulos</button>
+    </div>
     <h2 style="margin:6px 0 4px">Käyttäjien hallinta</h2>
     <p class="muted" style="margin:0 0 14px">Vain listalla olevat näkevät reseptit. Uusi jäsen saa oletuksena vain lukea, ja muokkausoikeuden voi antaa erikseen. Uusi jäsen luo itse tunnuksen keittokirjan kirjautumissivulla samalla sähköpostilla. Uusi jäsen ei näe yhtään etusivun osiota ennen kuin avaat ne hänen kohdaltaan alta (napauta osiota). Piilotettua osiota jäsen ei näe lainkaan.</p>
     <form id="addUserForm" class="card">
@@ -1062,8 +1093,10 @@
   function show(view) {
     for (const v of VIEWS) $(v).classList.toggle("hidden", v !== view);
     currentView = view;
-    $("logoutBtn").classList.toggle("hidden", view === "authView");
+    // Admin kirjautuu ulos Hallinta-sivulta (yläpalkissa vain ⚙️), muut yläpalkista
+    $("logoutBtn").classList.toggle("hidden", view === "authView" || isAdmin);
     $("adminBtn").classList.toggle("hidden", view === "authView" || view === "adminView" || !isAdmin);
+    document.body.classList.toggle("v-detail", view === "detailView");
     window.scrollTo(0, 0);
   }
   function msg(el, text, isErr) {
@@ -1225,7 +1258,7 @@
     }
   };
 
-  $("logoutBtn").onclick = () => sb.auth.signOut();
+  $("logoutBtn").onclick = $("adminLogoutBtn").onclick = () => sb.auth.signOut();
 
   sb.auth.onAuthStateChange((_evt, session) => {
     // setTimeout: Supabase-kutsuja ei pidä tehdä suoraan tämän callbackin sisällä
@@ -1751,15 +1784,19 @@
     const isTop = (r.tags || []).includes("top");
     const ings = (r.ingredients || []).map((i, k) => {
       const t = asText(i);
-      return isSub(t) ? `<li class="sub">${esc(t)}</li>`
+      return isSub(t) ? `<li class="sub">${esc(t.replace(/\s*:\s*$/, ""))}</li>`
         : `<li data-ing="${k}" class="${st.ing.has(k) ? "done" : ""}">${scaleLine(t, f)}</li>`;
     }).join("");
     const steps = (r.instructions || []).map((s, k) =>
       `<li data-step="${k}" class="${st.st.has(k) ? "done" : ""}">${esc(asText(s))}</li>`).join("");
     const lockNote = st.lockOk ? "Näyttö pysyy päällä." : "Tämä selain ei pysty pitämään näyttöä päällä.";
     $("detail").classList.toggle("cooking", st.on);
+    const hasPic = !!imgUrl(r);
+    const side = steps || r.notes || src;
     $("detail").innerHTML = `
+      <div class="dtop ${hasPic ? "haspic" : ""}">
       ${pic("rimg-top")}
+      <div class="dinfo">
       <div class="dhead">
         <h2>${esc(r.title)}</h2>
         ${menu ? `<button class="menu-badge" data-openmenu="${esc(menu)}" aria-label="Avaa menu ${esc(menu)}">${esc(menu)}</button>` : ""}
@@ -1780,12 +1817,19 @@
         <button type="button" class="cook ${st.on ? "on" : ""}" data-act="cook" aria-pressed="${st.on}">${st.on ? "Lopeta kokkaus" : "🍳 Aloita kokkaus"}</button>
       </div>
       ${st.on ? `<p class="cookhint">${lockNote} Napauta ainesta tai vaihetta, kun se on tehty.</p>` : ""}
-      ${ings ? `<h3>Ainekset</h3><ul class="ing">${ings}</ul>` : ""}
+      </div>
+      </div>
+      <div class="dcols ${ings && side ? "two" : ""}">
+      ${ings ? `<div class="dcol-ing"><h3>Ainekset</h3><ul class="ing">${ings}</ul>
       ${f !== 1 ? `<p class="scalenote">Määrät on laskettu ${st.servings} annokselle (alkuperäinen ${r.servings}).
         Ohjeen tekstissä olevat määrät ovat alkuperäiset. <button type="button" class="link" data-act="reset">Palauta</button></p>` : ""}
+      </div>` : ""}
+      ${side ? `<div class="dcol-main">
       ${steps ? `<h3>Ohje</h3><ol class="steps">${steps}</ol>` : ""}
       ${r.notes ? `<h3>Muistiinpanot</h3><p class="notes">${esc(r.notes)}</p>` : ""}
       ${src ? `<h3>Lähde</h3><p>${src}</p>` : ""}
+      </div>` : ""}
+      </div>
       ${pic("rimg-end")}
       ${canEdit ? `<div class="actions">
         <button type="button" data-act="top">${isTop ? "★ Poista Top-listalta" : "⭐ Lisää Top-listalle"}</button>

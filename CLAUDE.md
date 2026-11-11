@@ -83,7 +83,16 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
   - Resepti- ja viinikuvat aina neliöitä ja värillisiä. Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
-    alkukirjain). Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä.
+    alkukirjain). Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
+    vaakatasossa pienenä (210 px) otsikon oikealla puolella.
+  - **Yläpalkki** (käyttäjän toive 11/2026): adminilla yläpalkissa vain ⚙️ (Hallinta, 44 px), **Kirjaudu ulos on Hallinta-sivun
+    ylärivillä**. Muilla jäsenillä (ei Hallinta-sivua) Kirjaudu ulos yläpalkissa. Palkki yhden rivin korkuinen.
+  - **Reseptisivu iPadilla vaakatasossa** (11/2026): ainekset vasemmalla ja ohje + muistiinpanot oikealla rinnakkain; ainekset
+    pysyvät näkyvissä, kun ohjetta vieritetään. Pystyasennossa ja puhelimessa allekkain kuten ennen.
+  - **Ohjeen vaiheet isoilla numeroilla** (käyttäjä valitsi vaihtoehdon B "iso numero" 11/2026; hylätyt: A täytetty pallo,
+    C rengas): iso Georgia-numero korostusvärillä ilman palloa, kokkaustilassa tehdyn vaiheen numeron tilalla ✓.
+  - **Ainesten väliotsikot otsikkoina** (11/2026): "Kastike:" näytetään lihavoituna Georgia-otsikkona ilman luettelomerkkiä ja
+    ilman kaksoispistettä.
     (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
 - **Reseptilähteet:**
   - Apple Muistiinpanot: vienti Pikakomennoilla (Etsi muistiinpanot → Yhdistä teksti, erotin `=====` → Tallenna tiedosto)
@@ -143,6 +152,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - Reitityksen testaus: `page.go_back()` = takaisin-pyyhkäisy. Huom. `page.goto(sama_url + "#/…")` on vain
   #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
+- iPadin vaakataso: näkymä 1180×820 (pystyssä 820×1180). Vaakatasoasettelu vaatii `orientation: landscape` ja ≥ 960 px.
+  Stubin `auth.signOut` kannattaa kutsua tallennettua `onAuthStateChange`-callbackia (`"SIGNED_OUT", null`), jotta uloskirjautumisen voi testata.
 - Headless-Chromium ei anna Wake Lockia, joten kokkaustila näyttää siinä "ei pysty pitämään näyttöä päällä".
 - Kuvat: stubiin `storage.from(b).upload/createSignedUrls/remove` (upload → `URL.createObjectURL(blob)`).
   Kuvan valinta `page.set_input_files("#f_file" / "#w_file", polku)`, tila `recipePic.state` / `winePic.state`. Ennen rajauksen raahausta `scroll_into_view_if_needed()`,
@@ -231,6 +242,16 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   ryhmän emoji. "Kaikki" tekstinä.
 - **Resepti:** menumerkki oikeassa yläkulmassa avaa menun. Napit "⭐ Lisää Top-listalle" ja "Muokkaa"
   (Poista on lomakkeen alaosassa, ettei sitä paina vahingossa).
+  - **Rakenne** (`renderDetail`): `.dtop` (luokka `.haspic`, jos kuva) = `rimg-top` + `.dinfo` (otsikko, kuvaus, meta,
+    vauvalaatikko, annos- ja kokkausnapit); `.dcols` (luokka `.two`, jos sekä ainekset että ohje/muistiinpanot/lähde) =
+    `.dcol-ing` (Ainekset + skaalausohje) ja `.dcol-main` (Ohje, Muistiinpanot, Lähde); sitten `rimg-end` ja napit.
+    **Vaakataso** `@media (min-width: 960px) and (orientation: landscape)`: `show()` asettaa `body.v-detail` reseptisivulla →
+    `.wrap` 1160 px (muut sivut 760 px); `.dcols.two` grid 2fr/3fr, `.dcol-ing` `position: sticky` (top 12 px, max-korkeus
+    näytön korkeus, oma vieritys); `.dtop.haspic` grid, kuva 210 px oikealle; annos- ja kokkausnappi vierekkäin vasemmalla.
+  - **Vaiheiden numerot:** `ol.steps` ilman selaimen numerointia, CSS-laskuri `counter(step)` `li::before`-elementissä
+    (1,7rem Georgia, `--accent`, 34 px oikealle tasattu, teksti 44 px sisennyksellä; kokkaustilassa 60 px). `li.done::before` = ✓.
+  - **Ainesten väliotsikot:** `isSub(t)` (rivi päättyy `:`) → `<li class="sub">` ilman kaksoispistettä (data säilyy ennallaan),
+    ei luettelomerkkiä, sisennys −20 px (tasan Ainekset-otsikon kanssa), kokkaustilassa ei napautettava eikä alaviivaa.
   - **Annosmäärä:** −/+ -napit (vain jos `servings` on annettu). `scaleLine()` kertoo ainesrivin kaikki luvut
     (`1/2`, `½`, `1,5`, `2–3`, sulkeissa olevat `(400 g)`), mutta ei prosentteja eikä asteita. Kerrotut luvut
     korostetaan. Väliotsikoita (rivi päättyy `:`) ei muuteta. Ohjeen tekstin määriä ei muuteta, ja sivu kertoo sen.
@@ -241,7 +262,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 - **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi)` (listan pikkukuva `.thumb` 60 px tai
   alkukirjain `.thumb.ph`, rivillä luokka `.item.withpic`) ja `bigPic(item, alt, "rimg-top"|"rimg-end")`. Iso kuva
   renderöidään kahteen kohtaan, ja CSS näyttää alle 600 px leveällä sivun lopussa (ennen nappeja), muuten ylhäällä
-  (max 440 px). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
+  (max 440 px; reseptisivulla vaakatasossa ≥ 960 px otsikon oikealla, 210 px). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
 - **Kuvan lisäys lomakkeessa:** yhteinen `imagePicker(p)` (`recipePic` = "f", `winePic` = "w"; elementit
   `<p>_imgbox, _imgprev, _cropwrap, _crop, _zoom, _imgnote, _imgpick, _imgpaste, _imgundo, _imgdel, _file`). "📷 Lisää kuva" on
   `<label for="<p>_file">`, `accept="image/*"` → iPhonessa kamera tai kuvakirjasto. Kaikki lähteet → `loadBlob(blob)` → rajaus.
@@ -271,7 +292,10 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   kategorioista + reseptin nykyinen (`CAT_ICON`). Piilossa olevat `f_baby`/`f_babynotes`/`f_menu` säilyttävät arvonsa tallennuksessa.
   Kaikki osiot piilossa (`allHidden()`) → etusivulla "Tervetuloa! Sinulle ei ole vielä avattu…". Ei yhtään reseptikategoriaa →
   "Kaikki reseptit" ja "+ Uusi resepti" piiloon.
-- **Hallinta** (vain admin): perheen pääsylista RPC-funktioiden kautta. Jokaisella rivillä oikeusmerkki
+- **Yläpalkki** (`header`): otsikko vasemmalla, `.hbtns` oikealla: `#adminBtn` (⚙️, luokka `.gear`, vain adminille, ei
+  Hallinta-sivulla) ja `#logoutBtn` (vain muille kuin adminille, `show()` piilottaa `isAdmin`-tiedolla).
+- **Hallinta** (vain admin): ylärivillä (`.admintop`) ← Etusivu ja Kirjaudu ulos (`#adminLogoutBtn`, sama `sb.auth.signOut()`).
+  Perheen pääsylista RPC-funktioiden kautta. Jokaisella rivillä oikeusmerkki
   (admin / saa muokata / vain luku / ei pääsyä) ja napit Salli muokkaus / Poista muokkausoikeus, Tee adminiksi /
   Poista admin, Poista pääsy. Lisäyslomakkeessa "Saa lisätä ja muokata" on oletuksena pois (admin-ruutu valitsee
   ja lukitsee sen). "Anna lukuoikeus" listalta puuttuvalle = vain luku. Ei-admin-jäsenillä rivi "Näkyy etusivulla": 6 chippiä (`SECTIONS`)
@@ -429,7 +453,7 @@ Redirect URL = sivun osoite.
 
 - Säilytä ainekset ja ohjeet sisällöltään ennallaan. Siisti numerointi ja muotoilu, korjaa kirjoitusvirheet.
 - Jos vaiheissa mainittu aines (esim. vesi) puuttuu luettelosta, lisää se luetteloon.
-- Väliotsikot aineslistassa omana rivinään, esim. `"Kastike:"`.
+- Väliotsikot aineslistassa omana rivinään, esim. `"Kastike:"` (kaksoispiste mukaan; sivu näyttää rivin otsikkona ilman sitä).
 - `prep_minutes` = valmistusaika ilman marinointia, hyytymistä tai huoneenlämpöön ottamista. Mainitse ne `notes`-kentässä.
   Aina mukaan: jos lähteessä ei ole, arvioi vaiheiden ajoista (esivalmistelu + kypsennys) ja kerro arvio.
 - `servings` aina mukaan (annosmäärä tarvitaan −/+ -skaalaukseen). Jos lähteessä ei ole, arvioi ainesten perusteella ja
