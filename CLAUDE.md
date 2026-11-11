@@ -42,17 +42,20 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     napautus avaa täyteen kokoon (käyttäjän toive). Tähteet: reseptiä lisätessä "Riittää 1 / 2 / 3 ateriaan", ehdotus =
     annosmäärä ÷ perheen annosta per ateria (oletus 2), lisäateriat merkinnällä "🔁 tähteet" seuraaviin vapaisiin kotiaterioihin:
     **arkena (ma–pe) seuraavaksi päivälliseksi** (lounas syödään yleensä töissä tai lounasravintolassa; arkilounaalta saman
-    päivän päivälliseksi), viikonloppuna myös lounaaksi. **Pe, la ja su päivällinen ovat omia ruokiaan** (pe nopea herkkuruoka,
-    la viikon työläin illallinen, su ruokaa alkuviikolle), joten tähteitä ei laiteta niille automaattisesti.
+    päivän päivälliseksi), viikonloppuna myös lounaaksi. **Pe, la ja su päivällinen ovat omia ruokiaan** (pe valmistetaan tavallinen
+    arkiruoka, la pääherkkupäivä ja viikon työläin illallinen, su iso satsi seuraavalle viikolle), joten tähteitä ei laiteta niille automaattisesti.
+    **Siirto raahaamalla** (käyttäjän toive 11/2026): ruokaa tai ehdotusta pidetään hetki sormella ja raahataan toiselle aterialle;
+    jos siellä on jo ruoka tai ehdotus, paikat vaihtuvat. Jos tähteet joutuisivat ennen ruoan valmistusta tai yli 2 päivän päähän
+    valmistuksesta, kortti näkyy punaisena eikä siirtoa tehdä (ilmoitus kertoo syyn).
     Vain muokkausoikeudella voi muokata. Ostoslista ja toiveet myöhemmin (backlog).
   - **Ruokaehdotukset** (11/2026, käyttäjän päätökset): "💡 Ehdota ruokia" täyttää viikon tyhjät päivälliset ja viikonlopun
     lounaat (tänään ja tulevat) ehdotuksilla. **Arkilounaita ei ehdoteta automaattisesti** (syödään töissä), vain 💡-napista,
     joka on jokaisessa tyhjässä ateriassa "+ Lisää" -napin vieressä. Ehdotuskortissa ✓ Hyväksy, ↻ Toinen (näyttää heti toisen)
     ja oikeassa yläkulmassa "Jätä tyhjäksi ✕" (ei ehdotusta, esim. syödään muualla; kohta jää tyhjäksi), ylhäällä
-    "✓ Hyväksy kaikki". pe–su päivälliselle myös viikonloppuherkkujen illalliset: **perjantaina tyypillisesti herkkuruoka, mutta
-    nopea; lauantaina viikon työläin illallinen**; lounaiksi kevyttä ja nopeaa (myös viikonloppuna; ei työlästä lounasta ja
-    päivällistä samana päivänä). **Sunnuntain päivällinen ehdotetaan 3 aterialle** (tähteet maanantain ja tiistain päivällisiksi;
-    sunnuntaina tehdään ruokaa alkuviikolle). Ehdotuksen tähteet näkyvät samalla korostusvärillä kuin ehdotus.
+    "✓ Hyväksy kaikki". **Perjantaina tavallista arkiruokaa; lauantai on pääherkkupäivä ja viikon työläin illallinen**
+    (viikonloppuherkkuja vain la–su päivälliselle); lounaiksi kevyttä ja nopeaa (myös viikonloppuna; ei työlästä lounasta ja
+    päivällistä samana päivänä). **Sunnuntain päivällinen ehdotetaan 3 aterialle** isona satsina, joka riittää seuraavalle viikolle
+    (tähteet maanantain ja tiistain päivällisiksi). Ehdotuksen tähteet näkyvät samalla korostusvärillä kuin ehdotus.
     Rivitasolla pyydetyn ehdotuksen tähteet tulevat heti näkyviin: hyväksytyt ruoat pysyvät paikallaan, hyväksymätön ehdotus
     siirtyy seuraavaan samanlaiseen paikkaan (arkiruoka ei siirrä pe–la illallista).
     Ehdotukset ovat vain ehdottajan laitteella, kunnes ne hyväksytään (koko perheelle näkyvät ehdotukset = Toiveet, backlog).
@@ -132,6 +135,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   (`createClient` → `auth.onAuthStateChange`, `auth.getSession`, `from(t).select().order()/eq()/in()`,
   `insert/update/delete/upsert`, `.single()`, `rpc`; `my_hidden_sections` → taulukko, esim. `["viinit"]`). Aja 390×844-näkymässä ja katso kuvakaappaukset.
   Viikkosuunnitelman testeissä kiinteä päivä: `ctx.clock.set_fixed_time("2026-11-11T10:00:00")` (menneet päivät, "Tänään").
+  Raahaus testataan hiirellä (pointer-tapahtumat): `mouse.down()`, odota 450 ms, `mouse.move(…, steps=10)`, `mouse.up()`;
+  korkea näkymä (esim. 390×3000), jotta koko viikko mahtuu ilman vieritystä. Ehdotuksissa on sattumaa: aja tilastotestit useasti.
 - Reitityksen testaus: `page.go_back()` = takaisin-pyyhkäisy. Huom. `page.goto(sama_url + "#/…")` on vain
   #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
@@ -310,14 +315,26 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     tyypin (`slotKind`: arkipäivällinen / viikonlopun lounas) vapaaseen paikkaan (avain vaihtuu, `suggAsked` siirtyy mukana);
     viikon lopussa siirtymättä jääneet pudotetaan. Ateriat `suggMealsFor` = sunnuntain päivällinen 3, muuten `suggestMeals`.
     Valinta `chooseSuggestion`: joukko `suggPool` (pääruoat: ei `NOT_MAIN` = kastike/marinadi/lisuke/alkuruoka/makeat;
-    arkiruoka + pe–su päivälliselle viikonloppuherkkujen illallinen/pasta), pois hylätyt, muiden paikkojen valinnat ja ±14 päivän
+    arkiruoka + la–su päivälliselle viikonloppuherkkujen illallinen/pasta), pois hylätyt, muiden paikkojen valinnat ja ±14 päivän
     sisällä suunnitellut (jos ei löydy, sallitaan muut kuin saman viikon). Painotettu arvonta `suggScore`: lounas kevyt ja nopea
     (≤ 20 min ×1,5, ≤ 30 ×1, keitto/kasvis/helppo/pasta ×1,3, uuni/pata ×0,5; jos saman päivän päivällinen ≥ 60 min, lounas ≤ 20 min),
-    arkipäivällinen ≤ 45 min, pe nopea (≤ 45 min) ja herkku (viikonloppuherkut/pizza ×10), la työläs (≥ 90 min ×2,5, ≥ 60 ×1,6,
-    viikonloppuherkut ×1,8), su isot satsit (≥ 6 annosta, pata/keitto/uuni/linssi), Top ×2, pääaines (`proteinOf`: kala/poro/liha/kana/kasvis) ei samaa viereisinä päivinä (×0,15), ≥ 2 kertaa viikossa ×0,4,
+    arkipäivällinen (myös pe) ≤ 45 min, la pääherkku ja työläs (≥ 90 min ×2,5, ≥ 60 ×1,6, viikonloppuherkut ×4), su iso satsi
+    (≥ 6 annosta ×3, pata/keitto/uuni/linssi ×2, muut ×0,3, viikonloppuherkut ×0,3), Top ×2, pääaines (`proteinOf`: kala/poro/liha/kana/kasvis) ei samaa viereisinä päivinä (×0,15), ≥ 2 kertaa viikossa ×0,4,
     puuttuva kala tai kasvis ×1,8. ✓ = `acceptSuggestions(keys)` (alkuperäiset yhdellä insertillä, tähteet toisella),
     ↻ Toinen = `rejectSuggestion`, Jätä tyhjäksi = `skipSuggestion`, nimen napautus = `openSuggestion` → Riittää-sivu ehdotuksen arvoilla (`pick.fromSugg`: tallennus ja
-    Peruuta palaavat yhden askeleen).
+    Peruuta palaavat yhden askeleen). `suggPinned` = raahaamalla paikalleen siirretyt ehdotukset: tähteet eivät vie paikkaa
+    (`busy`) eikä niitä siirretä (`carry` ohittaa); poistuu, kun paikka suunnitellaan, tyhjennetään tai ehdotukset piilotetaan.
+  - **Siirto raahaamalla** (vain muokkaajalle; vihje `#dragHint`): raahattavat `[data-drag]` = suunniteltu ruoka `p:<id>` (`.pi`)
+    ja ehdotus `s:<paikka>` (`.sugg`), kohteet `.meal[data-slot="päivä|ateria"]` (tiivistetyt menneet päivät eivät ole kohteita).
+    Pitkä painallus (`DRAG_DELAY` 350 ms, liike > 10 px ennen sitä = vieritys) → haamukortti `.dragghost` seuraa sormea,
+    lähde `.dragsrc`, automaattinen vieritys reunoilla, iPhonessa `touchmove` estetään raahauksen aikana; pitkän painalluksen
+    jälkeinen klikkaus ohitetaan (`dragJustEnded`). `planMove(src, kohde, kohteenRuoka)` = kuivaharjoitus: ruoka → tyhjä
+    (ehdotus siirtyy lähtöpaikalle, jos kohteessa oli ehdotus) / ruoka ↔ ruoka (sormen alla oleva tai ensimmäinen) /
+    ehdotus ↔ koko ateria (kaikki kohteen ruoat lähtöpaikalle) / ehdotus ↔ ehdotus / ehdotus → tyhjä (vanha paikka `suggSkip`).
+    Tarkistus kaikille siirtyville riveille: tähteet (`leftover_of`-parit, uusilla paikoilla) oltava valmistuksen jälkeen
+    (`slotRank`) ja enintään 2 pv päässä → muuten `{ ok: false, reason }`: kohde `.meal.drop-bad` ja haamu `.dragghost.bad`
+    punaisina, ilmoitus `toast()` (alhaalla, `#toast`), pudotuksessa lähdekortti välähtää punaisena (`.flashbad`), ei muutoksia.
+    `applyMove`: ehdotusten avaimet (`suggPick`, kiinnitys `pinSlot`) + rivien `day/meal/sort`-päivitykset (vaihdossa sort vaihtuu).
 - **Menut:** menukortti- ja viinilistasivut välilehtinä, alla menun reseptit.
 - **Viinit:** lista (pikkukuva, haku, tyyppirajaus, omat tähdet), viinin sivu (kuva, Muokkaa), lomake (kuva,
   tähtivalitsin 1–5, Poista alaosassa).

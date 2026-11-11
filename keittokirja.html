@@ -321,6 +321,22 @@
   .sgbtns button { flex: 1; min-height: 44px; text-align: center; }
   .addrow { display: flex; gap: 8px; }
   .addrow .addslot { flex: 1; }
+  /* Siirto raahaamalla (pitkä painallus) */
+  [data-drag] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  [data-drag] img { -webkit-user-drag: none; }
+  .dragsrc { opacity: .35; }
+  .dragghost { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; margin: 0; border-radius: 12px;
+    background: var(--card); box-shadow: 0 12px 30px rgba(0,0,0,.25); padding-left: 6px; padding-right: 6px; }
+  .dragghost.bad { background: color-mix(in srgb, var(--danger) 16%, var(--card)); outline: 3px solid var(--danger); }
+  .meal.drop-ok { outline: 2px dashed var(--accent); outline-offset: 2px; border-radius: 10px; }
+  .meal.drop-bad { outline: 3px solid var(--danger); outline-offset: 2px; border-radius: 10px;
+    background: color-mix(in srgb, var(--danger) 12%, transparent); }
+  .flashbad { animation: flashbad 1.4s ease-out; }
+  @keyframes flashbad { 0%, 40% { background: color-mix(in srgb, var(--danger) 25%, var(--card)); outline: 3px solid var(--danger); } 100% { outline-color: transparent; } }
+  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 70;
+    width: max-content; max-width: 92vw; padding: 10px 16px; border-radius: 12px; background: var(--ink); color: var(--bg);
+    font-size: .92rem; box-shadow: 0 6px 20px rgba(0,0,0,.25); pointer-events: none; }
+  .toast.err { background: var(--danger); color: #fff; }
   .sugone { flex: none; width: 52px; min-height: 44px; margin: 2px 0 4px; padding: 0; border: 1px dashed var(--dash); background: transparent; font-size: 1.1rem; }
 </style>
 </head>
@@ -625,6 +641,7 @@
     </div>
     <div class="center hidden" id="wkThisWrap" style="margin:-6px 0 8px"><button type="button" class="link" id="wkThis">↩ Tähän viikkoon</button></div>
     <div class="sugbar hidden" id="sugBar"></div>
+    <p class="hint center edit-only" id="dragHint" style="margin:-6px 0 10px">Siirrä ruokaa tai ehdotusta: pidä sormea sen päällä hetki ja raahaa toiselle aterialle.</p>
     <div id="planMsg" class="msg hidden"></div>
     <div class="days" id="days"></div>
   </section>
@@ -689,6 +706,7 @@
     <h3>Käyttäjät</h3>
     <div class="list" id="userList"></div>
   </section>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -2326,7 +2344,7 @@
     } else meta = it.recipe_id ? "resepti ei ole näkyvissä" : "oma merkintä";
     const star = r && (r.tags || []).includes("top") ? " ⭐" : "";
     const body = `${thumb}<span class="ptxt"><span class="pt">${esc(titleOf(it))}${star}</span><span class="pm">${meta}</span></span>`;
-    return `<div class="pi">${r || canEdit ? `<button type="button" class="pbody" data-open="${it.id}">${body}</button>` : `<div class="pbody">${body}</div>`}${
+    return `<div class="pi"${canEdit ? ` data-drag="p:${it.id}"` : ""}>${r || canEdit ? `<button type="button" class="pbody" data-open="${it.id}">${body}</button>` : `<div class="pbody">${body}</div>`}${
       canEdit ? `<button type="button" class="more" data-item="${it.id}" aria-label="Muokkaa: ${esc(titleOf(it))}">⋯</button>` : ""}</div>`;
   }
   function dayHtml(day, today) {
@@ -2359,7 +2377,7 @@
       else body = `${suggNone.has(key) ? `<div class="pempty">Ei enempää ehdotuksia tähän ateriaan.</div>` : ""}<div class="addrow">
           <button type="button" class="addslot" data-add="${day}|${m}">+ Lisää ${MEAL_LC[m]}</button>${
           day >= today ? `<button type="button" class="sugone" data-sone="${key}" aria-label="Ehdota ruokaa: ${esc(dayShort(day))} ${MEAL_LC[m]}" title="Ehdota ruokaa">💡</button>` : ""}</div>`;
-      return `<div class="meal"><div class="mh"><span class="lbl">${MEALS[m]}</span>${plus}</div>${body}</div>`;
+      return `<div class="meal" data-slot="${key}"><div class="mh"><span class="lbl">${MEALS[m]}</span>${plus}</div>${body}</div>`;
     }).join("");
     return `<div class="day${isToday ? " now" : ""}" data-day="${day}">
       <div class="dh"><span class="dn">${esc(dayLabel(day))}</span>${isToday ? `<span class="badge warn">Tänään</span>` : ""}<span class="sp"></span>${
@@ -2613,17 +2631,19 @@
   let suggReserved = new Map();     // paikka → ehdotus, jonka tähteet tulevat siihen
   let suggNone = new Set();         // paikat, joihin ei löytynyt enää ehdotettavaa
   const suggSkip = new Set();       // "Jätä tyhjäksi": paikat, joihin ei ehdoteta (esim. syödään muualla)
+  const suggPinned = new Set();     // raahaamalla paikalleen siirretyt ehdotukset: tähteet eivät vie paikkaa eikä niitä siirretä
   let suggBusy = false;
-  function resetSuggestions() { suggOn = false; suggAsked.clear(); suggPick.clear(); suggRejected.clear(); suggSkip.clear(); suggNone = new Set(); }
+  function resetSuggestions() { suggOn = false; suggAsked.clear(); suggPick.clear(); suggRejected.clear(); suggSkip.clear(); suggPinned.clear(); suggNone = new Set(); }
   const NOT_MAIN = ["kastike", "marinadi", "lisuke", "alkuruoka", "makeat"];
   const PROTEIN = [["kala", ["kala", "katkarapu"]], ["poro", ["poro"]], ["liha", ["nauta", "lammas"]], ["kana", ["kana"]],
     ["kasvis", ["kasvis", "linssi", "papu"]]];
   const proteinOf = (r) => (PROTEIN.find(([, ts]) => ts.some((t) => (r.tags || []).includes(t))) || ["muu"])[0];
-  const isWeekendDinner = (day, meal) => meal === "paivallinen" && [5, 6, 0].includes(dateOf(day).getDay()); // pe, la, su
+  // Viikonloppuherkut vain la–su päivälliselle; perjantaina tehdään tavallista arkiruokaa (käyttäjän päätös 11/2026).
+  const isWeekendDinner = (day, meal) => meal === "paivallinen" && [6, 0].includes(dateOf(day).getDay()); // la, su
   const isSundayDinner = (day, meal) => meal === "paivallinen" && dateOf(day).getDay() === 0;
   // Sunnuntaina tehdään ruokaa myös alkuviikolle: päivällinen 3 aterialle (tähteet ma ja ti päivällisiksi).
   const suggMealsFor = (r, day, meal) => isSundayDinner(day, meal) ? 3 : suggestMeals(r);
-  // Ehdotettavat: arkiruoan pääruoat; pe–su päivälliselle myös viikonloppuherkkujen illalliset ja pastat.
+  // Ehdotettavat: arkiruoan pääruoat; la–su päivälliselle myös viikonloppuherkkujen illalliset ja pastat.
   function suggPool(day, meal) {
     const weekend = isWeekendDinner(day, meal);
     return recipes.filter((r) => { const t = r.tags || [];
@@ -2662,18 +2682,17 @@
       if (["keitto", "kasvis", "helppo", "pasta"].some(has)) w *= 1.3;
       if (["uuniruoka", "pata"].some(has)) w *= 0.5;
       if (ctx.dinnerPrep >= 60) w *= p <= 20 ? 1 : p <= 30 ? 0.5 : 0.05; // päivällinen työläs → lounas erityisen nopea
-    } else if (dow === 5) {                                           // pe: herkkuruoka, mutta nopea
-      w *= p <= 45 ? 1 : p <= 60 ? 0.4 : 0.05;
-      if (fancy || has("pizza")) w *= 10;                             // tyypillisesti herkkuruoka
-    } else if (dow === 6) {                                           // la: viikon työläin illallinen
+    } else if (dow === 6) {                                           // la: pääherkkupäivä ja viikon työläin illallinen
       w *= p >= 90 ? 2.5 : p >= 60 ? 1.6 : p >= 40 ? 0.8 : 0.4;
-      if (fancy) w *= 1.8;
-    } else if (dow === 0) {                                           // su: iso satsi alkuviikolle
-      if ((r.servings || 0) >= 6) w *= 2;
-      if (["pata", "keitto", "uuniruoka", "linssi"].some(has)) w *= 1.5;
-      if (fancy) w *= 0.5;
+      if (fancy) w *= 4;
+    } else if (dow === 0) {                                           // su: iso satsi, joka riittää seuraavalle viikolle
+      const big = (r.servings || 0) >= 6, batch = ["pata", "keitto", "uuniruoka", "linssi"].some(has);
+      if (big) w *= 3;
+      if (batch) w *= 2;
+      if (!big && !batch) w *= 0.3;
+      if (fancy) w *= 0.3;
       if (p > 180) w *= 0.5;
-    } else w *= p <= 45 ? 1 : p <= 75 ? 0.35 : 0.1;                  // arkipäivällinen noin 45 min
+    } else w *= p <= 45 ? 1 : p <= 75 ? 0.35 : 0.1;                  // arkipäivällinen (myös pe) noin 45 min
     if (has("top")) w *= 2;
     const g = proteinOf(r), n = ctx.count[g] || 0;
     if (g !== "muu") {
@@ -2724,7 +2743,7 @@
     const carry = []; // siirtyvät ehdotukset { rid, kind, asked }
     for (const d of days) for (const m of ["lounas", "paivallinen"]) {
       const k = d + "|" + m, kind = slotKind(d, m);
-      if (planned(d, m)) { suggPick.delete(k); suggAsked.delete(k); continue; }
+      if (planned(d, m)) { suggPick.delete(k); suggAsked.delete(k); suggPinned.delete(k); continue; }
       if (suggReserved.has(k)) { // tähteet tulevat tähän → oma ehdotus siirtyy eteenpäin
         if (byId(suggPick.get(k))) carry.push({ rid: suggPick.get(k), kind, asked: suggAsked.has(k) });
         suggPick.delete(k); suggAsked.delete(k);
@@ -2732,7 +2751,7 @@
       }
       if (suggSkip.has(k)) continue;
       let r = null;
-      const ci = carry.findIndex((c) => c.kind === kind);
+      const ci = suggPinned.has(k) ? -1 : carry.findIndex((c) => c.kind === kind);
       if (ci >= 0) {
         const c = carry.splice(ci, 1)[0], own = suggPick.get(k);
         if (byId(own) && own !== c.rid) carry.push({ rid: own, kind, asked: suggAsked.has(k) });
@@ -2745,7 +2764,8 @@
       }
       // Enintään 2 päivän päähän; vain sunnuntain päivällisen tähteet jatkuvat seuraavalle viikolle (ma–ti päivälliset).
       const sun = addDays(mondayOf(d), 6), maxDay = isSundayDinner(d, m) || addDays(d, 2) < sun ? addDays(d, 2) : sun;
-      const slots = leftoverSlots(d, m, suggMealsFor(r, d, m) - 1, null, (x) => suggReserved.has(x) || suggSkip.has(x), maxDay);
+      const slots = leftoverSlots(d, m, suggMealsFor(r, d, m) - 1, null,
+        (x) => suggReserved.has(x) || suggSkip.has(x) || (suggPinned.has(x) && suggPick.has(x)), maxDay);
       const meals = 1 + slots.length;
       const s = { key: k, day: d, meal: m, rid: r.id, meals, servings: servingsFor(r, meals), slots };
       sugg.set(k, s);
@@ -2759,7 +2779,7 @@
     const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r), s.meals > 1 ? `riittää ${s.meals} ateriaan` : ""].filter(Boolean).join(" · ");
     const left = s.slots.length ? `<span class="pm">🔁 tähteet: ${esc(s.slots.map(slotLabel).join(", "))}</span>` : "";
     const star = (r.tags || []).includes("top") ? " ⭐" : "", dis = suggBusy ? "disabled" : "";
-    return `<div class="sugg"><div class="sgh"><span>💡 Ehdotus</span><button type="button" class="sgskip" data-sskip="${s.key}" ${dis}>Jätä tyhjäksi ✕</button></div>
+    return `<div class="sugg" data-drag="s:${s.key}"><div class="sgh"><span>💡 Ehdotus</span><button type="button" class="sgskip" data-sskip="${s.key}" ${dis}>Jätä tyhjäksi ✕</button></div>
       <div class="pi"><button type="button" class="pbody" data-sopen="${s.key}">${thumb}<span class="ptxt"><span class="pt">${esc(r.title)}${star}</span><span class="pm">${meta}</span>${left}</span></button></div>
       <div class="sgbtns"><button type="button" class="primary" data-sok="${s.key}" ${dis}>✓ Hyväksy</button><button type="button" data-sno="${s.key}" ${dis}>↻ Toinen</button></div></div>`;
   }
@@ -2776,7 +2796,7 @@
     const b = e.target.closest("[data-sug]"); if (!b) return;
     if (b.dataset.sug === "all") return acceptSuggestions([...sugg.keys()], b);
     if (b.dataset.sug === "on") suggOn = true;
-    if (b.dataset.sug === "off") { suggOn = false; suggAsked.clear(); suggPick.clear(); }
+    if (b.dataset.sug === "off") { suggOn = false; suggAsked.clear(); suggPick.clear(); suggPinned.clear(); }
     renderPlan();
   };
   function rejectSuggestion(key) { // ↻ Toinen: tämä resepti pois, tilalle uusi ehdotus
@@ -2785,7 +2805,7 @@
     renderPlan();
   }
   function skipSuggestion(key) { // Jätä tyhjäksi: ei ehdotusta tähän ateriaan (💡 pyytää taas)
-    suggSkip.add(key); suggPick.delete(key); suggAsked.delete(key);
+    suggSkip.add(key); suggPick.delete(key); suggAsked.delete(key); suggPinned.delete(key);
     renderPlan();
   }
   // Nimen napautus: Riittää-sivu valmiiksi ehdotuksen arvoilla (ateriat, annokset, tähteiden paikat).
@@ -2817,6 +2837,148 @@
     suggBusy = false;
     renderPlan();
   }
+
+  // ----- Siirto raahaamalla (pitkä painallus): ruoat ja ehdotukset -----
+  // Pudotus ateriaan siirtää; jos siinä on jo ruoka tai ehdotus, paikat vaihtuvat. Siirto estetään (punainen kortti + ilmoitus),
+  // jos tähteet joutuisivat ennen ruoan valmistusta tai yli 2 päivän päähän valmistuksesta.
+  const slotRank = (d, m) => d + (m === "lounas" ? "0" : "1");
+  let toastTimer = null;
+  function toast(text, isErr, ms) {
+    const t = $("toast");
+    clearTimeout(toastTimer);
+    if (!text) { t.classList.add("hidden"); return; }
+    t.textContent = text; t.classList.toggle("err", !!isErr); t.classList.remove("hidden");
+    if (ms !== 0) toastTimer = setTimeout(() => t.classList.add("hidden"), ms || 3500);
+  }
+  // Kuivaharjoitus: mitä pudotus tekisi. null = ei muutosta; { ok: false, reason } = estetty; muuten { moves, suggOps }.
+  function planMove(src, tKey, tItemId) {
+    let srcKey, X = null;
+    if (src.type === "p") { X = planItems.find((x) => x.id === src.id); if (!X) return null; srcKey = X.day + "|" + X.meal; }
+    else { if (!sugg.get(src.key)) return null; srcKey = src.key; }
+    if (srcKey === tKey) return null;
+    const [sd, sm] = srcKey.split("|"), [td, tm] = tKey.split("|");
+    const tItems = slotItems(td, tm), other = (tItemId && tItems.find((x) => x.id === tItemId)) || tItems[0] || null;
+    const moves = new Map(); let suggOps = null;
+    if (X) {
+      if (other) { moves.set(X.id, { day: td, meal: tm, sort: other.sort ?? 0 }); moves.set(other.id, { day: sd, meal: sm, sort: X.sort ?? 0 }); }
+      else {
+        moves.set(X.id, { day: td, meal: tm, sort: nextSort(td, tm) });
+        if (sugg.get(tKey)) suggOps = { type: "move", from: tKey, to: srcKey };     // ehdotus vaihtaa paikkaa
+      }
+    } else if (other) { // ehdotus ateriaan, jossa on ruokaa: koko ateria (esim. pääruoka + lisuke) vaihtaa paikkaa ehdotuksen kanssa
+      const base = nextSort(sd, sm);
+      tItems.forEach((it, i) => moves.set(it.id, { day: sd, meal: sm, sort: base + i }));
+      suggOps = { type: "move", from: srcKey, to: tKey };
+    }
+    else if (sugg.get(tKey)) suggOps = { type: "swap", a: srcKey, b: tKey };
+    else suggOps = { type: "move", from: srcKey, to: tKey, leave: true };          // vanha paikka jää tyhjäksi
+    const pos = (it) => moves.get(it.id) || it;
+    for (const id of moves.keys()) {
+      const it = planItems.find((x) => x.id === id);
+      const pairs = it.leftover ? (origOf(it) ? [[origOf(it), it]] : []) : planItems.filter((x) => x.leftover_of === it.id).map((l) => [it, l]);
+      for (const [o, l] of pairs) {
+        const po = pos(o), pl = pos(l);
+        if (slotRank(pl.day, pl.meal) <= slotRank(po.day, po.meal)) return { ok: false, reason: "tähteet olisivat ennen ruoan valmistusta" };
+        if (pl.day > addDays(po.day, 2)) return { ok: false, reason: "tähteet olisivat yli 2 päivän päässä valmistuksesta" };
+      }
+    }
+    return { ok: true, moves: [...moves].map(([id, p]) => ({ id, ...p })), suggOps };
+  }
+  const pinSlot = (k) => { suggPinned.add(k); suggAsked.add(k); suggSkip.delete(k); };
+  async function applyMove(m) {
+    const o = m.suggOps;
+    if (o && o.type === "swap") { const a = suggPick.get(o.a), b = suggPick.get(o.b); suggPick.set(o.a, b); suggPick.set(o.b, a); pinSlot(o.a); pinSlot(o.b); }
+    else if (o) {
+      const rid = suggPick.get(o.from);
+      suggPick.delete(o.from); suggPinned.delete(o.from); suggAsked.delete(o.from);
+      if (o.leave) suggSkip.add(o.from);
+      if (rid) { suggPick.set(o.to, rid); pinSlot(o.to); }
+    }
+    if (m.moves.length) {
+      const res = await Promise.all(m.moves.map((mv) =>
+        sb.from("meal_plan").update({ day: mv.day, meal: mv.meal, sort: mv.sort }).eq("id", mv.id).select().single()));
+      const bad = res.find((r) => r.error);
+      if (bad) { toast("Siirto epäonnistui: " + bad.error.message, true); await loadPlan(); }
+      else for (const r of res) planItems[planItems.findIndex((x) => x.id === r.data.id)] = r.data;
+    }
+    renderPlan();
+  }
+  let drag = null, dragJustEnded = false;
+  const DRAG_DELAY = 350;
+  $("days").addEventListener("pointerdown", (e) => {
+    if (!canEdit || e.button > 0 || drag) return;
+    const el = e.target.closest("[data-drag]");
+    if (!el || e.target.closest(".more, .sgbtns, .sgskip, .plus, .noteform")) return;
+    const v = el.dataset.drag;
+    drag = { el, src: v.startsWith("p:") ? { type: "p", id: v.slice(2) } : { type: "s", key: v.slice(2) },
+             id: e.pointerId, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, active: false };
+    drag.timer = setTimeout(startDrag, DRAG_DELAY);
+  });
+  function startDrag() {
+    if (!drag) return;
+    drag.active = true;
+    const r = drag.el.getBoundingClientRect();
+    drag.dx = drag.x - r.left; drag.dy = drag.y - r.top;
+    const g = drag.el.cloneNode(true);
+    g.classList.add("dragghost"); g.removeAttribute("data-drag"); g.style.width = r.width + "px";
+    document.body.appendChild(g); drag.ghost = g;
+    drag.el.classList.add("dragsrc");
+    try { if (navigator.vibrate) navigator.vibrate(15); } catch {}
+    moveDrag(drag.x, drag.y);
+    const scroll = () => { // automaattinen vieritys reunoilla
+      if (!drag || !drag.active) return;
+      const edge = 70, h = window.innerHeight;
+      const v = drag.cy < edge ? -Math.ceil((edge - drag.cy) / 5) : drag.cy > h - edge ? Math.ceil((drag.cy - (h - edge)) / 5) : 0;
+      if (v) { window.scrollBy(0, v); moveDrag(drag.cx, drag.cy); }
+      drag.raf = requestAnimationFrame(scroll);
+    };
+    drag.raf = requestAnimationFrame(scroll);
+  }
+  function moveDrag(x, y) {
+    drag.cx = x; drag.cy = y;
+    drag.ghost.style.transform = `translate(${x - drag.dx}px, ${y - drag.dy}px)`;
+    if (drag.hl) drag.hl.classList.remove("drop-ok", "drop-bad");
+    drag.hl = null; drag.target = null;
+    const under = document.elementFromPoint(x, y), meal = under && under.closest("#days [data-slot]");
+    const m = meal && planMove(drag.src, meal.dataset.slot, (() => { const it = under.closest("[data-drag^='p:']"); return it && meal.contains(it) ? it.dataset.drag.slice(2) : null; })());
+    drag.ghost.classList.toggle("bad", !!(m && !m.ok));
+    if (!m) { toast(""); return; }
+    meal.classList.add(m.ok ? "drop-ok" : "drop-bad");
+    drag.hl = meal; drag.target = m;
+    if (m.ok) toast(""); else toast("Ei voi siirtää: " + m.reason + ".", true, 0);
+  }
+  function endDrag(cancelled) {
+    const d = drag; drag = null;
+    if (!d) return;
+    clearTimeout(d.timer);
+    if (!d.active) return;
+    cancelAnimationFrame(d.raf);
+    d.ghost.remove(); d.el.classList.remove("dragsrc");
+    if (d.hl) d.hl.classList.remove("drop-ok", "drop-bad");
+    dragJustEnded = true; setTimeout(() => { dragJustEnded = false; }, 400);
+    const m = !cancelled && d.target;
+    if (!m) { toast(""); return; }
+    if (!m.ok) { // estetty: kortti punaiseksi hetkeksi ja syy näkyviin
+      toast("Ei siirretty: " + m.reason + ".", true);
+      d.el.classList.remove("flashbad"); void d.el.offsetWidth; d.el.classList.add("flashbad");
+      return;
+    }
+    toast("");
+    applyMove(m);
+  }
+  document.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.active) { if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 10) endDrag(true); return; } // vieritys, ei raahaus
+    e.preventDefault();
+    moveDrag(e.clientX, e.clientY);
+  }, { passive: false });
+  document.addEventListener("pointerup", (e) => { if (drag && e.pointerId === drag.id) endDrag(false); });
+  document.addEventListener("pointercancel", (e) => { if (drag && e.pointerId === drag.id) endDrag(true); });
+  // iPhone: estetään sivun vieritys raahauksen aikana, jotta sormi siirtää korttia.
+  document.addEventListener("touchmove", (e) => { if (drag && drag.active) e.preventDefault(); }, { passive: false });
+  $("days").addEventListener("contextmenu", (e) => { if (e.target.closest("[data-drag]")) e.preventDefault(); });
+  // Raahauksen (tai pitkän painalluksen) jälkeen ei avata reseptiä.
+  document.addEventListener("click", (e) => { if (dragJustEnded) { e.stopPropagation(); e.preventDefault(); dragJustEnded = false; } }, true);
 
   // ----- Suunnitellun ruoan muokkaus: siirto, annokset, poisto -----
   let piState = null; // { id, day, meal, servings, title }
