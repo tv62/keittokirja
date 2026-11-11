@@ -88,7 +88,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   tarjoiluvinkit). Lisäksi 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`, vauvaohje `baby_notes`-kentässä).
   Päärajaukset (11/2026): ⭐ Top-lista, 🥄 Soseet, 🖐️ Sormiruoat. Omat vauvan reseptit ovat omassa järjestyksessä
   ristiinmerkittyjen arkiruokien jälkeen (muokkaaja voi raahata).
-- Seuraavaksi todennäköisesti: puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut Claude Designista.
+- Seuraavaksi todennäköisesti: 🗓 Viikkosuunnitelma (suunnittelu käynnissä 11/2026, ks. backlog), puuttuvat ohjeet tyhjiin
+  muistiinpanoihin, uudet menut Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
@@ -382,11 +383,13 @@ Supabase ei varmuuskopioi ilmaistason projektia, ja tietokannan varmuuskopio ei 
 - **Palautus:** rivit ovat JSON-muodossa sellaisinaan → `insert … on conflict (id) do update` (`execute_sql`, dollar-quoting).
   Kuvat palautetaan bucketiin samoille poluille (vaatii salaisen avaimen tai käyttäjän lataamaan sivun kautta).
 
-## Tunnetut asiat ja ideat
+## Tunnetut asiat ja backlog
 
 - "Leaked password protection" ei ole päällä (saattaa vaatia maksullisen Supabase-tason).
-- Ehdotettuja, ei vielä tehty (ulkoasu): ainesten väliotsikot ("Kastike:") otsikoiksi; "Hallinta" ja
-  "Kirjaudu ulos" vievät iPhonella kaksi riviä (uloskirjautuminen Hallinta-sivulle?); iPadilla vaakatasossa
-  ainekset ja ohje rinnakkain; ohjeen vaiheisiin isommat numerot.
-- Myöhemmin ehkä: toimii ilman verkkoa (service worker), ostoslista Muistutuksiin, ajastin ohjeen aikoihin,
-  viinien ja reseptien yhdistäminen ruokapareiksi.
+- **Backlog** (käyttäjän toive 11/2026): toteuttamattomat ideat ja suunnitteilla olevat ominaisuudet ovat claude.ai-projektin
+  "Keittokirja" dokumentissa `claude/backlog.md` (Projects-työkalu `project_read` / `project_write`), EI tässä tiedostossa.
+  - Kun käyttäjä siirtää idean myöhemmäksi, lisää se backlogiin. Kun idea toteutetaan, poista se backlogista ja kuvaa
+    toteutus tähän tiedostoon.
+  - "Näytä backlog" → lue dokumentti ja listaa lyhyesti. Jos Projects-työkalua ei ole, kerro se käyttäjälle.
+- **Suunnitteilla: 🗓 Viikkosuunnitelma** (uusi osio, lounas + päivällinen, versio 1 ilman ostoslistaa). Päätökset ja
+  avoimet kohdat backlogissa.
