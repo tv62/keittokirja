@@ -314,9 +314,9 @@
     <div class="sortbar hidden" id="sortBar">
       <label class="sortsel">Järjestys
         <select id="sortSel" aria-label="Reseptien järjestys">
+          <option value="uusin">Uusimmat ensin</option>
           <option value="oma">Oma järjestys</option>
           <option value="az">Aakkosjärjestys</option>
-          <option value="uusin">Uusimmat ensin</option>
           <option value="vanhin">Vanhimmat ensin</option>
           <option value="nopein">Nopeimmat ensin</option>
         </select>
@@ -604,8 +604,10 @@
   let myEmail = "";
   let activeTag = null;
   let ordering = false;   // "Järjestä"-tila (raahaus)
-  let sortMode = "oma";   // oma | az | uusin | nopein (muistetaan laitteella)
-  try { sortMode = localStorage.getItem("kk_sort") || "oma"; } catch {}
+  // Oletus "uusin" (käyttäjän päätös 11/2026). Valinta muistetaan laitteella avaimella kk_jarjestys
+  // (vanha kk_sort ohitetaan, jotta aiemmin tallennettu "oma" ei peitä uutta oletusta).
+  let sortMode = "uusin";   // oma | az | uusin | vanhin | nopein
+  try { sortMode = localStorage.getItem("kk_jarjestys") || "uusin"; localStorage.removeItem("kk_sort"); } catch {}
   const fiDate = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-"); return `${+d}.${+m}.${y}`; };
   const todayIso = () => { const t = new Date(), z = (n) => String(n).padStart(2, "0"); return `${t.getFullYear()}-${z(t.getMonth() + 1)}-${z(t.getDate())}`; };
   const byTitle = (a, b) => (a.title || "").localeCompare(b.title || "", "fi");
@@ -1387,7 +1389,7 @@
   $("newBtn").onclick = () => go(currentCat ? `#/uusi-resepti/${currentCat}` : "#/uusi-resepti");
   $("sortSel").onchange = () => {
     sortMode = $("sortSel").value;
-    try { localStorage.setItem("kk_sort", sortMode); } catch {}
+    try { localStorage.setItem("kk_jarjestys", sortMode); } catch {}
     renderList();
   };
   $("orderBtn").onclick = () => { ordering = !ordering; renderList(); };

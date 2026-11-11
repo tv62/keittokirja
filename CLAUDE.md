@@ -40,11 +40,12 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     Top-lista, Kana, Liha, Poro, Kala, Kasvis, Keitot, Pastat, Lisukkeet, Kastikkeet + leveä "Kaikki arkiruoat".
     Tyhjät ryhmät piilotetaan. Ryhmän listassa ylhäällä "← Arkiruoka" ja päärajaukset yhdellä pyyhkäistävällä rivillä.
   - Muissa kategorioissa päärajaukset aina näkyvissä. Pikatagit aina piilossa "🏷 Tagit" -napin takana.
-  - **Reseptien järjestys** (11/2026, käyttäjä valitsi "molemmat"): oma yhteinen järjestys (oletus, muokkaajat raahaavat)
-    + jokaisen oma lajitteluvalinta listan yläpuolella (Oma järjestys / Aakkosjärjestys / Uusimmat ensin / Vanhimmat ensin /
-    Nopeimmat ensin). Uusimmat/Vanhimmat = lisäyspäivä `added_on`; ilman päivää olevat loppuun.
+  - **Reseptien järjestys** (11/2026, käyttäjä valitsi "molemmat"): jokaisen oma lajitteluvalinta listan yläpuolella
+    (Uusimmat ensin / Oma järjestys / Aakkosjärjestys / Vanhimmat ensin / Nopeimmat ensin) + oma yhteinen järjestys, jota
+    muokkaajat raahaavat (↕ Järjestä näkyy vain Oma järjestys -valinnassa). **Oletus kaikissa listoissa Uusimmat ensin**
+    (käyttäjän päätös 11/2026). Uusimmat/Vanhimmat = lisäyspäivä `added_on`; ilman päivää olevat loppuun.
   - **Lisäyspäivä** (11/2026): reseptisivulla "📅 Lisätty 18.1.2023", lomakkeessa kenttä Lisäyspäivä (uudelle tänään),
-    listarivillä päivä vain päivälajittelussa.
+    listarivillä päivä vain päivälajittelussa (oletuksena siis näkyy).
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
   - **Tagit listarivillä pelkkinä kuvakkeina** (käyttäjän toive 11/2026, esim. 🐔 = kana). Tagit-valinnassa, lomakkeessa ja
     reseptisivulla kuvake + nimi, jotta merkitykset oppii. **Päärajaus-chipit (yläbanneri) pelkkinä emojeina** (11/2026),
@@ -166,8 +167,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 - **Reseptilista:** päärajaukset `PRIMARY`-vakiossa kategorioittain (GRID-kategorioissa ryhmät), pikatagit piilossa "🏷 Tagit" -napin takana.
   "Menut"-rajaus (`@menu`) ryhmittelee menuittain, järjestys `COURSE_ORDER` = alkuruoka → illallinen → makeat.
 - **Järjestys** (`#sortBar`, piilossa valintasivulla ja Menut-ryhmittelyssä): `sortMode` (`SORTS`: oma = `sort_order`, az,
-  uusin/vanhin = `added_on` (null loppuun, sitten `created_at`), nopein = `prep_minutes`, tasatilanteessa nimi), muistetaan
-  `localStorage`-avaimella `kk_sort`. Apurit `fiDate(iso)` ja `todayIso()`.
+  uusin/vanhin = `added_on` (null loppuun, sitten `created_at`), nopein = `prep_minutes`, tasatilanteessa nimi), oletus `uusin`,
+  muistetaan laitteella `localStorage`-avaimella `kk_jarjestys` (vanha `kk_sort` poistetaan, ettei aiempi "oma" peitä oletusta). Apurit `fiDate(iso)` ja `todayIso()`.
   "↕ Järjestä" (`#orderBtn`, vain muokkaajalle ja vain omassa järjestyksessä) → `ordering`: rivit `<div class="item sorting">`
   + ≡-kahva (`.grip`, `touch-action:none`), napautus ei avaa reseptiä. Raahaus pointer-tapahtumilla (sormi ja hiiri),
   automaattivieritys reunoilla. `saveOrder(ids)`: näkyvät reseptit jakavat keskenään nykyiset `sort_order`-numeronsa uudessa
