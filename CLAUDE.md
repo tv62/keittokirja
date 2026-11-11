@@ -47,7 +47,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     muokkaajat raahaavat (↕ Järjestä näkyy vain Oma järjestys -valinnassa). **Oletus kaikissa listoissa Uusimmat ensin**
     (käyttäjän päätös 11/2026). Uusimmat/Vanhimmat = lisäyspäivä `added_on`; ilman päivää olevat loppuun.
   - **Valmistusaika** (11/2026): alle 60 min minuutteina ("45 min"), 60 min tai yli tunteina puolen tunnin tarkkuudella
-    ("1 h", "1,5 h", "4,5 h") listarivillä ja reseptisivulla (`fmtTime(m)`). Lomakkeessa aika syötetään minuutteina.
+    aina ylöspäin pyöristäen (käyttäjän päätös; 60 → "1 h", 65 → "1,5 h", 160 → "3 h") listarivillä ja reseptisivulla (`fmtTime(m)`). Lomakkeessa aika syötetään minuutteina.
   - **Lisäyspäivä** (11/2026): reseptisivulla "📅 Lisätty 18.1.2023", lomakkeessa kenttä Lisäyspäivä (uudelle tänään),
     listarivillä päivä rivin oikeassa laidassa (11/2026, ennen ⭐:ä) vain päivälajittelussa (oletuksena siis näkyy).
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.

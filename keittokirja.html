@@ -617,8 +617,8 @@
   // (vanha kk_sort ohitetaan, jotta aiemmin tallennettu "oma" ei peitä uutta oletusta).
   let sortMode = "uusin";   // oma | az | uusin | vanhin | nopein
   try { sortMode = localStorage.getItem("kk_jarjestys") || "uusin"; localStorage.removeItem("kk_sort"); } catch {}
-  // Valmistusaika: alle 60 min minuutteina, muuten tunteina puolen tunnin tarkkuudella (75 → "1,5 h", 160 → "2,5 h").
-  const fmtTime = (m) => m < 60 ? `${m} min` : `${String(Math.round(m / 30) / 2).replace(".", ",")} h`;
+  // Valmistusaika: alle 60 min minuutteina, muuten tunteina puolen tunnin tarkkuudella aina ylöspäin (65 → "1,5 h", 160 → "3 h").
+  const fmtTime = (m) => m < 60 ? `${m} min` : `${String(Math.ceil(m / 30) / 2).replace(".", ",")} h`;
   const fiDate = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-"); return `${+d}.${+m}.${y}`; };
   const todayIso = () => { const t = new Date(), z = (n) => String(n).padStart(2, "0"); return `${t.getFullYear()}-${z(t.getMonth() + 1)}-${z(t.getDate())}`; };
   const byTitle = (a, b) => (a.title || "").localeCompare(b.title || "", "fi");
