@@ -561,7 +561,6 @@
     ["menut", "📜", "Menut"], ["viinit", "🍷", "Viinit"]];
   // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu. Kuvake tulee TAG_ICON/PRIM_ICON-vakiosta.
   const PRIMARY = {
-    viikonloppuherkut: [["top", "Top-lista"], ["@menu", "Menut"], ["alkuruoka", "Alkuruoka"], ["illallinen", "Illallinen"], ["makeat", "Makeat"], ["pasta", "Pasta"]],
     vauvanruoat: [["top", "Top-lista"], ["sose", "Soseet"], ["sormiruoka", "Sormiruoat"]],
   };
   // Tagien kuvakkeet. Listarivillä tagit näkyvät pelkkinä kuvakkeina tässä järjestyksessä (pääaines → ruokalaji → tapa),
@@ -586,8 +585,17 @@
       ["keitto", "🍲", "Keitot", ["keitto"]], ["pasta", "🍝", "Pastat", ["pasta"]], ["lisuke", "🥔", "Lisukkeet", ["lisuke"]],
       ["kastike", "🥣", "Kastikkeet", ["kastike"]],
     ] },
+    // "@menu" = reseptit, joilla on menu (näytetään menuittain ryhmiteltynä).
+    viikonloppuherkut: { all: "Kaikki viikonloppuherkut", groups: [
+      ["top", "⭐", "Top-lista", ["top"]], ["menut", "📜", "Menut", ["@menu"]], ["alkuruoka", "🥗", "Alkuruoka", ["alkuruoka"]],
+      ["illallinen", "🍽️", "Illallinen", ["illallinen"]], ["makeat", "🍰", "Makeat", ["makeat"]], ["poro", "🦌", "Poro", ["poro"]],
+      ["liha", "🥩", "Liha", ["nauta", "lammas"]], ["kala", "🐟", "Kala", ["kala", "katkarapu"]], ["kasvis", "🥕", "Kasvis", ["kasvis"]],
+      ["pasta", "🍝", "Pastat", ["pasta"]], ["lisuke", "🥔", "Lisukkeet", ["lisuke"]],
+    ] },
   };
-  const gridGroup = (cat, k) => GRID[cat]?.groups.find((g) => g[0] === k);
+  const hasTag = (r, t) => t === "@menu" ? !hidden.has("menut") && !!menuOf(r) : (r.tags || []).includes(t);
+  const groupOff = (g) => g[3].includes("@menu") && hidden.has("menut");   // Menut-ryhmä pois, jos menut piilossa
+  const gridGroup = (cat, k) => GRID[cat]?.groups.find((g) => g[0] === k && !groupOff(g));
   const COURSE_ORDER = ["alkuruoka", "illallinen", "makeat"];
   const isMeta = (t) => !!CATS[t] || t === "top" || t.startsWith("menu:");
   const menuOf = (r) => { const t = (r.tags || []).find((x) => x.startsWith("menu:")); return t ? t.slice(5) : null; };
@@ -1267,7 +1275,7 @@
       $("listTitle").textContent = !activePrimary ? CATS[currentCat] : grp ? `${grp[1]} ${grp[2]}` : "📖 " + grid.all;
     }
     if (gridMode) {
-      const n = (tags) => base.filter((r) => tags.some((t) => (r.tags || []).includes(t))).length;
+      const n = (tags) => base.filter((r) => tags.some((t) => hasTag(r, t))).length;
       const card = (k, e, label, c, cls = "") =>
         `<button class="subcard ${cls}" data-group="${esc(k)}"><span class="e">${e}</span><span>${esc(label)}<span class="s">${c} ${c === 1 ? "resepti" : "reseptiä"}</span></span></button>`;
       $("subGrid").innerHTML = grid.groups.filter((g) => n(g[3])).map(([k, e, label, tags]) => card(k, e, label, n(tags))).join("") +
@@ -1280,7 +1288,7 @@
 
     // Päärajaukset + Tagit-nappi
     // Päärajaukset pelkkinä emojeina (nimi aria-label/title), "Kaikki" tekstinä.
-    const prim = grid ? grid.groups.map(([k, e, label]) => [k, e, label])
+    const prim = grid ? grid.groups.filter((g) => !groupOff(g)).map(([k, e, label]) => [k, e, label])
       : (PRIMARY[currentCat] || []).filter(([k]) => !(k === "@menu" && hidden.has("menut")))
         .map(([k, label]) => [k, PRIM_ICON[k] || TAG_ICON[k] || "", label]);
     $("primaryChips").classList.toggle("scroll", !!grid);
@@ -1299,7 +1307,7 @@
     const shown = base.filter((r) => {
       const tg = r.tags || [];
       if (activePrimary === "@menu" && !menuOf(r)) return false;
-      if (grp && !grp[3].some((t) => tg.includes(t))) return false;
+      if (grp && !grp[3].some((t) => hasTag(r, t))) return false;
       if (!grid && activePrimary && activePrimary !== "@menu" && !tg.includes(activePrimary)) return false;
       if (activeTag && !tg.includes(activeTag)) return false;
       return matches(recipeHay(r), ws);
@@ -1308,7 +1316,7 @@
     const empty = base.length ? `<p class="muted center">Ei osumia.</p>` : "";
 
     // Järjestys: valittu lajittelu; raahaus vain omassa järjestyksessä (ei menuittain ryhmitellyssä näkymässä)
-    const menuMode = activePrimary === "@menu";
+    const menuMode = activePrimary === "@menu" || !!grp?.[3].includes("@menu");
     const canOrder = canEdit && sortMode === "oma" && !menuMode && shown.length > 1;
     if (!canOrder) ordering = false;
     $("sortBar").classList.toggle("hidden", menuMode || !shown.length);
@@ -1319,7 +1327,7 @@
     $("orderHint").classList.toggle("hidden", !ordering);
     shown.sort(SORTS[sortMode] || SORTS.oma);
 
-    if (activePrimary === "@menu") {
+    if (menuMode) {
       const groups = new Map();
       for (const r of shown) { const m = menuOf(r); if (!groups.has(m)) groups.set(m, []); groups.get(m).push(r); }
       $("list").innerHTML = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], "fi")).map(([m, rs]) =>

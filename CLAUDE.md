@@ -39,7 +39,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **Arkiruoka avautuu valintasivuna** (hyväksytty 11/2026): 2 saraketta ruutuja (iPadilla 3), emoji + nimi + määrä:
     Top-lista, Kana, Liha, Poro, Kala, Kasvis, Keitot, Pastat, Lisukkeet, Kastikkeet + leveä "Kaikki arkiruoat".
     Tyhjät ryhmät piilotetaan. Ryhmän listassa ylhäällä "← Arkiruoka" ja päärajaukset yhdellä pyyhkäistävällä rivillä.
-  - Muissa kategorioissa päärajaukset aina näkyvissä. Pikatagit aina piilossa "🏷 Tagit" -napin takana.
+  - **Viikonloppuherkut avautuu samanlaisena valintasivuna** (käyttäjän pyyntö 11/2026): Top-lista, Menut, Alkuruoka,
+    Illallinen, Makeat, Poro, Liha, Kala, Kasvis, Pastat, Lisukkeet + leveä "Kaikki viikonloppuherkut".
+  - Vauvan ruoissa (ei valintasivua) päärajaukset aina näkyvissä. Pikatagit aina piilossa "🏷 Tagit" -napin takana.
   - **Reseptien järjestys** (11/2026, käyttäjä valitsi "molemmat"): jokaisen oma lajitteluvalinta listan yläpuolella
     (Uusimmat ensin / Oma järjestys / Aakkosjärjestys / Vanhimmat ensin / Nopeimmat ensin) + oma yhteinen järjestys, jota
     muokkaajat raahaavat (↕ Järjestä näkyy vain Oma järjestys -valinnassa). **Oletus kaikissa listoissa Uusimmat ensin**
@@ -68,8 +70,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 
 ## Työn tila (päivitä, kun jokin muuttuu)
 
-- Lisäyspäivä täytetty 69 reseptille Muistiinpanojen luontipäivistä (11/2026). Ilman päivää: Lapponia-menun 3 reseptiä
-  ja Hölskypotut. Muistiinpanoissa vielä tuomatta: kansio Jälkiruoat.
+- Lisäyspäivä täytetty 69 reseptille Muistiinpanojen luontipäivistä (11/2026), Lapponia-menun 3 reseptille 8.11.2026
+  (käyttäjän antama). Ilman päivää: Hölskypotut. Muistiinpanoissa vielä tuomatta: kansio Jälkiruoat.
 - Reseptit (n. 78): Lapponia alla piemontese -menun 3 reseptiä, Apple Muistiinpanojen arkiruoat erä 1 (11) ja
   erä 2 (marraskuu 2026: Keitot 6, Kastikkeet 9, Perjantaiherkut 15, Arkiruoka 28) sekä yksittäin lisättyjä.
   Muistiinpanojen kansiot: Keitot ja Kastikkeet → `arkiruoka` (+ `keitto` / `kastike`), Perjantaiherkut → `viikonloppuherkut`.
@@ -128,8 +130,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | Osoite | Näkymä |
 |---|---|
 | `#/` | etusivu |
-| `#/reseptit`, `#/reseptit/viikonloppuherkut`, `#/reseptit/vauvanruoat` | reseptilista |
+| `#/reseptit`, `#/reseptit/vauvanruoat` | reseptilista |
 | `#/reseptit/arkiruoka`, `#/reseptit/arkiruoka/<ryhmä>`, `#/reseptit/arkiruoka/kaikki` | arkiruoan valintasivu, ryhmän lista |
+| `#/reseptit/viikonloppuherkut`, `…/viikonloppuherkut/<ryhmä>` (esim. `menut`), `…/kaikki` | viikonloppuherkkujen valintasivu, ryhmän lista |
 | `#/resepti/<id>`, `#/resepti/<id>/muokkaa` | resepti, muokkaus |
 | `#/resepti/<id>/vauva` | resepti vauvan ruoista avattuna (näyttää `baby_notes`) |
 | `#/uusi-resepti`, `#/uusi-resepti/<kategoria>` | uusi resepti |
@@ -157,15 +160,17 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 - **Haku kaikkialla:** `words()` + `matches()`: jokaisen hakusanan pitää löytyä (esim. "kana pasta").
 - **Kategoriat** `CATS`-vakiossa. Uusi kategoria: `CATS` + `PRIMARY` (tai `GRID`) + etusivun kortti (`data-cat`, laskuri `cnt_<kategoria>`)
   + `<option>` lomakkeen `#f_category`-valintaan. Reititys, lista, haku ja lomake toimivat sen jälkeen automaattisesti.
-- **Valintasivu (`GRID`):** `GRID[kategoria] = { all, groups: [[avain, emoji, otsikko, tagit]] }` (nyt vain arkiruoka).
-  Ryhmään kuuluu resepti, jolla on mikä tahansa ryhmän tageista (`gridGroup()`). Ryhmä tulee osoitteesta:
+- **Valintasivu (`GRID`):** `GRID[kategoria] = { all, groups: [[avain, emoji, otsikko, tagit]] }` (arkiruoka ja viikonloppuherkut).
+  Ryhmään kuuluu resepti, jolla on mikä tahansa ryhmän tageista (`hasTag(r, t)`; erikoistagi `"@menu"` = reseptillä on menu,
+  ryhmä näytetään menuittain ryhmiteltynä `menuMode`, ja `groupOff(g)` piilottaa sen, jos menut on piilotettu).
+  `gridGroup(cat, k)` ei palauta piilotettua ryhmää, joten sen osoite ohjautuu etusivulle. Ryhmä tulee osoitteesta:
   `openCategory(cat, group)` asettaa `activePrimary = group`. `renderList()`: `gridMode` = GRID-kategoria ilman ryhmää,
   hakua ja tagia → `#subGrid` näkyy, chipit ja lista piiloon. Haku valintasivulla näyttää suoraan listan.
   Ruutu → `go(.../<ryhmä>)` (uusi historiarivi), chip → `go(..., {replace:true})`, joten takaisin-ele vie aina valintasivulle.
   `#toGrid` ("← Arkiruoka") = `back(#/reseptit/<kategoria>)`; `#listHome` piilossa ryhmälistassa. Ryhmästä valintasivulle
   palatessa haku ja tagi nollataan; reseptistä palatessa ne säilyvät. Chip-rivi `.chips.scroll`, valittu keskitetään.
-- **Reseptilista:** päärajaukset `PRIMARY`-vakiossa kategorioittain (GRID-kategorioissa ryhmät), pikatagit piilossa "🏷 Tagit" -napin takana.
-  "Menut"-rajaus (`@menu`) ryhmittelee menuittain, järjestys `COURSE_ORDER` = alkuruoka → illallinen → makeat.
+- **Reseptilista:** päärajaukset `PRIMARY`-vakiossa kategorioittain (nyt vain vauvan ruoat; GRID-kategorioissa ryhmät), pikatagit
+  piilossa "🏷 Tagit" -napin takana. "Menut"-ryhmä (`@menu`) ryhmittelee menuittain, järjestys `COURSE_ORDER` = alkuruoka → illallinen → makeat.
 - **Järjestys** (`#sortBar`, piilossa valintasivulla ja Menut-ryhmittelyssä): `sortMode` (`SORTS`: oma = `sort_order`, az,
   uusin/vanhin = `added_on` (null loppuun, sitten `created_at`), nopein = `prep_minutes`, tasatilanteessa nimi), oletus `uusin`,
   muistetaan laitteella `localStorage`-avaimella `kk_jarjestys` (vanha `kk_sort` poistetaan, ettei aiempi "oma" peitä oletusta). Apurit `fiDate(iso)` ja `todayIso()`.
@@ -302,7 +307,8 @@ Redirect URL = sivun osoite.
 - **Top-lista:** `top`
 - **Menu:** `menu:<Menun nimi>` (iso alkukirjain säilyy, sama kuin `menus.name`)
 - **Päärajaukset:** arki = valintasivun ryhmät (`GRID`): `top`, `kana`, Liha = `nauta`|`lammas`, `poro`, Kala = `kala`|`katkarapu`,
-  `kasvis`, Keitot = `keitto`, Pastat = `pasta`, `lisuke`, `kastike`; viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`;
+  `kasvis`, Keitot = `keitto`, Pastat = `pasta`, `lisuke`, `kastike`; viikonloppu = valintasivun ryhmät: `top`, Menut = `menu:`-tagi,
+  `alkuruoka`, `illallinen`, `makeat`, `poro`, Liha = `nauta`|`lammas`, Kala = `kala`|`katkarapu`, `kasvis`, Pastat = `pasta`, `lisuke`;
   vauvan ruoat = `top`, `sose`, `sormiruoka`
 - **Muut tagit** pienillä kirjaimilla: esim. `kala`, `keitto`, `uuniruoka`, `pasta`, `poro`, `feta`, `linssi`, `marjat`, `peruna`,
   `kastike`, `marinadi`, `katkarapu`, `pizza`, `lammas`, `papu`, `helppo`, `sienet`; vauvan ruoissa `sose`, `sormiruoka`
