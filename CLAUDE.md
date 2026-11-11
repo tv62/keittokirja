@@ -29,13 +29,19 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Yksityisyys:** reseptit, menut ja viinit vain perheelle (RLS). Julkinen repo on hyväksytty, koska vain koodi on julkista.
 - **Oikeudet:** uusi jäsen saa oletuksena vain lukea. Admin antaa muokkausoikeuden Hallinta-sivulla. Admin saa aina muokata.
 - **Osioiden näkyvyys (admin päättää, 11/2026):** admin voi piilottaa jäseneltä etusivun osioita (Arkiruoka, Viikonloppuherkut,
-  Vauvan ruoat, Menut, Viinit) Hallinta-sivulla. Piilotus on täysi: kortti, osoitteet ja haku pois, ja RLS estää datan
+  Vauvan ruoat, Menut, Viinit, Viikkosuunnitelma) Hallinta-sivulla. Piilotus on täysi: kortti, osoitteet ja haku pois, ja RLS estää datan
   latautumisen. Admin näkee aina kaiken. **Uusi jäsen ei näe oletuksena mitään** (käyttäjän päätös 11/2026): admin avaa osiot
   Hallinta-sivulla. Ennen muutosta lisätyt jäsenet näkevät kaiken.
 - **Käyttäjä haluaa, että Claude tekee muutokset suoraan** (Supabase + push GitHubiin), ei tiedostojen siirtelyä.
 - **Käyttöliittymäpäätökset, joita ei muuteta kysymättä:**
-  - Etusivulla viisi korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinit ja niiden alla oma osio
+  - Etusivulla ylimpänä **🗓️ Viikkosuunnitelma** (käyttäjän päätös 11/2026, leveä kortti, jossa tämän päivän lounas ja päivällinen),
+    sitten viisi korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinit ja niiden alla oma osio
     🍼 Vauvan ruoat (luokka `wide`: iPadilla molempien sarakkeiden levyinen).
+  - **Viikkosuunnitelma** (11/2026, ulkoasu hyväksytty Claude Design -luonnoksesta "Viikkosuunnitelma – luonnos"): viikko ma–su,
+    joka päivä lounas ja päivällinen (myös arkena). Menneet päivät harmaina ja tiivistettynä (vain päivä + ruokien nimet),
+    napautus avaa täyteen kokoon (käyttäjän toive). Tähteet: reseptiä lisätessä "Riittää 1 / 2 / 3 ateriaan", ehdotus =
+    annosmäärä ÷ perheen annosta per ateria (oletus 2), lisäateriat seuraaviin vapaisiin lounaisiin merkinnällä "🔁 tähteet".
+    Vain muokkausoikeudella voi muokata. Ostoslista ja toiveet myöhemmin (backlog).
   - **Arkiruoka avautuu valintasivuna** (hyväksytty 11/2026): 2 saraketta ruutuja (iPadilla 3), emoji + nimi + määrä:
     Top-lista, Kana, Liha, Poro, Kala, Kasvis, Keitot, Pastat, Lisukkeet, Kastikkeet + leveä "Kaikki arkiruoat".
     Tyhjät ryhmät piilotetaan. Ryhmän listassa ylhäällä "← Arkiruoka" ja päärajaukset yhdellä pyyhkäistävällä rivillä.
@@ -88,8 +94,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   tarjoiluvinkit). Lisäksi 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`, vauvaohje `baby_notes`-kentässä).
   Päärajaukset (11/2026): ⭐ Top-lista, 🥄 Soseet, 🖐️ Sormiruoat. Omat vauvan reseptit ovat omassa järjestyksessä
   ristiinmerkittyjen arkiruokien jälkeen (muokkaaja voi raahata).
-- Seuraavaksi todennäköisesti: 🗓 Viikkosuunnitelma (suunnittelu käynnissä 11/2026, ks. backlog), puuttuvat ohjeet tyhjiin
-  muistiinpanoihin, uudet menut Claude Designista.
+- 🗓️ Viikkosuunnitelma versio 1 julkaistu 11.11.2026 (ilman ostoslistaa). Kaikki nykyiset jäsenet näkevät osion (heillä ei ollut
+  piilotuksia); uusi jäsen ei näe sitä oletuksena.
+- Seuraavaksi todennäköisesti: Viikkosuunnitelman ostoslista (backlog), puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut
+  Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
@@ -107,8 +115,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 
 - `node --check` sivun `<script>`-lohkolle.
 - Playwright (esiasennettu): korvaa supabase-js-skripti stubilla, joka palauttaa testidataa
-  (`createClient` → `auth.onAuthStateChange`, `auth.getSession`, `from(t).select().order()/eq()`,
-  `insert/update/delete`, `rpc`; `my_hidden_sections` → taulukko, esim. `["viinit"]`). Aja 390×844-näkymässä ja katso kuvakaappaukset.
+  (`createClient` → `auth.onAuthStateChange`, `auth.getSession`, `from(t).select().order()/eq()/in()`,
+  `insert/update/delete/upsert`, `.single()`, `rpc`; `my_hidden_sections` → taulukko, esim. `["viinit"]`). Aja 390×844-näkymässä ja katso kuvakaappaukset.
+  Viikkosuunnitelman testeissä kiinteä päivä: `ctx.clock.set_fixed_time("2026-11-11T10:00:00")` (menneet päivät, "Tänään").
 - Reitityksen testaus: `page.go_back()` = takaisin-pyyhkäisy. Huom. `page.goto(sama_url + "#/…")` on vain
   #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
@@ -125,7 +134,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 
 Näkymät ovat `<section>`-elementtejä, joita `show(view)` vaihtaa (lista `VIEWS`):
 `loadView`, `authView`, `homeView`, `listView`, `detailView`, `editView`, `adminView`, `menusView`, `menuView`,
-`winesView`, `wineView`, `wineEditView`. Lisää uusi näkymä `VIEWS`-listaan ja reititykseen.
+`winesView`, `wineView`, `wineEditView`, `planView`, `planAddView`, `planPickView`, `planItemView`.
+Lisää uusi näkymä `VIEWS`-listaan ja reititykseen.
 
 ### Osoitteet ja takaisin-ele (reititys)
 
@@ -143,6 +153,10 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | `#/menut`, `#/menut/<nimi, encodeURIComponent>` | menut, yksi menu |
 | `#/viinit`, `#/viinit/<id>`, `#/viinit/<id>/muokkaa`, `#/uusi-viini` | viinit |
 | `#/hallinta` | käyttäjien hallinta (vain admin) |
+| `#/viikko`, `#/viikko/<maanantai YYYY-MM-DD>` | viikkosuunnitelma (tämä viikko / muu viikko) |
+| `#/viikko/lisaa/<päivä>/<lounas\|paivallinen>` | ruoan lisäys (vain muokkaaja) |
+| `#/viikko/lisaa/<päivä>/<ateria>/<reseptin id>` | riittää 1–3 ateriaan, annokset (vain muokkaaja) |
+| `#/viikko/ruoka/<id>` | suunnitellun ruoan muokkaus: siirto, annokset, poisto (vain muokkaaja) |
 
 - **Siirtymät aina `go(hash)`-funktiolla** (pushState + `route()`), ei `show()`:lla suoraan. `go(hash, {replace:true})`
   korvaa nykyisen historiarivin (esim. uusi resepti tallennettu → lomake korvataan reseptillä).
@@ -153,7 +167,11 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 - Vierityskohta tallennetaan `history.state.y`:hyn ja palautetaan takaisin tultaessa.
 - Listan rajaukset (kategoria, päärajaus, tagi, haku) säilyvät, kun reseptistä palataan. Ne nollataan,
   kun lista avataan etusivun kortista (`resetListFilters()`). Sama viineissä (`wineType`, `wq`).
-- Data (reseptit, menut, viinit, admin-tieto) ladataan kerralla `loadAll()`-funktiossa ennen ensimmäistä `route()`-kutsua.
+- Data (reseptit, menut, viinit, admin-tieto, viikkosuunnitelma `loadPlan()`) ladataan kerralla `loadAll()`-funktiossa ennen
+  ensimmäistä `route()`-kutsua. Viikkosuunnitelma haetaan lisäksi uudelleen (`refreshPlan()`), kun etusivu tai viikko avataan
+  (enintään 15 s välein) ja kun sovellus palaa näkyviin, jotta muiden muutokset näkyvät.
+- Viikkosuunnitelman sisäiset siirtymät: viikon vaihto `‹ ›` korvaa historiarivin (takaisin-ele → etusivu). Reseptin tallennus
+  riittää-sivulta ja sen Peruuta palaavat `leaveDeleted()`-funktiolla kaksi askelta (ohi lisäyssivun) viikkoon.
 
 ### Näkymät
 
@@ -234,12 +252,34 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 - **Hallinta** (vain admin): perheen pääsylista RPC-funktioiden kautta. Jokaisella rivillä oikeusmerkki
   (admin / saa muokata / vain luku / ei pääsyä) ja napit Salli muokkaus / Poista muokkausoikeus, Tee adminiksi /
   Poista admin, Poista pääsy. Lisäyslomakkeessa "Saa lisätä ja muokata" on oletuksena pois (admin-ruutu valitsee
-  ja lukitsee sen). "Anna lukuoikeus" listalta puuttuvalle = vain luku. Ei-admin-jäsenillä rivi "Näkyy etusivulla": 5 chippiä
+  ja lukitsee sen). "Anna lukuoikeus" listalta puuttuvalle = vain luku. Ei-admin-jäsenillä rivi "Näkyy etusivulla": 6 chippiä (`SECTIONS`)
   (`data-act="vis"`, päällä = näkyy, yliviivattu `.chip.off` = piilossa) → `admin_set_hidden`; tilarivillä "piilotettu: …".
 - **Vain lukuoikeus** (`canEdit` = RPC `can_i_edit`): `body.readonly` piilottaa `.edit-only`-napit (+ Uusi).
   Reseptin Top- ja Muokkaa-napit sekä viinin Muokkaa jätetään renderöimättä. Lomakkeiden osoitteet
   (`…/muokkaa`, `#/uusi-resepti`, `#/uusi-viini`) ohjautuvat etusivulle. Annosmäärä ja kokkaustila toimivat kaikille.
   Tietokanta estää muokkauksen joka tapauksessa (RLS), käyttöliittymä vain siistii näkymän.
+- **Viikkosuunnitelma** (osio `viikko`, 11/2026). Tila: `planItems` (meal_plan-rivit), `planNotes` (Map päivä → muistiinpano),
+  `ppm` (annosta per ateria), `planWeek` (näytettävän viikon maanantai), `openPast` (avatut menneet päivät), `noteEdit`.
+  Päivät ovat paikallisia `YYYY-MM-DD`-merkkijonoja: apurit `isoOf`, `dateOf`, `addDays`, `mondayOf`, `isoWeek` (ISO-viikko),
+  `dayShort` ("ke 11.11."), `dayLabel` ("Ke 11.11."), `weekRange`, `weekHash` (tämä viikko → `#/viikko`). `MEALS` = lounas/päivällinen.
+  - **Etusivun kortti** `#wkCard` (`renderPlanCard`): viikko + tämän päivän ateriat; ruoan napautus avaa reseptin.
+  - **Viikkonäkymä** (`renderPlan`, `dayHtml`, `planItemHtml`): päiväkortit, tänään korostettu (`.day.now`). Menneet päivät
+    `.day.compact` (päivä + ruokien nimet), napautus (`data-expand`) avaa, "Pienennä" (`data-collapse`) sulkee. Ruoka-rivi:
+    pikkukuva tai alkukirjain (vapaa teksti: katkoviivareunus), nimi, metarivi (aika · tagikuvakkeet · annokset, tähteillä
+    "🔁 tähteet ti päivällisestä"). Rivin napautus `openFromPlan(it)` asettaa reseptin annosmäärän (`cookState(r).servings`,
+    tähteillä alkuperäisen rivin `servings`) ja avaa reseptin; vapaa teksti avaa muokkauksen. Muokkaajalle `+` (lisää aterialle),
+    `⋯` (muokkaus), tyhjässä ateriassa "+ Lisää lounas" ja päivän otsikossa 📝 (muistiinpano, `upsert`/`delete` meal_plan_notes).
+    Lukijalle ei nappeja, tyhjä ateria "–".
+  - **Lisäys** (`openPlanAdd`, `renderPlanAdd`): ✏️ Oma merkintä (vapaa teksti) tai resepti: haku (kaikista näkyvistä
+    resepteistä), kategoriachipit (näkyvät kategoriat), ryhmächipit (`GRID`-ryhmät / vauvalla `PRIMARY`), järjestys (sama `sortMode`).
+  - **Riittää** (`openPick`, `renderPick`, `savePick`, tila `pick`): 1 / 2 / 3 ateriaan, ehdotus `suggestMeals` = floor(servings ÷ ppm),
+    annokset `servingsFor` = max(reseptin annokset, ateriat × ppm). Tähteet `leftoverSlots`: seuraavat vapaat lounaat
+    alkuperäisen päivän jälkeen (valitut säilyvät, kun ateriamäärää muutetaan); jokaisen paikan voi vaihtaa valinnasta
+    (5 viikkoa eteenpäin, varatut merkitty). "noin [2] annosta" -valinta tallentaa `plan_settings.portions_per_meal`.
+  - **Muokkaus** (`openPlanItem`, `renderPlanItem`, tila `piState`): päivä + ateria (siirto, uusi `sort` kohdeaterian loppuun),
+    annokset (vain alkuperäinen reseptirivi), vapaan tekstin nimi, 📖 Avaa resepti, Poista. Poisto kysyy erikseen, poistetaanko
+    myös tähteet; jos ei, tähteet jäävät (FK `leftover_of` → null).
+  - Näytettävä nimi on reseptin nykyinen nimi (`titleOf`), `meal_plan.title` on varalla (vapaa teksti, poistettu tai piilotettu resepti).
 - **Menut:** menukortti- ja viinilistasivut välilehtinä, alla menun reseptit.
 - **Viinit:** lista (pikkukuva, haku, tyyppirajaus, omat tähdet), viinin sivu (kuva, Muokkaa), lomake (kuva,
   tähtivalitsin 1–5, Poista alaosassa).
@@ -251,7 +291,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 Kaikissa julkisissa tauluissa on RLS. Säännöt `to authenticated`:
 - **select** ehdolla `(select private.is_family())` – kaikki perheen jäsenet näkevät. Poikkeukset (osioiden näkyvyys):
   `wines` = `can_see('viinit')`; `menus`, `menu_pages` = `can_see('menut')`; `recipes` = is_family ja (ei kategoriatagia TAI
-  `tags && my_visible_cats()` TAI menu:-tagi ja `can_see('menut')`). Storage: `viinit/`-kuvat vain `can_see('viinit')`.
+  `tags && my_visible_cats()` TAI menu:-tagi ja `can_see('menut')`); `meal_plan`, `meal_plan_notes`, `plan_settings` = `can_see('viikko')`.
+  Storage: `viinit/`-kuvat vain `can_see('viinit')`.
 - **insert/update/delete** ehdolla `(select private.can_edit())` – vain muokkausoikeus tai admin.
 
 **Uudelle taululle samat neljä policya (lukeminen is_family, kirjoitus can_edit) + `revoke all ... from anon`.**
@@ -268,11 +309,14 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 | `recipes` | id, title, description, servings, prep_minutes, ingredients (jsonb, lista tekstirivejä), instructions (jsonb, lista vaiheita), tags (text[]), source, image_path (Storage-polku, esim. `<uuid>.jpg`), image_url (vanha ulkoinen osoite, ei enää lomakkeessa), notes, baby_notes (vauvaohje, näkyy vain `…/vauva`-näkymässä), added_on (date, lisäyspäivä, oletus current_date), sort_order (oma järjestys, uusi = max+1 triggerillä `recipes_default_sort`), created_by, created_at, updated_at |
 | `menus` | id, name (uniikki, = reseptien `menu:`-tagin nimi), subtitle, description, sort |
 | `menu_pages` | id, menu_id, kind (`menu`/`viinilista`/`muu`), title, html, width, height, sort |
+| `meal_plan` | id, day (date), meal (`lounas`/`paivallinen`), sort (järjestys aterian sisällä), title (reseptin nimi tallennushetkellä tai vapaa teksti), recipe_id (null = vapaa teksti; FK recipes, on delete set null), servings (vain alkuperäisellä reseptirivillä), leftover (bool, tähteet), leftover_of (alkuperäinen rivi; FK, on delete set null), created_by, created_at, updated_at (trigger `touch_updated_at`) |
+| `meal_plan_notes` | day (date, pääavain), note (1–300 merkkiä), updated_at |
+| `plan_settings` | id (aina 1, yksi rivi), portions_per_meal (numeric, oletus 2: perhe syö aterialla noin näin monta annosta) |
 | `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa) |
 
 Yksityinen skeema `private` (ei API:ssa):
 - `family_members(email, is_admin, can_edit, hidden_sections text[], added_at)` – pääsylista. Vain listalla olevat sähköpostit näkevät datan.
-  `hidden_sections` ⊆ {arkiruoka, viikonloppuherkut, vauvanruoat, menut, viinit} (check-rajoite), oletus = kaikki viisi
+  `hidden_sections` ⊆ {arkiruoka, viikonloppuherkut, vauvanruoat, menut, viinit, viikko} (check-rajoite), oletus = kaikki kuusi
   (uusi jäsen `admin_add_member`-funktiolla ei näe mitään; `on conflict` ei muuta näkyvyyttä).
   `can_edit` oletus `false` (vain luku). Admin saa muokata `can_edit`-arvosta riippumatta.
 - `is_family()`, `is_admin()`, `can_edit()` (= is_admin or can_edit) – security definer -apufunktiot RLS:ää varten.
@@ -370,12 +414,14 @@ Supabase ei varmuuskopioi ilmaistason projektia, ja tietokannan varmuuskopio ei 
 - **Automaattinen:** yksityinen repo `tv62/keittokirja-varmuuskopio` (EI julkinen, sisältää perheen datan).
   GitHub Actions (`.github/workflows/varmuuskopio.yml`) ajaa `varmuuskopioi.py`:n sunnuntaisin 01.37 UTC, käsin
   (Actions → Varmuuskopio → Run workflow) ja aina kun ohjelma tai workflow muuttuu.
-  - Hakee REST-rajapinnasta taulut `recipes`, `wines`, `menus`, `menu_pages` (→ `data/<taulu>.json`), RPC:llä
+  - Hakee REST-rajapinnasta taulut `recipes`, `wines`, `menus`, `menu_pages`, `meal_plan`, `meal_plan_notes`, `plan_settings`
+    (→ `data/<taulu>.json`; `TABLES` = taulu → järjestyssarake, meal_plan_notes järjestetään `day`-sarakkeella), RPC:llä
     `backup_family_members()` (→ `data/family_members.json`) ja bucketin `recipe-images` kuvat (→ `kuvat/`, vain uudet;
     poistetut poistetaan, historia säilyttää). Lisäksi `viimeisin.txt`, jolloin jokainen ajo on oma committinsa.
   - Avain: repon salaisuus `SUPABASE_SECRET_KEY` (Supabasen salainen avain nimeltä "varmuuskopio", `sb_secret_…`).
     Lähetetään vain `apikey`-otsakkeessa. Ohjelma keskeyttää, jos avain ei ole salainen tai tulos olisi tyhjä.
-  - Jos lisäät uuden taulun, lisää se `TABLES`-listaan `varmuuskopioi.py`:ssä.
+  - Jos lisäät uuden taulun, lisää se `TABLES`-sanakirjaan `varmuuskopioi.py`:ssä. Repo on iso (kuvat): kloonaa kevyesti
+    `git clone --depth 1 --filter=blob:none --sparse …` (vain juuren tiedostot).
   - Ajon tilan näkee: `gh run list -R tv62/keittokirja-varmuuskopio`. Repo pitää liittää sessioon (`add_repo`).
 - **Pyynnöstä ("tee varmuuskopio"):** hae rivit `execute_sql`:llä (`row_to_json(x)::text`) ja per rivi `md5`,
   kirjoita tiedostoon ja tarkista md5:t (kopiointivirheiden varalta), kokoa JSON + luettava HTML ja lähetä käyttäjälle.
@@ -391,5 +437,3 @@ Supabase ei varmuuskopioi ilmaistason projektia, ja tietokannan varmuuskopio ei 
   - Kun käyttäjä siirtää idean myöhemmäksi, lisää se backlogiin. Kun idea toteutetaan, poista se backlogista ja kuvaa
     toteutus tähän tiedostoon.
   - "Näytä backlog" → lue dokumentti ja listaa lyhyesti. Jos Projects-työkalua ei ole, kerro se käyttäjälle.
-- **Suunnitteilla: 🗓 Viikkosuunnitelma** (uusi osio, lounas + päivällinen, versio 1 ilman ostoslistaa). Päätökset ja
-  avoimet kohdat backlogissa.

@@ -22,6 +22,7 @@
     --accent-ink: #ffffff;
     --chip: #efe5d7;
     --danger: #a3261b;
+    --dash: #cdbda6;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -34,6 +35,7 @@
       --accent-ink: #1b1816;
       --chip: #332d29;
       --danger: #ef6b5e;
+      --dash: #5c514a;
     }
   }
   * { box-sizing: border-box; }
@@ -234,6 +236,74 @@
   input[type=range] { padding: 0; border: none; background: none; max-width: 360px; accent-color: var(--accent); min-height: 44px; }
   label.btn { display: inline-flex; align-items: center; margin: 0; font-size: 1rem; color: var(--ink); min-height: 44px; }
   .vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+  /* Viikkosuunnitelma: etusivun kortti (ylimpänä, tämän päivän ateriat) */
+  .wk { background: var(--card); border: 2px solid var(--accent); border-radius: 16px; overflow: hidden; }
+  .wkhead { display: flex; align-items: center; gap: 18px; width: 100%; text-align: left; padding: 22px 22px 16px; border: none;
+    border-radius: 0; background: none; font-family: Georgia, serif; font-size: 1.35rem; font-weight: 600; }
+  .wkhead .e { font-size: 2.4rem; line-height: 1; }
+  .wkhead .grow { flex: 1; min-width: 0; }
+  .wkhead .s { display: block; margin-top: 4px; font: 400 .9rem/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--muted); }
+  .wkhead .chev { font: 400 1.6rem/1 -apple-system, BlinkMacSystemFont, sans-serif; color: var(--accent); }
+  .wktoday { padding: 12px 16px 16px; border-top: 1px solid var(--line); }
+  .trow { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-top: 8px; padding: 10px 12px;
+    min-height: 48px; border: none; background: var(--bg); border-radius: 10px; }
+  .trow .tm { flex: none; width: 88px; font-size: .85rem; color: var(--muted); }
+  .trow .tt { flex: 1; min-width: 0; font-weight: 600; }
+  .trow .tx { flex: none; font-size: .85rem; color: var(--muted); }
+  .trow.empty .tt { font-weight: 400; color: var(--muted); }
+  .left { flex: none; font-family: Georgia, serif; font-style: italic; font-size: .8rem; line-height: 1.25; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 8px; padding: 1px 6px; white-space: nowrap; }
+  /* Viikkonäkymä */
+  .weeknav { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+  .wbtn { flex: none; width: 44px; height: 44px; padding: 0; font-size: 1.5rem; line-height: 1; color: var(--accent); border-radius: 12px; }
+  .wl { flex: 1; text-align: center; }
+  .wn { font-family: Georgia, serif; font-size: 1.15rem; font-weight: 600; }
+  .wd { font-size: .85rem; color: var(--muted); }
+  .days { display: grid; gap: 10px; }
+  .day { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px 8px; }
+  .day.now { border: 2px solid var(--accent); }
+  .day.compact { padding: 0; opacity: .6; }
+  .dcompact { display: flex; align-items: baseline; gap: 10px; width: 100%; min-height: 46px; padding: 10px 14px; border: none;
+    background: none; border-radius: 14px; text-align: left; }
+  .dsum { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: .88rem; }
+  .dh { display: flex; align-items: center; gap: 8px; min-height: 36px; }
+  .dh .badge { margin-left: 0; }
+  .dh .sp { flex: 1; }
+  .dn { flex: none; font-family: Georgia, serif; font-size: 1.15rem; font-weight: 600; }
+  .iconbtn { border: none; background: none; min-width: 44px; min-height: 40px; padding: 0; font-size: 1.05rem; margin-right: -10px; }
+  .dh .link { margin-right: -6px; font-size: .9rem; }
+  .dnote { display: block; width: 100%; text-align: left; border: none; background: none; padding: 2px 0; color: var(--muted); font-size: .88rem; border-radius: 6px; }
+  .noteform { display: flex; gap: 6px; margin: 4px 0 2px; }
+  .noteform input { padding: 8px 10px; }
+  .noteform button { flex: none; padding: 8px 10px; }
+  .meal { margin-top: 4px; }
+  .mh { display: flex; align-items: center; justify-content: space-between; min-height: 32px; }
+  .plus { width: 44px; height: 36px; padding: 0; margin-right: -10px; border: none; background: none; color: var(--accent); font-size: 1.4rem; line-height: 1; }
+  .pi { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+  .pbody { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 2px 0; border: none; background: none; border-radius: 8px; text-align: left; }
+  .pth { flex: none; width: 44px; height: 44px; border-radius: 9px; background: var(--chip); object-fit: cover; display: flex;
+    align-items: center; justify-content: center; color: var(--muted); font: 600 1.2rem Georgia, serif; }
+  .pth.free { background: transparent; border: 1px dashed var(--dash); }
+  .ptxt { flex: 1; min-width: 0; }
+  .pt { display: block; font-weight: 600; line-height: 1.3; }
+  .pm { display: block; font-size: .85rem; color: var(--muted); margin-top: 2px; }
+  .pm .ticons { font-size: 1rem; line-height: 1; }
+  .more { flex: none; width: 44px; height: 44px; padding: 0; margin-right: -10px; border: none; background: none; color: var(--muted); font-size: 1.3rem; line-height: 1; }
+  .addslot { width: 100%; min-height: 44px; margin: 2px 0 4px; border: 1px dashed var(--dash); background: transparent; color: var(--muted); font-size: .92rem; }
+  .pempty { color: var(--muted); font-size: .88rem; padding: 0 0 6px; }
+  /* Riittää usealle aterialle + ruoan muokkaus */
+  .seg { display: flex; gap: 6px; margin: 8px 0 6px; }
+  .seg .chip { flex: 1; justify-content: center; border-color: var(--line); background: var(--card); font-size: .92rem; padding: 7px 8px; }
+  .seg .chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .slot { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .slot:last-child { border-bottom: none; }
+  .slot .n { flex: none; width: 28px; height: 28px; border-radius: 999px; background: var(--chip); display: flex; align-items: center;
+    justify-content: center; font-size: .85rem; font-weight: 600; }
+  .slot .sb { flex: 1; min-width: 0; }
+  .slot .st { display: block; font-weight: 600; }
+  .slot .ss { display: block; font-size: .85rem; color: var(--muted); margin-top: 2px; }
+  .slot select { font-weight: 600; padding: 8px 10px; }
+  .inlsel { width: auto; display: inline-block; padding: 2px 8px; font-size: .88rem; min-height: 34px; margin: 0 2px; }
 </style>
 </head>
 <body>
@@ -277,6 +347,10 @@
     <div id="homeResults" class="hidden"></div>
     <div id="homeMain">
       <div class="home">
+        <div class="wk wide hidden" id="wkCard">
+          <button type="button" class="wkhead" data-plan="1"><span class="e">🗓️</span><span class="grow">Viikkosuunnitelma<span class="s" id="wkSub"></span></span><span class="chev" aria-hidden="true">›</span></button>
+          <div class="wktoday" id="wkToday"></div>
+        </div>
         <button class="cat card" data-cat="arkiruoka">
           <span class="e">🥘</span><span>Arkiruoka<span class="s" id="cnt_arkiruoka"></span></span>
         </button>
@@ -522,6 +596,60 @@
     </form>
   </section>
 
+  <!-- Viikkosuunnitelma: viikkonäkymä -->
+  <section id="planView" class="hidden">
+    <button class="link" data-home="1">← Etusivu</button>
+    <h2 style="margin:6px 0 12px">Viikkosuunnitelma</h2>
+    <div class="weeknav">
+      <button type="button" class="wbtn" id="wkPrev" aria-label="Edellinen viikko">‹</button>
+      <div class="wl"><div class="wn" id="wkName"></div><div class="wd" id="wkDates"></div></div>
+      <button type="button" class="wbtn" id="wkNext" aria-label="Seuraava viikko">›</button>
+    </div>
+    <div class="center hidden" id="wkThisWrap" style="margin:-6px 0 8px"><button type="button" class="link" id="wkThis">↩ Tähän viikkoon</button></div>
+    <div id="planMsg" class="msg hidden"></div>
+    <div class="days" id="days"></div>
+  </section>
+
+  <!-- Viikkosuunnitelma: ruoan lisäys (oma merkintä tai resepti) -->
+  <section id="planAddView" class="hidden">
+    <button class="link" id="paBack">← Viikkosuunnitelma</button>
+    <h2 style="margin:6px 0 0">Lisää ruoka</h2>
+    <div class="muted" id="paSlot" style="margin:0 0 14px"></div>
+    <form class="card" id="paOwnForm" style="padding:12px 14px 14px;margin:0 0 18px">
+      <label for="paOwn" style="margin-top:0">✏️ Oma merkintä</label>
+      <div style="display:flex;gap:8px"><input id="paOwn" maxlength="200" placeholder="esim. Pizza ulkoa, Mökillä" autocomplete="off" enterkeyhint="done"><button type="submit" id="paOwnBtn" style="flex:none">Lisää</button></div>
+    </form>
+    <div class="lbl" style="margin:0 0 6px">Tai valitse resepti</div>
+    <input id="paQ" type="search" placeholder="Hae nimellä tai aineksella…" autocomplete="off" enterkeyhint="search" aria-label="Hae reseptiä" style="margin-bottom:10px">
+    <div class="chips primary scroll" id="paCats"></div>
+    <div class="chips primary scroll" id="paGroups"></div>
+    <div class="sortbar">
+      <label class="sortsel">Järjestys
+        <select id="paSort" aria-label="Reseptien järjestys">
+          <option value="uusin">Uusimmat ensin</option>
+          <option value="oma">Oma järjestys</option>
+          <option value="az">Aakkosjärjestys</option>
+          <option value="vanhin">Vanhimmat ensin</option>
+          <option value="nopein">Nopeimmat ensin</option>
+        </select>
+      </label>
+    </div>
+    <div id="paMsg" class="msg hidden"></div>
+    <div class="list" id="paList"></div>
+  </section>
+
+  <!-- Viikkosuunnitelma: valitun reseptin ateriat (riittää usealle aterialle) -->
+  <section id="planPickView" class="hidden">
+    <button class="link" id="ppBack">← Takaisin</button>
+    <div id="pp"></div>
+  </section>
+
+  <!-- Viikkosuunnitelma: suunnitellun ruoan muokkaus (siirto, annokset, poisto) -->
+  <section id="planItemView" class="hidden">
+    <button class="link" id="piBack">← Viikkosuunnitelma</button>
+    <div class="card" id="pi"></div>
+  </section>
+
   <!-- Käyttäjien hallinta -->
   <section id="adminView" class="hidden">
     <button class="link" id="adminBackBtn">← Etusivu</button>
@@ -558,7 +686,7 @@
   const CAT_ICON = { arkiruoka: "🥘", viikonloppuherkut: "🥂", vauvanruoat: "🍼" };
   // Etusivun osiot, jotka admin voi piilottaa käyttäjältä (private.family_members.hidden_sections, RLS estää datan).
   const SECTIONS = [["arkiruoka", "🥘", "Arki"], ["viikonloppuherkut", "🥂", "Viikonloppu"], ["vauvanruoat", "🍼", "Vauva"],
-    ["menut", "📜", "Menut"], ["viinit", "🍷", "Viinit"]];
+    ["menut", "📜", "Menut"], ["viinit", "🍷", "Viinit"], ["viikko", "🗓️", "Viikkosuunnitelma"]];
   // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu. Kuvake tulee TAG_ICON/PRIM_ICON-vakiosta.
   const PRIMARY = {
     vauvanruoat: [["top", "Top-lista"], ["sose", "Soseet"], ["sormiruoka", "Sormiruoat"]],
@@ -892,7 +1020,8 @@
   }
 
   const VIEWS = ["loadView", "authView", "homeView", "listView", "detailView", "editView", "adminView",
-                 "menusView", "menuView", "winesView", "wineView", "wineEditView"];
+                 "menusView", "menuView", "winesView", "wineView", "wineEditView",
+                 "planView", "planAddView", "planPickView", "planItemView"];
   function show(view) {
     for (const v of VIEWS) $(v).classList.toggle("hidden", v !== view);
     currentView = view;
@@ -960,7 +1089,7 @@
     lastHash = location.hash; lastState = history.state;
     if (isPop) { const y = (history.state && history.state.y) || 0; requestAnimationFrame(() => window.scrollTo(0, y)); }
   }
-  function renderRoute(a, b, c) {
+  function renderRoute(a, b, c, d, e) {
     // Lukuoikeuksiselle lomakkeiden osoitteet eivät aukea (→ etusivu).
     if (!canEdit && (c === "muokkaa" || a === "uusi-resepti" || a === "uusi-viini")) return false;
     switch (a) {
@@ -987,6 +1116,23 @@
       }
       case "uusi-viini": if (hidden.has("viinit")) return false; openWineEditor(null); return true;
       case "hallinta": if (!isAdmin) return false; msg($("adminMsg"), ""); loadUsers(); return true;
+      // #/viikko, #/viikko/<maanantai>, #/viikko/lisaa/<päivä>/<ateria>[/<resepti>], #/viikko/ruoka/<id>
+      case "viikko": {
+        if (hidden.has("viikko")) return false;
+        if (!b) { openPlan(mondayOf(todayIso())); return true; }
+        if (b === "lisaa") {
+          if (!canEdit || !isIsoDay(c) || !MEALS[d]) return false;
+          if (!e) { openPlanAdd(c, d); return true; }
+          const r = recipes.find((x) => x.id === e); if (!r) return false;
+          openPick(c, d, r); return true;
+        }
+        if (b === "ruoka") {
+          const it = canEdit && planItems.find((x) => x.id === c); if (!it) return false;
+          openPlanItem(it); return true;
+        }
+        if (!isIsoDay(b)) return false;
+        openPlan(mondayOf(b)); return true;
+      }
       default: return false;
     }
   }
@@ -1051,6 +1197,7 @@
       if (!ready && !loading) setTimeout(loadAll, 0);
     } else {
       ready = false; recipes = []; menus = []; wines = []; isAdmin = false; canEdit = false; myEmail = ""; hidden = new Set();
+      planItems = []; planNotes = new Map(); planLoadedAt = 0;
       markClean(); unlockScreen(); show("authView");
     }
   });
@@ -1062,6 +1209,7 @@
       const sec = b.dataset.nav ? navSec[b.dataset.nav] : b.dataset.cat;
       if (sec) b.classList.toggle("hidden", hidden.has(sec));
     }
+    $("wkCard").classList.toggle("hidden", hidden.has("viikko"));
     for (const el of [$("f_menu"), document.querySelector('label[for="f_menu"]')]) el.classList.toggle("hidden", hidden.has("menut"));
     // Ei yhtään reseptikategoriaa → "Kaikki reseptit" ja "+ Uusi resepti" piiloon
     $("newHomeBtn").parentElement.classList.toggle("hidden", Object.keys(CATS).every((c) => hidden.has(c)));
@@ -1077,6 +1225,7 @@
       sb.rpc("am_i_admin"),
       sb.rpc("can_i_edit"),
       sb.rpc("my_hidden_sections"),
+      loadPlan(),
     ]);
     hidden = new Set(Array.isArray(hs.data) ? hs.data : []);
     applyHidden();
@@ -1200,8 +1349,9 @@
     const nm = allMenus().length, nw = wines.length;
     $("cnt_menus").textContent = nm + (nm === 1 ? " menu" : " menua");
     $("cnt_wines").textContent = nw + (nw === 1 ? " viini" : " viiniä");
+    renderPlanCard();
   }
-  function openHome() { renderHome(); renderHomeSearch(); show("homeView"); }
+  function openHome() { renderHome(); renderHomeSearch(); show("homeView"); refreshPlan(); }
 
   // Haku koko keittokirjasta: reseptit, menut ja viinit. Haun aikana kortit piilotetaan.
   function renderHomeSearch() {
@@ -1227,6 +1377,9 @@
   };
 
   $("homeMain").onclick = (e) => {
+    if (e.target.closest("[data-plan]")) return go("#/viikko");
+    const po = e.target.closest("[data-open]");
+    if (po) { const it = planItems.find((x) => x.id === po.dataset.open); if (it) openFromPlan(it); return; }
     const n = e.target.closest("[data-nav]");
     if (n) {
       if (n.dataset.nav === "menus") return go("#/menut");
@@ -2033,6 +2186,443 @@
     const c = catOf(r);
     leaveDeleted(c ? `#/reseptit/${c}` : "#/reseptit");
   };
+
+  // ---------- Viikkosuunnitelma ----------
+  // Taulut: meal_plan (päivä + ateria, resepti tai vapaa teksti, tähteet), meal_plan_notes (päivän muistiinpano),
+  // plan_settings (perhe syö aterialla noin N annosta). Osio "viikko" (admin voi piilottaa jäseneltä).
+  const MEALS = { lounas: "Lounas", paivallinen: "Päivällinen" };
+  const MEAL_LC = { lounas: "lounas", paivallinen: "päivällinen" };
+  const MEAL_FROM = { lounas: "lounaasta", paivallinen: "päivällisestä" };
+  const WD = ["su", "ma", "ti", "ke", "to", "pe", "la"];
+  let planItems = [];
+  let planNotes = new Map();   // päivä (YYYY-MM-DD) → muistiinpano
+  let ppm = 2;                 // annosta per ateria (tähteiden ehdotus)
+  let planLoadedAt = 0;
+  let planWeek = null;         // näytettävän viikon maanantai
+  const openPast = new Set();  // menneet päivät, jotka on avattu täyteen kokoon
+  let noteEdit = null;         // päivä, jonka muistiinpanoa muokataan
+
+  // Päivät paikallisena aikana merkkijonoina YYYY-MM-DD (vertailu merkkijonoina toimii).
+  const z2 = (n) => String(n).padStart(2, "0");
+  const isoOf = (d) => `${d.getFullYear()}-${z2(d.getMonth() + 1)}-${z2(d.getDate())}`;
+  const dateOf = (iso) => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); };
+  const isIsoDay = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s) && isoOf(dateOf(s)) === s;
+  const addDays = (iso, n) => { const d = dateOf(iso); d.setDate(d.getDate() + n); return isoOf(d); };
+  const mondayOf = (iso) => addDays(iso, -((dateOf(iso).getDay() + 6) % 7));
+  function isoWeek(iso) { // ISO-viikko: viikon torstai ratkaisee vuoden
+    const thu = addDays(mondayOf(iso), 3), thu1 = addDays(mondayOf(`${thu.slice(0, 4)}-01-04`), 3);
+    return 1 + Math.round((dateOf(thu) - dateOf(thu1)) / 6048e5);
+  }
+  const dayShort = (iso) => { const d = dateOf(iso); return `${WD[d.getDay()]} ${d.getDate()}.${d.getMonth() + 1}.`; }; // "ke 11.11."
+  const dayLabel = (iso) => { const s = dayShort(iso); return s.charAt(0).toUpperCase() + s.slice(1); };             // "Ke 11.11."
+  const slotLabel = (it) => `${dayShort(it.day)} ${MEAL_LC[it.meal]}`;
+  function weekRange(mon, withYear) {
+    const a = dateOf(mon), b = dateOf(addDays(mon, 6)), y = withYear ? String(b.getFullYear()) : "";
+    if (a.getFullYear() !== b.getFullYear()) return `${a.getDate()}.${a.getMonth() + 1}.${withYear ? a.getFullYear() : ""}–${b.getDate()}.${b.getMonth() + 1}.${y}`;
+    if (a.getMonth() === b.getMonth()) return `${a.getDate()}.–${b.getDate()}.${b.getMonth() + 1}.${y}`;
+    return `${a.getDate()}.${a.getMonth() + 1}.–${b.getDate()}.${b.getMonth() + 1}.${y}`;
+  }
+  const weekHash = (mon) => mon === mondayOf(todayIso()) ? "#/viikko" : `#/viikko/${mon}`;
+  const slotItems = (day, meal) => planItems.filter((x) => x.day === day && x.meal === meal)
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0) || (a.created_at || "").localeCompare(b.created_at || ""));
+  const nextSort = (day, meal) => Math.max(-1, ...slotItems(day, meal).map((x) => x.sort ?? 0)) + 1;
+  const recipeOf = (it) => it.recipe_id ? recipes.find((x) => x.id === it.recipe_id) || null : null;
+  const titleOf = (it) => recipeOf(it)?.title || it.title;
+  const origOf = (it) => it.leftover && it.leftover_of ? planItems.find((x) => x.id === it.leftover_of) || null : null;
+
+  async function loadPlan() {
+    const [p, n, s] = await Promise.all([
+      sb.from("meal_plan").select("*").order("day").order("sort"),
+      sb.from("meal_plan_notes").select("*"),
+      sb.from("plan_settings").select("*"),
+    ]);
+    if (!p.error) planItems = p.data || [];
+    if (!n.error) planNotes = new Map((n.data || []).map((x) => [x.day, x.note]));
+    if (!s.error && s.data && s.data[0]) ppm = Number(s.data[0].portions_per_meal) || 2;
+    planLoadedAt = Date.now();
+    return p;
+  }
+  // Muiden tekemät muutokset näkyvät: haetaan uudelleen, kun etusivu tai viikko avataan (enintään 15 s välein)
+  // ja aina kun sovellus palaa näkyviin.
+  async function refreshPlan(force) {
+    if (!ready || hidden.has("viikko") || (!force && Date.now() - planLoadedAt < 15000)) return;
+    const p = await loadPlan();
+    if (p.error) return;
+    if (currentView === "homeView") renderPlanCard();
+    if (currentView === "planView" && !noteEdit) renderPlan();
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && ["homeView", "planView"].includes(currentView)) refreshPlan(true);
+  });
+
+  // Reseptin avaus suunnitelmasta: määrät valmiiksi suunnitellulle annosmäärälle (tähteillä alkuperäisen määrä).
+  function openFromPlan(it) {
+    const r = recipeOf(it);
+    if (!r) { if (canEdit) go(`#/viikko/ruoka/${it.id}`); return; }
+    const n = (it.leftover ? origOf(it)?.servings : it.servings) || r.servings;
+    if (r.servings && n) cookState(r).servings = n;
+    go(`#/resepti/${r.id}`);
+  }
+
+  // Etusivun kortti: viikko ja tämän päivän ateriat.
+  function renderPlanCard() {
+    if (hidden.has("viikko")) return;
+    const today = todayIso();
+    $("wkSub").textContent = `Viikko ${isoWeek(today)} · ${weekRange(mondayOf(today))}`;
+    const any = Object.keys(MEALS).some((m) => slotItems(today, m).length);
+    const rows = Object.keys(MEALS).map((m) => {
+      const its = slotItems(today, m);
+      if (!its.length) return `<div class="trow empty"><span class="tm">${MEALS[m]}</span><span class="tt">–</span></div>`;
+      return its.map((it, i) => {
+        const r = recipeOf(it);
+        const side = it.leftover ? `<span class="left">🔁 tähteet</span>` : r?.prep_minutes ? `<span class="tx">${esc(fmtTime(r.prep_minutes))}</span>` : "";
+        const inner = `<span class="tm">${i ? "" : MEALS[m]}</span><span class="tt">${esc(titleOf(it))}</span>${side}`;
+        return r || canEdit ? `<button type="button" class="trow" data-open="${it.id}">${inner}</button>` : `<div class="trow">${inner}</div>`;
+      }).join("");
+    }).join("");
+    $("wkToday").innerHTML = `<div class="lbl">Tänään ${esc(dayShort(today))}</div>` +
+      (any ? rows : `<p class="muted" style="margin:6px 0 0;font-size:.9rem">Tälle päivälle ei ole vielä suunniteltu ruokaa.</p>`);
+  }
+
+  // ----- Viikkonäkymä -----
+  function openPlan(mon) {
+    if (mon !== planWeek) { openPast.clear(); noteEdit = null; }
+    planWeek = mon;
+    msg($("planMsg"), "");
+    renderPlan();
+    show("planView");
+    refreshPlan();
+  }
+  function planItemHtml(it) {
+    const r = recipeOf(it), o = origOf(it);
+    const tu = r && imgUrl(r, true);
+    const thumb = tu ? `<img class="pth" src="${esc(tu)}" alt="" loading="lazy">`
+      : `<span class="pth${it.recipe_id ? "" : " free"}" aria-hidden="true">${esc(titleOf(it).trim().charAt(0).toUpperCase())}</span>`;
+    let meta;
+    if (it.leftover) {
+      const from = o ? ` ${mondayOf(o.day) === mondayOf(it.day) ? WD[dateOf(o.day).getDay()] : dayShort(o.day)} ${MEAL_FROM[o.meal]}` : "";
+      meta = `<span class="left">🔁 tähteet</span>${esc(from)}`;
+    } else if (r) {
+      meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r), it.servings ? servingsTxt(it.servings) : ""].filter(Boolean).join(" · ");
+    } else meta = it.recipe_id ? "resepti ei ole näkyvissä" : "oma merkintä";
+    const star = r && (r.tags || []).includes("top") ? " ⭐" : "";
+    const body = `${thumb}<span class="ptxt"><span class="pt">${esc(titleOf(it))}${star}</span><span class="pm">${meta}</span></span>`;
+    return `<div class="pi">${r || canEdit ? `<button type="button" class="pbody" data-open="${it.id}">${body}</button>` : `<div class="pbody">${body}</div>`}${
+      canEdit ? `<button type="button" class="more" data-item="${it.id}" aria-label="Muokkaa: ${esc(titleOf(it))}">⋯</button>` : ""}</div>`;
+  }
+  function dayHtml(day, today) {
+    const past = day < today, isToday = day === today;
+    // Menneet päivät tiivistettynä (vain ruokien nimet), napautus avaa täyteen kokoon.
+    if (past && !openPast.has(day)) {
+      const sum = Object.keys(MEALS).flatMap((m) => slotItems(day, m)).map(titleOf).join(" · ") || "ei suunnitelmaa";
+      return `<div class="day compact"><button type="button" class="dcompact" data-expand="${day}" aria-label="${esc(dayLabel(day))}: ${esc(sum)}. Avaa.">
+        <span class="dn">${esc(dayLabel(day))}</span><span class="dsum">${esc(sum)}</span></button></div>`;
+    }
+    const note = planNotes.get(day);
+    let noteHtml = "";
+    if (noteEdit === day) noteHtml = `<form class="noteform" data-noteform="${day}">
+        <input id="noteInput" maxlength="300" value="${esc(note || "")}" placeholder="esim. Treenit klo 18" aria-label="Muistiinpano ${esc(dayLabel(day))}" enterkeyhint="done">
+        <button type="submit" class="primary">Tallenna</button><button type="button" data-notecancel="1">Peru</button></form>`;
+    else if (note) noteHtml = canEdit ? `<button type="button" class="dnote" data-note="${day}">📝 ${esc(note)}</button>` : `<div class="dnote">📝 ${esc(note)}</div>`;
+    const meals = Object.keys(MEALS).map((m) => {
+      const its = slotItems(day, m);
+      const plus = canEdit && its.length ? `<button type="button" class="plus" data-add="${day}|${m}" aria-label="Lisää ruoka: ${esc(dayShort(day))} ${MEAL_LC[m]}">+</button>` : "";
+      const body = its.length ? its.map(planItemHtml).join("")
+        : canEdit ? `<button type="button" class="addslot" data-add="${day}|${m}">+ Lisää ${MEAL_LC[m]}</button>` : `<div class="pempty">–</div>`;
+      return `<div class="meal"><div class="mh"><span class="lbl">${MEALS[m]}</span>${plus}</div>${body}</div>`;
+    }).join("");
+    return `<div class="day${isToday ? " now" : ""}" data-day="${day}">
+      <div class="dh"><span class="dn">${esc(dayLabel(day))}</span>${isToday ? `<span class="badge warn">Tänään</span>` : ""}<span class="sp"></span>${
+        canEdit && !note && noteEdit !== day ? `<button type="button" class="iconbtn" data-note="${day}" aria-label="Lisää muistiinpano: ${esc(dayLabel(day))}" title="Lisää muistiinpano">📝</button>` : ""}${
+        past ? `<button type="button" class="link" data-collapse="${day}">Pienennä</button>` : ""}</div>
+      ${noteHtml}${meals}</div>`;
+  }
+  function renderPlan() {
+    const today = todayIso(), mon = planWeek;
+    $("wkName").textContent = `Viikko ${isoWeek(mon)}`;
+    $("wkDates").textContent = weekRange(mon, true);
+    $("wkThisWrap").classList.toggle("hidden", mon === mondayOf(today));
+    $("days").innerHTML = [0, 1, 2, 3, 4, 5, 6].map((i) => dayHtml(addDays(mon, i), today)).join("");
+  }
+  // Viikon vaihto korvaa historiarivin, joten takaisin-ele vie etusivulle eikä viikko kerrallaan taaksepäin.
+  $("wkPrev").onclick = () => go(weekHash(addDays(planWeek, -7)), { replace: true });
+  $("wkNext").onclick = () => go(weekHash(addDays(planWeek, 7)), { replace: true });
+  $("wkThis").onclick = () => go("#/viikko", { replace: true });
+  $("days").onclick = (e) => {
+    const t = e.target;
+    const ex = t.closest("[data-expand]"); if (ex) { openPast.add(ex.dataset.expand); return renderPlan(); }
+    const co = t.closest("[data-collapse]"); if (co) { openPast.delete(co.dataset.collapse); return renderPlan(); }
+    const op = t.closest("[data-open]"); if (op) { const it = planItems.find((x) => x.id === op.dataset.open); if (it) openFromPlan(it); return; }
+    const mo = t.closest("[data-item]"); if (mo) return go(`#/viikko/ruoka/${mo.dataset.item}`);
+    const ad = t.closest("[data-add]"); if (ad) { const [d, m] = ad.dataset.add.split("|"); return go(`#/viikko/lisaa/${d}/${m}`); }
+    const nb = t.closest("[data-note]"); if (nb) { noteEdit = nb.dataset.note; renderPlan(); const i = $("noteInput"); if (i) { i.focus(); i.select(); } return; }
+    if (t.closest("[data-notecancel]")) { noteEdit = null; msg($("planMsg"), ""); renderPlan(); }
+  };
+  $("days").onsubmit = async (e) => {
+    const f = e.target.closest("[data-noteform]"); if (!f) return;
+    e.preventDefault();
+    const day = f.dataset.noteform, v = $("noteInput").value.trim();
+    const btns = [...f.querySelectorAll("button")];
+    btns.forEach((b) => { b.disabled = true; });
+    const { data, error } = v
+      ? await sb.from("meal_plan_notes").upsert({ day, note: v }).select().single()
+      : await sb.from("meal_plan_notes").delete().eq("day", day);
+    if (error) { btns.forEach((b) => { b.disabled = false; }); return msg($("planMsg"), "Tallennus epäonnistui: " + error.message, true); }
+    if (v) planNotes.set(day, data.note); else planNotes.delete(day);
+    noteEdit = null; msg($("planMsg"), ""); renderPlan();
+  };
+
+  // ----- Ruoan lisäys: oma merkintä tai resepti -----
+  let paDay = null, paMeal = null, paCat = null, paGroup = null;
+  const visibleCats = () => Object.keys(CATS).filter((c) => !hidden.has(c));
+  function openPlanAdd(day, meal) {
+    if (paDay !== day || paMeal !== meal) { $("paOwn").value = ""; $("paQ").value = ""; }
+    paDay = day; paMeal = meal;
+    if (!visibleCats().includes(paCat)) { paCat = visibleCats()[0] || null; paGroup = null; }
+    $("paSlot").textContent = `${dayLabel(day)} · ${MEAL_LC[meal]}`;
+    $("paSort").value = sortMode;
+    msg($("paMsg"), "");
+    renderPlanAdd();
+    show("planAddView");
+  }
+  const paGroupsOf = (cat) => GRID[cat] ? GRID[cat].groups.filter((g) => !groupOff(g))
+    : (PRIMARY[cat] || []).map(([t, label]) => [t, PRIM_ICON[t] || TAG_ICON[t] || "🏷", label, [t]]);
+  function renderPlanAdd() {
+    const cats = visibleCats(), ws = words($("paQ").value);
+    $("paCats").classList.toggle("hidden", cats.length < 2 || ws.length > 0);
+    $("paCats").innerHTML = cats.map((c) =>
+      `<button type="button" class="chip ${c === paCat ? "on" : ""}" data-pacat="${c}" aria-pressed="${c === paCat}">${CAT_ICON[c]} ${CATS[c]}</button>`).join("");
+    const inCat = recipes.filter((r) => paCat && hasTag(r, paCat));
+    const groups = paGroupsOf(paCat).filter((g) => inCat.some((r) => g[3].some((t) => hasTag(r, t))));
+    if (paGroup && !groups.some((g) => g[0] === paGroup)) paGroup = null;
+    $("paGroups").classList.toggle("hidden", !groups.length || ws.length > 0);
+    $("paGroups").innerHTML = `<button type="button" class="chip ${paGroup ? "" : "on"}" data-pagroup="">Kaikki</button>` +
+      groups.map(([k, e, label]) => `<button type="button" class="chip ico ${k === paGroup ? "on" : ""}" data-pagroup="${esc(k)}" aria-label="${esc(label)}" title="${esc(label)}">${e}</button>`).join("");
+    const g = paGroup && groups.find((x) => x[0] === paGroup);
+    const list = (ws.length ? recipes.filter((r) => matches(recipeHay(r), ws)) : inCat.filter((r) => !g || g[3].some((t) => hasTag(r, t))))
+      .slice().sort(SORTS[sortMode] || SORTS.uusin);
+    $("paList").innerHTML = list.map((r) => recipeItem(r)).join("") ||
+      `<p class="muted center">Ei reseptejä${ws.length ? ` haulle "${esc($("paQ").value.trim())}"` : ""}.</p>`;
+  }
+  $("paQ").oninput = renderPlanAdd;
+  $("paQ").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("paQ").blur(); } };
+  $("paCats").onclick = (e) => { const b = e.target.closest("[data-pacat]"); if (!b) return; paCat = b.dataset.pacat; paGroup = null; renderPlanAdd(); };
+  $("paGroups").onclick = (e) => { const b = e.target.closest("[data-pagroup]"); if (!b) return; paGroup = b.dataset.pagroup || null; renderPlanAdd(); };
+  $("paSort").onchange = () => { sortMode = $("paSort").value; try { localStorage.setItem("kk_jarjestys", sortMode); } catch {} renderPlanAdd(); };
+  $("paList").onclick = (e) => { const r = e.target.closest("[data-id]"); if (r) go(`#/viikko/lisaa/${paDay}/${paMeal}/${r.dataset.id}`); };
+  $("paBack").onclick = () => back(weekHash(mondayOf(paDay)));
+  $("paOwnForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const title = $("paOwn").value.trim(); if (!title) return $("paOwn").focus();
+    $("paOwnBtn").disabled = true;
+    const { data, error } = await sb.from("meal_plan").insert({ day: paDay, meal: paMeal, title, sort: nextSort(paDay, paMeal) }).select().single();
+    $("paOwnBtn").disabled = false;
+    if (error) return msg($("paMsg"), "Tallennus epäonnistui: " + error.message, true);
+    planItems.push(data);
+    $("paOwn").value = "";
+    back(weekHash(mondayOf(paDay)));
+  };
+
+  // ----- Valittu resepti: riittää 1–3 ateriaan (tähteet) ja annosmäärä -----
+  let pick = null; // { day, meal, rid, meals, servings, slots: [{ day, meal }] }
+  const suggestMeals = (r) => r.servings ? Math.min(3, Math.max(1, Math.floor(r.servings / ppm + 1e-9))) : 1;
+  const servingsFor = (r, n) => Math.min(99, Math.max(r.servings || 0, Math.ceil(n * ppm - 1e-9)));
+  // Tähteet seuraaviin vapaisiin lounaisiin (ei jo suunnitellun ruoan päälle). keep = jo valitut paikat säilyvät.
+  function leftoverSlots(day, n, keep) {
+    const res = (keep || []).slice(0, n), used = new Set(res.map((s) => s.day + "|" + s.meal));
+    let d = addDays(day, 1);
+    for (let i = 0; i < 35 && res.length < n; i++, d = addDays(d, 1)) {
+      if (used.has(d + "|lounas") || slotItems(d, "lounas").length) continue;
+      res.push({ day: d, meal: "lounas" }); used.add(d + "|lounas");
+    }
+    for (d = addDays(day, 1); res.length < n; d = addDays(d, 1)) res.push({ day: d, meal: "lounas" });
+    return res;
+  }
+  function openPick(day, meal, r) {
+    if (!pick || pick.day !== day || pick.meal !== meal || pick.rid !== r.id) {
+      const n = suggestMeals(r);
+      pick = { day, meal, rid: r.id, meals: n, servings: servingsFor(r, n), slots: leftoverSlots(day, n - 1) };
+    }
+    renderPick();
+    show("planPickView");
+  }
+  function slotOptions(sel) {
+    let html = "", found = false;
+    for (let i = 0; i <= 35; i++) {
+      const d = addDays(pick.day, i);
+      for (const m of Object.keys(MEALS)) {
+        if (i === 0 && (m === "lounas" || pick.meal === "paivallinen")) continue; // ei samaan tai aiempaan ateriaan
+        const v = d + "|" + m, taken = slotItems(d, m).length > 0;
+        if (v === sel) found = true;
+        html += `<option value="${v}" ${v === sel ? "selected" : ""}>${esc(dayLabel(d))} ${MEAL_LC[m]}${taken ? " (varattu)" : ""}</option>`;
+      }
+    }
+    if (!found) { const [d, m] = sel.split("|"); html = `<option value="${sel}" selected>${esc(dayLabel(d))} ${MEAL_LC[m]}</option>` + html; }
+    return html;
+  }
+  function renderPick() {
+    const r = recipes.find((x) => x.id === pick.rid); if (!r) return;
+    const meta = [r.prep_minutes ? `<span>⏱ ${esc(fmtTime(r.prep_minutes))}</span>` : "", plainTags(r).length ? `<span>${tagIcons(r)}</span>` : "",
+      r.servings ? `<span>resepti ${servingsTxt(r.servings)}</span>` : ""].join("");
+    const opts = [...new Set([1, 1.5, 2, 2.5, 3, 4, 5, 6, ppm])].sort((a, b) => a - b)
+      .map((v) => `<option value="${v}" ${v === ppm ? "selected" : ""}>${String(v).replace(".", ",")}</option>`).join("");
+    const wk0 = mondayOf(pick.day);
+    const slots = [`<div class="slot"><span class="n">1</span><span class="sb"><span class="st">${esc(dayLabel(pick.day))} ${MEAL_LC[pick.meal]}</span><span class="ss">Valmistetaan</span></span></div>`,
+      ...pick.slots.map((s, i) => {
+        const wk = mondayOf(s.day), note = wk === wk0 ? "" : wk === addDays(wk0, 7) ? " · ensi viikko" : ` · viikko ${isoWeek(s.day)}`;
+        return `<div class="slot"><span class="n">${i + 2}</span><span class="sb">
+          <select data-slot="${i}" aria-label="Tähteiden ateria ${i + 1}">${slotOptions(s.day + "|" + s.meal)}</select>
+          <span class="ss"><span class="left">🔁 tähteet</span>${esc(note)}</span></span></div>`;
+      })].join("");
+    const more = r.servings && pick.servings > r.servings;
+    $("pp").innerHTML = `<div class="card">
+      <h2 style="margin:0">${esc(r.title)}</h2>
+      <div class="meta">${meta}</div>
+      <div class="muted" style="font-size:.9rem">${esc(dayLabel(pick.day))} · ${MEAL_LC[pick.meal]}</div>
+      <div class="lbl" style="margin-top:18px">Riittää</div>
+      <div class="chips seg">${[1, 2, 3].map((n) => `<button type="button" class="chip ${n === pick.meals ? "on" : ""}" data-meals="${n}" aria-pressed="${n === pick.meals}">${n} ateriaan</button>`).join("")}</div>
+      <p class="hint">Ehdotus annosmäärästä: teillä syödään aterialla noin
+        <select class="inlsel" id="ppPpm" aria-label="Annosta per ateria">${opts}</select> annosta.</p>
+      <div class="lbl" style="margin-top:18px">Ateriat</div>
+      ${slots}
+      ${r.servings ? `<div class="lbl" style="margin-top:14px">Annoksia</div>
+        <div class="stepper" role="group" aria-label="Annosmäärä" style="margin-top:8px">
+          <button type="button" data-act="less" aria-label="Vähemmän annoksia" ${pick.servings <= 1 ? "disabled" : ""}>−</button>
+          <span class="val ${more ? "changed" : ""}" aria-live="polite">${servingsTxt(pick.servings)}</span>
+          <button type="button" data-act="more" aria-label="Enemmän annoksia" ${pick.servings >= 99 ? "disabled" : ""}>+</button>
+        </div>
+        <p class="hint">Kun avaat reseptin suunnitelmasta, määrät on laskettu valmiiksi ${pick.servings} annokselle.</p>` : ""}
+      </div>
+      <div class="actions"><button type="button" class="primary" data-act="save">Lisää suunnitelmaan</button><button type="button" data-act="cancel">Peruuta</button></div>
+      <div id="ppMsg" class="msg err hidden"></div>`;
+  }
+  $("pp").onclick = (e) => {
+    const r = pick && recipes.find((x) => x.id === pick.rid); if (!r) return;
+    const m = e.target.closest("[data-meals]");
+    if (m) {
+      pick.meals = +m.dataset.meals; pick.servings = servingsFor(r, pick.meals);
+      pick.slots = leftoverSlots(pick.day, pick.meals - 1, pick.slots);
+      return renderPick();
+    }
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    if (b.dataset.act === "less") { pick.servings = Math.max(1, pick.servings - 1); return renderPick(); }
+    if (b.dataset.act === "more") { pick.servings = Math.min(99, pick.servings + 1); return renderPick(); }
+    if (b.dataset.act === "cancel") { const w = weekHash(mondayOf(pick.day)); pick = null; return leaveDeleted(w); } // ohi myös lisäyssivun
+    if (b.dataset.act === "save") savePick(r, b);
+  };
+  $("pp").onchange = async (e) => {
+    const r = pick && recipes.find((x) => x.id === pick.rid); if (!r) return;
+    const s = e.target.closest("[data-slot]");
+    if (s) { const [day, meal] = s.value.split("|"); pick.slots[+s.dataset.slot] = { day, meal }; return renderPick(); }
+    if (e.target.id === "ppPpm") {
+      const v = Number(e.target.value); if (!(v > 0)) return;
+      ppm = v;
+      pick.meals = suggestMeals(r); pick.servings = servingsFor(r, pick.meals);
+      pick.slots = leftoverSlots(pick.day, pick.meals - 1, pick.slots);
+      renderPick();
+      const { error } = await sb.from("plan_settings").upsert({ id: 1, portions_per_meal: v });
+      if (error) msg($("ppMsg"), "Asetuksen tallennus epäonnistui: " + error.message, true);
+    }
+  };
+  async function savePick(r, btn) {
+    const p = pick;
+    btn.disabled = true;
+    const { data: orig, error } = await sb.from("meal_plan").insert({ day: p.day, meal: p.meal, title: r.title, recipe_id: r.id,
+      servings: r.servings ? p.servings : null, sort: nextSort(p.day, p.meal) }).select().single();
+    if (error) { btn.disabled = false; return msg($("ppMsg"), "Tallennus epäonnistui: " + error.message, true); }
+    planItems.push(orig);
+    if (p.slots.length) {
+      const sorts = {};
+      const rows = p.slots.map((s) => {
+        const k = s.day + "|" + s.meal; sorts[k] = sorts[k] ?? nextSort(s.day, s.meal);
+        return { day: s.day, meal: s.meal, title: r.title, recipe_id: r.id, leftover: true, leftover_of: orig.id, sort: sorts[k]++ };
+      });
+      const { data, error: e2 } = await sb.from("meal_plan").insert(rows).select();
+      if (e2) alert("Ruoka lisättiin, mutta tähteiden tallennus epäonnistui: " + e2.message);
+      else planItems.push(...data);
+    }
+    pick = null;
+    leaveDeleted(weekHash(mondayOf(p.day))); // takaisin viikkoon (ohi lisäyssivun)
+  }
+  $("ppBack").onclick = () => back(pick ? `#/viikko/lisaa/${pick.day}/${pick.meal}` : "#/viikko");
+
+  // ----- Suunnitellun ruoan muokkaus: siirto, annokset, poisto -----
+  let piState = null; // { id, day, meal, servings, title }
+  function openPlanItem(it) {
+    piState = { id: it.id, day: it.day, meal: it.meal, servings: it.servings || recipeOf(it)?.servings || null, title: it.title };
+    renderPlanItem();
+    show("planItemView");
+  }
+  function renderPlanItem() {
+    const it = planItems.find((x) => x.id === piState.id); if (!it) return;
+    const r = recipeOf(it), o = origOf(it), lefts = planItems.filter((x) => x.leftover_of === it.id);
+    const today = todayIso();
+    const from = addDays(it.day < today ? it.day : today, -7), to = addDays(it.day > today ? it.day : today, 35);
+    let days = "";
+    for (let d = from; d <= to; d = addDays(d, 1))
+      days += `<option value="${d}" ${d === piState.day ? "selected" : ""}>${esc(dayLabel(d))}${d === today ? " (tänään)" : ""}</option>`;
+    $("pi").innerHTML = `
+      ${it.recipe_id ? `<h2 style="margin:0">${esc(titleOf(it))}</h2>`
+        : `<label for="piTitle" style="margin-top:0">Merkintä</label><input id="piTitle" maxlength="200" value="${esc(piState.title)}">`}
+      ${it.leftover ? `<p class="hint"><span class="left">🔁 tähteet</span>${o ? " " + esc(`${dayShort(o.day)} ${MEAL_FROM[o.meal]}`) : ""}</p>` : ""}
+      ${lefts.length ? `<p class="hint">🔁 Tähteet: ${esc(lefts.map(slotLabel).join(", "))}</p>` : ""}
+      ${r ? `<div class="actions" style="margin-top:12px"><button type="button" data-act="open">📖 Avaa resepti</button></div>` : ""}
+      <div class="row">
+        <div><label for="piDay">Päivä</label><select id="piDay">${days}</select></div>
+        <div><label for="piMeal">Ateria</label><select id="piMeal">${Object.keys(MEALS).map((m) => `<option value="${m}" ${m === piState.meal ? "selected" : ""}>${MEALS[m]}</option>`).join("")}</select></div>
+      </div>
+      ${!it.leftover && r && r.servings ? `<label>Annoksia</label>
+        <div class="stepper" role="group" aria-label="Annosmäärä">
+          <button type="button" data-act="less" aria-label="Vähemmän annoksia">−</button>
+          <span class="val" id="piServ" aria-live="polite">${servingsTxt(piState.servings)}</span>
+          <button type="button" data-act="more" aria-label="Enemmän annoksia">+</button>
+        </div>` : ""}
+      <div class="actions"><button type="button" class="primary" data-act="save">Tallenna</button><button type="button" data-act="cancel">Peruuta</button></div>
+      <div id="piMsg" class="msg err hidden"></div>
+      <div class="danger-zone"><button type="button" class="danger" data-act="del">Poista suunnitelmasta</button></div>`;
+  }
+  $("pi").onchange = (e) => {
+    if (e.target.id === "piDay") piState.day = e.target.value;
+    if (e.target.id === "piMeal") piState.meal = e.target.value;
+  };
+  $("pi").oninput = (e) => { if (e.target.id === "piTitle") piState.title = e.target.value; };
+  $("pi").onclick = async (e) => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const it = piState && planItems.find((x) => x.id === piState.id); if (!it) return;
+    const fallback = weekHash(mondayOf(it.day));
+    switch (b.dataset.act) {
+      case "less": case "more":
+        piState.servings = Math.min(99, Math.max(1, (piState.servings || 1) + (b.dataset.act === "more" ? 1 : -1)));
+        $("piServ").textContent = servingsTxt(piState.servings);
+        return;
+      case "open": return openFromPlan(it);
+      case "cancel": return back(fallback);
+      case "save": {
+        const upd = { day: piState.day, meal: piState.meal };
+        if (!it.recipe_id) { const t = piState.title.trim(); if (!t) return msg($("piMsg"), "Kirjoita merkintä.", true); upd.title = t; }
+        if (!it.leftover && recipeOf(it)?.servings) upd.servings = piState.servings;
+        if (upd.day !== it.day || upd.meal !== it.meal) upd.sort = nextSort(upd.day, upd.meal);
+        b.disabled = true;
+        const { data, error } = await sb.from("meal_plan").update(upd).eq("id", it.id).select().single();
+        b.disabled = false;
+        if (error) return msg($("piMsg"), "Tallennus epäonnistui: " + error.message, true);
+        planItems[planItems.findIndex((x) => x.id === it.id)] = data;
+        return back(fallback);
+      }
+      case "del": {
+        if (!confirm(`Poistetaanko "${titleOf(it)}" suunnitelmasta?`)) return;
+        const lefts = planItems.filter((x) => x.leftover_of === it.id), ids = [it.id];
+        if (lefts.length && confirm(`Poistetaanko myös tähteet (${lefts.map(slotLabel).join(", ")})?`)) ids.push(...lefts.map((x) => x.id));
+        b.disabled = true;
+        const { error } = await sb.from("meal_plan").delete().in("id", ids);
+        b.disabled = false;
+        if (error) return msg($("piMsg"), "Poisto epäonnistui: " + error.message, true);
+        planItems = planItems.filter((x) => !ids.includes(x.id)).map((x) => x.leftover_of === it.id ? { ...x, leftover_of: null } : x);
+        return back(fallback);
+      }
+    }
+  };
+  $("piBack").onclick = () => { const it = piState && planItems.find((x) => x.id === piState.id); back(weekHash(mondayOf(it ? it.day : todayIso()))); };
 
   // ---------- Käynnistys ----------
   sb.auth.getSession().then(({ data }) => { if (!data.session) show("authView"); });
