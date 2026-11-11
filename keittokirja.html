@@ -2484,12 +2484,13 @@
   const servingsFor = (r, n) => Math.min(99, Math.max(r.servings || 0, Math.ceil(n * ppm - 1e-9)));
   // Tähteet (käyttäjän päätökset 11/2026): seuraaviin vapaisiin kotiaterioihin, aina seuraavasta päivästä alkaen (lounaalle
   // valmistetun ruoan tähteitä ei samalle päivälle). Arkena (ma–pe) lounas syödään yleensä töissä, joten tähteet menevät
-  // seuraavaksi päivälliseksi; viikonloppuna myös lounaaksi. Pe, la ja su päivällinen ovat omia ruokiaan (perjantaiherkku, lauantain työläs illallinen,
-  // sunnuntaina ruokaa alkuviikolle), joten tähteitä ei laiteta niille automaattisesti.
+  // seuraavaksi päivälliseksi (myös perjantain päivälliseksi); viikonloppuna myös lounaaksi. La ja su päivällinen ovat omia
+  // ruokiaan (lauantain pääherkku ja työläs illallinen, sunnuntaina iso satsi seuraavalle viikolle), joten tähteitä ei laiteta
+  // niille automaattisesti.
   // keep = jo valitut paikat säilyvät, busy(paikka) = lisäksi varattu, maxDay = viimeinen sallittu päivä (ehdotuksilla 2 pv).
   const isWeekendDay = (day) => [6, 0].includes(dateOf(day).getDay());
   const isHomeMeal = (day, meal) => meal === "paivallinen" || isWeekendDay(day);
-  const isOwnDinner = (day, meal) => meal === "paivallinen" && [5, 6, 0].includes(dateOf(day).getDay());
+  const isOwnDinner = (day, meal) => meal === "paivallinen" && [6, 0].includes(dateOf(day).getDay()); // la, su
   const leftoverOk = (day, meal) => isHomeMeal(day, meal) && !isOwnDinner(day, meal);
   function* slotsAfter(day, meal) { // seuraavat ateriat aikajärjestyksessä (5 viikkoa)
     let d = day, m = meal;
@@ -2723,7 +2724,7 @@
   // Ehdotukset aikajärjestyksessä (ma lounas, ma päivällinen, ti lounas…). Ehdotuksen tähteet varaavat seuraavat kotiateriat
   // enintään 2 päivän päähän. Hyväksytyt (suunnitellut) ruoat pysyvät paikallaan; hyväksymätön ehdotus, jonka paikalle tulee
   // tähteitä, siirtyy seuraavaan samanlaiseen paikkaan (arkipäivällinen → seuraava arkipäivällinen, viikonlopun lounas → seuraava
-  // viikonlopun lounas). Pe–su päivällisille ei tule tähteitä, joten niitä ei siirretä.
+  // viikonlopun lounas; arkipäivällisiä ovat ma–pe). La–su päivällisille ei tule tähteitä, joten niitä ei siirretä.
   const slotKind = (d, m) => m === "lounas" ? (isWeekendDay(d) ? "vkl-lounas" : "arkilounas") : isOwnDinner(d, m) ? "oma-" + dateOf(d).getDay() : "arki";
   function computeSuggestions() {
     sugg = new Map(); suggReserved = new Map(); suggNone = new Set();

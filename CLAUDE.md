@@ -43,8 +43,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     annosmäärä ÷ perheen annosta per ateria (oletus 2), lisäateriat merkinnällä "🔁 tähteet" seuraaviin vapaisiin kotiaterioihin:
     **arkena (ma–pe) seuraavaksi päivälliseksi** (lounas syödään yleensä töissä tai lounasravintolassa), viikonloppuna myös
     lounaaksi. **Tähteet aina seuraavasta päivästä alkaen** (lounaalle valmistetun ruoan tähteitä ei samalle päivälle, käyttäjän
-    päätös 11/2026; Riittää-sivulla saman päivän päivällisen voi valita itse). **Pe, la ja su päivällinen ovat omia ruokiaan** (pe valmistetaan tavallinen
-    arkiruoka, la pääherkkupäivä ja viikon työläin illallinen, su iso satsi seuraavalle viikolle), joten tähteitä ei laiteta niille automaattisesti.
+    päätös 11/2026; Riittää-sivulla saman päivän päivällisen voi valita itse). **La ja su päivällinen ovat omia ruokiaan**
+    (la pääherkkupäivä ja viikon työläin illallinen, su iso satsi seuraavalle viikolle), joten tähteitä ei laiteta niille
+    automaattisesti. **Perjantain päivällinen on tavallinen arkipäivällinen**: sille voi tulla tähteitä (käyttäjän päätös 11/2026,
+    esim. torstain lounaan tähteet → pe päivällinen); jos se on tyhjä, sille ehdotetaan tavallista arkiruokaa.
     **Siirto raahaamalla** (käyttäjän toive 11/2026): ruokaa tai ehdotusta pidetään hetki sormella ja raahataan toiselle aterialle;
     jos siellä on jo ruoka tai ehdotus, paikat vaihtuvat. Jos tähteet joutuisivat ennen ruoan valmistusta tai yli 2 päivän päähän
     valmistuksesta, kortti näkyy punaisena eikä siirtoa tehdä (ilmoitus kertoo syyn).
@@ -58,7 +60,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     päivällistä samana päivänä). **Sunnuntain päivällinen ehdotetaan 3 aterialle** isona satsina, joka riittää seuraavalle viikolle
     (tähteet maanantain ja tiistain päivällisiksi). Ehdotuksen tähteet näkyvät samalla korostusvärillä kuin ehdotus.
     Rivitasolla pyydetyn ehdotuksen tähteet tulevat heti näkyviin: hyväksytyt ruoat pysyvät paikallaan, hyväksymätön ehdotus
-    siirtyy seuraavaan samanlaiseen paikkaan (arkiruoka ei siirrä pe–la illallista).
+    siirtyy seuraavaan samanlaiseen paikkaan (arkiruoka ei siirrä la–su illallista; pe päivällinen on arkipäivällinen).
     Ehdotukset ovat vain ehdottajan laitteella, kunnes ne hyväksytään (koko perheelle näkyvät ehdotukset = Toiveet, backlog).
   - **Arkiruoka avautuu valintasivuna** (hyväksytty 11/2026): 2 saraketta ruutuja (iPadilla 3), emoji + nimi + määrä:
     Top-lista, Kana, Liha, Poro, Kala, Kasvis, Keitot, Pastat, Lisukkeet, Kastikkeet + leveä "Kaikki arkiruoat".
@@ -295,7 +297,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   - **Riittää** (`openPick`, `renderPick`, `savePick`, tila `pick`): 1 / 2 / 3 ateriaan, ehdotus `suggestMeals` = floor(servings ÷ ppm),
     annokset `servingsFor` = max(reseptin annokset, ateriat × ppm). Tähteet `leftoverSlots(päivä, ateria, n, keep, busy, maxDay)`:
     seuraavat vapaat paikat aikajärjestyksessä (`slotsAfter`) seuraavasta päivästä alkaen (ei koskaan samalle päivälle), joille `leftoverOk` = kotiateria
-    (`isHomeMeal`: päivällinen tai la/su lounas) eikä oma päivällinen (`isOwnDinner`: pe/la/su päivällinen); ilman `maxDay`:ta
+    (`isHomeMeal`: päivällinen tai la/su lounas) eikä oma päivällinen (`isOwnDinner`: la/su päivällinen); ilman `maxDay`:ta
     varalla seuraavat päivälliset (valitut säilyvät, kun ateriamäärää muutetaan); jokaisen paikan voi vaihtaa valinnasta (myös arkilounaaksi)
     (5 viikkoa eteenpäin, varatut merkitty). "noin [2] annosta" -valinta tallentaa `plan_settings.portions_per_meal`.
   - **Muokkaus** (`openPlanItem`, `renderPlanItem`, tila `piState`): päivä + ateria (siirto, uusi `sort` kohdeaterian loppuun),
@@ -313,7 +315,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     `suggAsked`-pyynnöstä. Tähteet `leftoverSlots(…, busy = varatut/tyhjäksi jätetyt, maxDay)` enintään 2 pv päähän ja viikon
     sisällä (vain sunnuntain päivällisen tähteet ma–ti); ateriamäärä = 1 + löytyneet paikat. Suunnitellut ruoat estävät tähteet
     (pysyvät paikallaan); jos tähteet tulevat hyväksymättömän ehdotuksen paikalle, sen resepti siirtyy (`carry`) seuraavaan saman
-    tyypin (`slotKind`: arkipäivällinen / viikonlopun lounas) vapaaseen paikkaan (avain vaihtuu, `suggAsked` siirtyy mukana);
+    tyypin (`slotKind`: arkipäivällinen ma–pe / viikonlopun lounas) vapaaseen paikkaan (avain vaihtuu, `suggAsked` siirtyy mukana);
     viikon lopussa siirtymättä jääneet pudotetaan. Ateriat `suggMealsFor` = sunnuntain päivällinen 3, muuten `suggestMeals`.
     Valinta `chooseSuggestion`: joukko `suggPool` (pääruoat: ei `NOT_MAIN` = kastike/marinadi/lisuke/alkuruoka/makeat;
     arkiruoka + la–su päivälliselle viikonloppuherkkujen illallinen/pasta), pois hylätyt, muiden paikkojen valinnat ja ±14 päivän
