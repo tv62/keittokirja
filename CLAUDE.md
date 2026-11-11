@@ -46,6 +46,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     (Uusimmat ensin / Oma järjestys / Aakkosjärjestys / Vanhimmat ensin / Nopeimmat ensin) + oma yhteinen järjestys, jota
     muokkaajat raahaavat (↕ Järjestä näkyy vain Oma järjestys -valinnassa). **Oletus kaikissa listoissa Uusimmat ensin**
     (käyttäjän päätös 11/2026). Uusimmat/Vanhimmat = lisäyspäivä `added_on`; ilman päivää olevat loppuun.
+  - **Valmistusaika** (11/2026): alle 60 min minuutteina ("45 min"), 60 min tai yli tunteina puolen tunnin tarkkuudella
+    ("1 h", "1,5 h", "4,5 h") listarivillä ja reseptisivulla (`fmtTime(m)`). Lomakkeessa aika syötetään minuutteina.
   - **Lisäyspäivä** (11/2026): reseptisivulla "📅 Lisätty 18.1.2023", lomakkeessa kenttä Lisäyspäivä (uudelle tänään),
     listarivillä päivä rivin oikeassa laidassa (11/2026, ennen ⭐:ä) vain päivälajittelussa (oletuksena siis näkyy).
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
@@ -78,7 +80,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Tyhjinä jätettiin pois: Hummus leivän päälle, Sitruunainen kantarellispagetti, Valkosipulimarinoidut
   lampaankyljykset, Nopea linssibolognese. Wokkikastikkeesta puuttuu ohje (vain ainekset).
   Kaikilla resepteillä on annosmäärä: 28 puuttuvaa arvioitiin 11/2026 käyttäjän hyväksymänä (epävarmimmat: Poropizza 4 =
-  puolikas 25 cm pizza/hlö, Osso buco 6 = kiekko/hlö).
+  puolikas 25 cm pizza/hlö, Osso buco 6 = kiekko/hlö). Kaikilla on myös aika-arvio: 47 puuttuvaa arvioitiin 11/2026
+  ohjeen vaiheista (käyttäjän pyyntö, "suuntaa-antava riittää"; pizzoissa ei pohjan/taikinan aikaa).
 - Vauvan ruoat: 5 omaa reseptiä Muistiinpanojen kansiosta Soseet ja sormiruoat (11/2026, tagit `sose` / `sormiruoka`,
   lisäyspäivät mukana). Annosmäärät arvioitu vauvan ateriana (pihvit 5, lihasose 8, peruna-kesäkurpitsa 6,
   peruna-porkkana-linssi 8, kesäkurpitsa-parsakaali-herne 4). Peruna-kesäkurpitsasta puuttuu ohje (vain ainekset ja
@@ -324,7 +327,8 @@ Redirect URL = sivun osoite.
 - Säilytä ainekset ja ohjeet sisällöltään ennallaan. Siisti numerointi ja muotoilu, korjaa kirjoitusvirheet.
 - Jos vaiheissa mainittu aines (esim. vesi) puuttuu luettelosta, lisää se luetteloon.
 - Väliotsikot aineslistassa omana rivinään, esim. `"Kastike:"`.
-- `prep_minutes` = valmistusaika ilman marinointia tai hyytymistä. Mainitse ne `notes`-kentässä.
+- `prep_minutes` = valmistusaika ilman marinointia, hyytymistä tai huoneenlämpöön ottamista. Mainitse ne `notes`-kentässä.
+  Aina mukaan: jos lähteessä ei ole, arvioi vaiheiden ajoista (esivalmistelu + kypsennys) ja kerro arvio.
 - `servings` aina mukaan (annosmäärä tarvitaan −/+ -skaalaukseen). Jos lähteessä ei ole, arvioi ainesten perusteella ja
   kerro arvio: pääruoka n. 100–150 g lihaa/kalaa tai 75–100 g kuivaa pastaa per hlö, keitto n. 2,5 dl nestettä per hlö,
   kastikkeet/dipit/marinadit lisukkeena (tyypillisesti 4), alkuruoka-bruschetta 2 palaa per hlö,

@@ -617,6 +617,8 @@
   // (vanha kk_sort ohitetaan, jotta aiemmin tallennettu "oma" ei peitä uutta oletusta).
   let sortMode = "uusin";   // oma | az | uusin | vanhin | nopein
   try { sortMode = localStorage.getItem("kk_jarjestys") || "uusin"; localStorage.removeItem("kk_sort"); } catch {}
+  // Valmistusaika: alle 60 min minuutteina, muuten tunteina puolen tunnin tarkkuudella (75 → "1,5 h", 160 → "2,5 h").
+  const fmtTime = (m) => m < 60 ? `${m} min` : `${String(Math.round(m / 30) / 2).replace(".", ",")} h`;
   const fiDate = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-"); return `${+d}.${+m}.${y}`; };
   const todayIso = () => { const t = new Date(), z = (n) => String(n).padStart(2, "0"); return `${t.getFullYear()}-${z(t.getMonth() + 1)}-${z(t.getDate())}`; };
   const byTitle = (a, b) => (a.title || "").localeCompare(b.title || "", "fi");
@@ -1359,7 +1361,7 @@
     const top = (r.tags || []).includes("top");
     // Lisäyspäivä rivin oikeassa laidassa (vain päivälajittelussa)
     const date = ["uusin", "vanhin"].includes(sortMode) && r.added_on ? fiDate(r.added_on) : "";
-    const meta = [r.prep_minutes ? esc(r.prep_minutes + " min") : "", tagIcons(r)].filter(Boolean).join(" · ");
+    const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r)].filter(Boolean).join(" · ");
     const thumb = thumbHtml(r, r.title);
     const tag = sorting ? "div" : "button";
     return `<${tag} class="item card withpic${sorting ? " sorting" : ""}" data-id="${r.id}">${thumb}
@@ -1574,7 +1576,7 @@
       </div>
       ${r.description ? `<p class="muted" style="margin:4px 0">${esc(r.description)}</p>` : ""}
       <div class="meta">
-        ${r.prep_minutes ? `<span>⏱ ${r.prep_minutes} min</span>` : ""}
+        ${r.prep_minutes ? `<span>⏱ ${fmtTime(r.prep_minutes)}</span>` : ""}
         ${r.added_on ? `<span>📅 Lisätty ${fiDate(r.added_on)}</span>` : ""}
         ${plainTags(r).length ? `<span>${esc(plainTags(r).sort((a, b) => tagRank(a) - tagRank(b)).map((t) => TAG_ICON[t] ? tagLabel(t) : "🏷 " + t).join(", "))}</span>` : ""}
       </div>
