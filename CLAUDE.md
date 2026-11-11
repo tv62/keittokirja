@@ -65,16 +65,18 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 ## Työn tila (päivitä, kun jokin muuttuu)
 
 - Lisäyspäivä täytetty 69 reseptille Muistiinpanojen luontipäivistä (11/2026). Ilman päivää: Lapponia-menun 3 reseptiä
-  ja Hölskypotut. Muistiinpanoissa vielä tuomatta: kansiot Jälkiruoat ja Soseet ja sormiruoat (→ Vauvan ruoat).
-- Reseptit (n. 73): Lapponia alla piemontese -menun 3 reseptiä, Apple Muistiinpanojen arkiruoat erä 1 (11) ja
+  ja Hölskypotut. Muistiinpanoissa vielä tuomatta: kansio Jälkiruoat.
+- Reseptit (n. 78): Lapponia alla piemontese -menun 3 reseptiä, Apple Muistiinpanojen arkiruoat erä 1 (11) ja
   erä 2 (marraskuu 2026: Keitot 6, Kastikkeet 9, Perjantaiherkut 15, Arkiruoka 28) sekä yksittäin lisättyjä.
   Muistiinpanojen kansiot: Keitot ja Kastikkeet → `arkiruoka` (+ `keitto` / `kastike`), Perjantaiherkut → `viikonloppuherkut`.
   Tyhjinä jätettiin pois: Hummus leivän päälle, Sitruunainen kantarellispagetti, Valkosipulimarinoidut
   lampaankyljykset, Nopea linssibolognese. Wokkikastikkeesta puuttuu ohje (vain ainekset).
   Kaikilla resepteillä on annosmäärä: 28 puuttuvaa arvioitiin 11/2026 käyttäjän hyväksymänä (epävarmimmat: Poropizza 4 =
   puolikas 25 cm pizza/hlö, Osso buco 6 = kiekko/hlö).
-- Vauvan ruoat: ei vielä omia reseptejä. 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`,
-  vauvaohje `baby_notes`-kentässä).
+- Vauvan ruoat: 5 omaa reseptiä Muistiinpanojen kansiosta Soseet ja sormiruoat (11/2026, tagit `sose` / `sormiruoka`,
+  lisäyspäivät mukana). Annosmäärät arvioitu vauvan ateriana (pihvit 5, lihasose 8, peruna-kesäkurpitsa 6,
+  peruna-porkkana-linssi 8, kesäkurpitsa-parsakaali-herne 4). Peruna-kesäkurpitsasta puuttuu ohje (vain ainekset ja
+  tarjoiluvinkit). Lisäksi 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`, vauvaohje `baby_notes`-kentässä).
   Päärajauksena vain Top-lista; muut (esim. ikä) sovitaan käyttäjän kanssa.
 - Seuraavaksi todennäköisesti: puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut Claude Designista.
 - Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
@@ -292,7 +294,7 @@ Redirect URL = sivun osoite.
   `kasvis`, Keitot = `keitto`, Pastat = `pasta`, `lisuke`, `kastike`; viikonloppu = `top`, `alkuruoka`, `illallinen`, `makeat`, `pasta`;
   vauvan ruoat = `top`
 - **Muut tagit** pienillä kirjaimilla: esim. `kala`, `keitto`, `uuniruoka`, `pasta`, `poro`, `feta`, `linssi`, `marjat`, `peruna`,
-  `kastike`, `marinadi`, `katkarapu`, `pizza`, `lammas`, `papu`, `helppo`, `sienet`
+  `kastike`, `marinadi`, `katkarapu`, `pizza`, `lammas`, `papu`, `helppo`, `sienet`; vauvan ruoissa `sose`, `sormiruoka`
 - Lisukkeet (perunat, salaatit ym.) saavat `lisuke`-tagin. Kasvisruoka-lisuke voi saada myös `kasvis`-tagin.
 - Kategoria-, top- ja menu-tagit ovat "metatageja" (`isMeta`), eikä niitä näytetä tavallisina tageina.
 
@@ -304,7 +306,8 @@ Redirect URL = sivun osoite.
 - `prep_minutes` = valmistusaika ilman marinointia tai hyytymistä. Mainitse ne `notes`-kentässä.
 - `servings` aina mukaan (annosmäärä tarvitaan −/+ -skaalaukseen). Jos lähteessä ei ole, arvioi ainesten perusteella ja
   kerro arvio: pääruoka n. 100–150 g lihaa/kalaa tai 75–100 g kuivaa pastaa per hlö, keitto n. 2,5 dl nestettä per hlö,
-  kastikkeet/dipit/marinadit lisukkeena (tyypillisesti 4), alkuruoka-bruschetta 2 palaa per hlö.
+  kastikkeet/dipit/marinadit lisukkeena (tyypillisesti 4), alkuruoka-bruschetta 2 palaa per hlö,
+  vauvan sose n. 1 dl per ateria (lihasose 1–1½ rkl), vauvan pikkupihvit 2–3 per ateria.
 - Jos kategoriaa ei kerrota, päättele se ja kerro valinta. Lisää sopivat päärajaustagit (kana/nauta/kasvis jne.).
 - Pelkkä linkki → tallenna `source` ja pyydä käyttäjää liittämään ohjeen teksti (iCloud ja monet sivut estävät lukemisen).
 - Käytä SQL:ssä dollar-quotingia (`$t$...$t$`, `$j$[...]$j$::jsonb`).
