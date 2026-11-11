@@ -85,6 +85,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - Resepti- ja viinikuvat aina neliöitä ja värillisiä. Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
     alkukirjain). Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
     vaakatasossa pienenä (210 px) otsikon oikealla puolella.
+    (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
   - **Yläpalkki** (käyttäjän toive 11/2026): adminilla yläpalkissa vain ⚙️ (Hallinta, 44 px), **Kirjaudu ulos on Hallinta-sivun
     ylärivillä**. Muilla jäsenillä (ei Hallinta-sivua) Kirjaudu ulos yläpalkissa. Palkki yhden rivin korkuinen.
   - **Reseptisivu iPadilla vaakatasossa** (11/2026): ainekset vasemmalla ja ohje + muistiinpanot oikealla rinnakkain; ainekset
@@ -93,7 +94,6 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     C rengas): iso Georgia-numero korostusvärillä ilman palloa, kokkaustilassa tehdyn vaiheen numeron tilalla ✓.
   - **Ainesten väliotsikot otsikkoina** (11/2026): "Kastike:" näytetään lihavoituna Georgia-otsikkona ilman luettelomerkkiä ja
     ilman kaksoispistettä.
-    (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
 - **Reseptilähteet:**
   - Apple Muistiinpanot: vienti Pikakomennoilla (Etsi muistiinpanot → Yhdistä teksti, erotin `=====` → Tallenna tiedosto)
     ja tiedosto chattiin. iCloud-jakolinkkejä ei voi lukea.
