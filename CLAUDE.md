@@ -392,8 +392,10 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kaapissa ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
     kaappiin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
     Napit `data-wact` (yksi `#wineDetail`-käsittelijä).
-  - **Kaappikartta** (`openCellar(korostus)`, `renderCellar`): `.cellar` > `.shelf` (otsikko "Hylly n" + 3 `.slot`): täysi ruutu
-    `.slot.full` (nimi 2 riviä, vuosikerta, värikaista `--wc`), tyhjä `.slot.empty` (muokkaajalle "+"-nappi `data-place`, lukijalle div).
+  - **Kaappikartta** (`openCellar(korostus)`, `renderCellar`): `.cellar` > `.shelf` (otsikko "Hylly n" + 3 `.cslot`): täysi ruutu
+    `.cslot.full` (nimi 2 riviä, vuosikerta, värikaista `--wc`), tyhjä `.cslot.empty` (muokkaajalle "+"-nappi `data-place`, lukijalle div).
+    **Huom. CSS-luokat ovat globaaleja:** `.slot` on Riittää-sivun rivi ja `.stepper` annosmäärän −/+ (pullomäärä käyttää samaa,
+    arvo `.val.num`). Tarkista uutta luokkaa lisätessä, ettei nimi ole jo käytössä (`grep -n "\.nimi" keittokirja.html`).
     Korostus: viinin ruudut `.hl`, muut `.dim`. Alla "Ilman paikkaa" -viinit.
   - **Tyhjä paikka** (`openWinePick`, `pickPlace`): viinin valinta korvaa valintasivun historiassa → pullolomake; "+ Uusi viini" →
     `#/uusi-viini` (korvaa) ja `pendingPlace` → `openWineEditor(null, true)` ottaa sen `newWinePlace`:ksi → tallennuksen jälkeen
