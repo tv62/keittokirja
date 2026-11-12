@@ -86,9 +86,11 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
     Pullomäärä listalla (🍾 2) ja rajaus **Kaapissa / Juodut / Kaikki** (oletus Kaapissa, jos pulloja on). **🍷 Avaa pullo** kysyy
     päivän, tilaisuuden, tähdet ja muistiinpanon → pullo siirtyy juontihistoriaan. **Kaappikartta** 5 × 3 -ruudukkona (napautus
-    avaa viinin, tyhjä paikka → valitse viini → pullot samaan paikkaan). Ostotiedot pullokohtaisesti (päivä, paikka, hinta) ja
+    avaa viinin, tyhjä paikka → valitse viini → pullot samaan paikkaan). **Ruudussa pullon kuva himmeänä tekstin taustalla**
+    (käyttäjä valitsi vaihtoehdon A 12.11.2026; hylätty B = kuva ruudun yläosassa ja nimi alla). Ostotiedot pullokohtaisesti (päivä, paikka, hinta) ja
     Alkon tuotenumero + linkki viinille. Viinin oma arvio = uusimman tähdillä arvioidun juontikerran tähdet.
-  - Resepti- ja viinikuvat aina neliöitä ja värillisiä. Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
+  - Reseptikuvat aina neliöitä, **viinikuvat pystykuvia 2:3** (käyttäjän toive 11/2026: koko pullo mahtuu kuvaan), kaikki
+    värillisiä. Viinin sivulla kuva omassa muodossaan (enintään 300×450, vanhat neliökuvat neliöinä). Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
     alkukirjain). Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
     vaakatasossa pienenä (210 px) otsikon oikealla puolella.
     (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
@@ -136,7 +138,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Claude Designista.
 - Viinikellarissa 3 viiniä menun viinilistalta; ne on juotu Lapponia-illallisella (juontihistoriassa ilman päivää, siirretty
   vanhasta occasion-kentästä). Lisäksi 7 kaapissa olevaa viiniä (1 pullo kutakin) lisätty etikettikuvista 12.11.2026:
-  paikat kaapissa, ostotiedot ja kuvat puuttuvat (käyttäjä kertoo / lisää), Alko-numero 5:llä, kahdella ei löytynyt.
+  ostotiedot puuttuvat, Alko-numero 5:llä, kahdella ei löytynyt. Käyttäjä lisäsi kuvat neliöinä ennen pystykuvia (12.11.2026):
+  koko pullo näkyy vasta, kun kuva vaihdetaan (Muokkaa → 📷 Vaihda kuva; alkuperäisiä ei ole tallessa, Claude ei voi rajata).
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
 
@@ -167,6 +170,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Stubin `auth.signOut` kannattaa kutsua tallennettua `onAuthStateChange`-callbackia (`"SIGNED_OUT", null`), jotta uloskirjautumisen voi testata.
 - Headless-Chromium ei anna Wake Lockia, joten kokkaustila näyttää siinä "ei pysty pitämään näyttöä päällä".
 - Kuvat: stubiin `storage.from(b).upload/createSignedUrls/remove` (upload → `URL.createObjectURL(blob)`).
+  Viinien testikuviksi sopivat käyttäjän pullokuvat (stubin `createSignedUrls` → `https://testi.local/img/<tiedosto>`).
   Kuvan valinta `page.set_input_files("#f_file" / "#w_file", polku)`, tila `recipePic.state` / `winePic.state`. Ennen rajauksen raahausta `scroll_into_view_if_needed()`,
   muuten hiiri osuu näkymän ulkopuolelle. Kuvien koon voi tarkistaa `createImageBitmap`-funktiolla.
   Leikepöytä: tarjoa sivu `https://testi.local/…`-osoitteesta (`ctx.route` + `fulfill`, turvallinen konteksti) ja
@@ -276,11 +280,12 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     palaa näkyviin) ja aineksen tai vaiheen voi napauttaa tehdyksi (yliviivaus). Ensimmäinen tekemätön vaihe korostetaan.
   - Annosmäärä ja kokkaustilan rastit säilyvät muistissa (`cook`-Map) reseptikohtaisesti, kunnes sivu ladataan
     uudelleen, kokkaus lopetetaan tai resepti tallennetaan.
-- **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi)` (listan pikkukuva `.thumb` 60 px tai
-  alkukirjain `.thumb.ph`, rivillä luokka `.item.withpic`) ja `bigPic(item, alt, "rimg-top"|"rimg-end")`. Iso kuva
+- **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi, tall)` (listan pikkukuva `.thumb` 60 px tai
+  alkukirjain `.thumb.ph`, rivillä luokka `.item.withpic`; viineillä `tall` → `.thumb.tall` 44×66) ja
+  `bigPic(item, alt, "rimg-top"|"rimg-end")` (viineillä `"tall rimg-…"` → `.rimg.tall`: kuva omassa muodossaan). Iso kuva
   renderöidään kahteen kohtaan, ja CSS näyttää alle 600 px leveällä sivun lopussa (ennen nappeja), muuten ylhäällä
   (max 440 px; reseptisivulla vaakatasossa ≥ 960 px otsikon oikealla, 210 px). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
-- **Kuvan lisäys lomakkeessa:** yhteinen `imagePicker(p)` (`recipePic` = "f", `winePic` = "w"; elementit
+- **Kuvan lisäys lomakkeessa:** yhteinen `imagePicker(p, aspect)` (`recipePic` = "f" neliö, `winePic` = "w" `2 / 3`; elementit
   `<p>_imgbox, _imgprev, _cropwrap, _crop, _zoom, _imgnote, _imgpick, _imgpaste, _imgundo, _imgdel, _file`). "📷 Lisää kuva" on
   `<label for="<p>_file">`, `accept="image/*"` → iPhonessa kamera tai kuvakirjasto. Kaikki lähteet → `loadBlob(blob)` → rajaus.
   - **📋 Liitä kuva** (`_imgpaste`, 11/2026, esim. Apple Muistiinpanojen kuville: kuvaa pitkään → Kopioi): `navigator.clipboard.read()`
@@ -290,9 +295,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   - **Raahaus** (iPad: Muistiinpanot ja Safari rinnakkain): kuvatiedoston voi pudottaa mihin tahansa lomakkeen `<section>`iin.
     Raahatessa luokka `.dropon` (katkoviivareunus + kiinteä "Pudota kuva tähän" -kupla). Tekstin raahaus kenttiin ennallaan
     (vain `Files`/`image/*`-tyypit otetaan kiinni).
-  Neliörajaus canvasilla: siirto
-  sormella, suurennus liukusäätimellä (1–3×) tai kahdella sormella, oletuksena keskeltä. `pic.upload(kansio)`:
-  1200×1200 JPEG (laatu 0,85, n. 350 kt) ja 240×240 pikkukuva (n. 16 kt), pienennys vaiheittain.
+  Rajaus canvasilla (`aspect` = leveys/korkeus; `cropRect()` → `{sx, sy, sw, sh}`, viinin canvas `.cropcv.tall` 240 px leveä): siirto
+  sormella, suurennus liukusäätimellä (1–3×) tai kahdella sormella, oletuksena keskeltä. `pic.upload(kansio)` (`scaleCanvas`):
+  reseptit 1200×1200 JPEG (laatu 0,85, n. 350 kt) + 240×240 pikkukuva (n. 16 kt), viinit 800×1200 + 240×360; pienennys vaiheittain.
   Tallennus: `applyPic()` ennen rivin tallennusta, `finishPic()` sen jälkeen (vanha kuva poistetaan vasta onnistuneen
   tallennuksen jälkeen; epäonnistunut tallennus poistaa juuri ladatut). Rivin poisto poistaa myös kuvat.
   Tila `pic.kind`: `none` / `keep` / `new` / `removed` (Peru palauttaa edellisen). Kuvan valinta tekee lomakkeesta muutetun.
@@ -393,7 +398,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     kaappiin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
     Napit `data-wact` (yksi `#wineDetail`-käsittelijä).
   - **Kaappikartta** (`openCellar(korostus)`, `renderCellar`): `.cellar` > `.shelf` (otsikko "Hylly n" + 3 `.cslot`): täysi ruutu
-    `.cslot.full` (nimi 2 riviä, vuosikerta, värikaista `--wc`), tyhjä `.cslot.empty` (muokkaajalle "+"-nappi `data-place`, lukijalle div).
+    `.cslot.full` (min. 112 px; nimi enintään 3 riviä, pitkä sana > 11 merkkiä `longWord` → `.sn.lw` pienempi fontti; vuosikerta;
+    värikaista `--wc` = `::before`; kuvallisella `.haspic` + `<img class="sbg">` = pikkukuva `opacity .3`, tekstille vaalea hehku
+    `text-shadow`), tyhjä `.cslot.empty` (muokkaajalle "+"-nappi `data-place`, lukijalle div).
     **Huom. CSS-luokat ovat globaaleja:** `.slot` on Riittää-sivun rivi ja `.stepper` annosmäärän −/+ (pullomäärä käyttää samaa,
     arvo `.val.num`). Tarkista uutta luokkaa lisätessä, ettei nimi ole jo käytössä (`grep -n "\.nimi" keittokirja.html`).
     Korostus: viinin ruudut `.hl`, muut `.dim`. Alla "Ilman paikkaa" -viinit.
@@ -425,7 +432,8 @@ Jos taulu kuuluu johonkin osioon, lukusäännöksi `can_see('<osio>')`. Uusi osi
 
 **Storage:** yksityinen bucket `recipe-images` (vain `image/jpeg`, max 5 Mt). `storage.objects`-säännöt samalla
 mallilla: select `is_family()`, insert/update/delete `can_edit()` (ehtona `bucket_id = 'recipe-images'`).
-Reseptit `<uuid>.jpg` (1200×1200) ja `<uuid>-pk.jpg` (240×240), viinit samoin kansiossa `viinit/`. Sivu hakee allekirjoitetut osoitteet
+Reseptit `<uuid>.jpg` (1200×1200) ja `<uuid>-pk.jpg` (240×240), viinit kansiossa `viinit/` pystykuvina (800×1200 ja 240×360;
+ennen 12.11.2026 lisätyt neliöinä). Sivu hakee allekirjoitetut osoitteet
 (`createSignedUrls`, voimassa 7 vrk) kaikille kuville kerralla `loadAll()`:ssa (`signImages()`).
 Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuville.
 
