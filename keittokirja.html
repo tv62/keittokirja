@@ -176,15 +176,16 @@
   .cellar { padding: 12px; display: grid; gap: 8px; max-width: 560px; }
   .shelf { display: grid; grid-template-columns: 56px repeat(3, minmax(0, 1fr)); gap: 8px; }
   .shelf .sl { font-size: .8rem; color: var(--muted); align-self: center; }
-  .slot { min-height: 70px; border-radius: 10px; padding: 8px 6px; display: flex; flex-direction: column; justify-content: center;
+  /* Kaapin ruutu (cslot; .slot on Riittää-sivun rivi) */
+  .cslot { min-height: 70px; border-radius: 10px; padding: 8px 6px; display: flex; flex-direction: column; justify-content: center;
     align-items: center; text-align: center; font-size: .8rem; line-height: 1.2; min-width: 0; }
-  .slot.full { background: var(--card); border: 1px solid var(--line); box-shadow: inset 0 6px 0 var(--wc); padding-top: 12px; }
-  .slot.full .sn { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 600;
+  .cslot.full { background: var(--card); border: 1px solid var(--line); box-shadow: inset 0 6px 0 var(--wc); padding-top: 12px; }
+  .cslot.full .sn { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 600;
     overflow-wrap: anywhere; }
-  .slot.full .sv { color: var(--muted); font-size: .75rem; margin-top: 2px; }
-  .slot.empty { border: 2px dashed var(--dash); background: transparent; color: var(--muted); font-size: 1.4rem; }
-  .slot.dim { opacity: .35; }
-  .slot.hl { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .cslot.full .sv { color: var(--muted); font-size: .75rem; margin-top: 2px; }
+  .cslot.empty { border: 2px dashed var(--dash); background: transparent; color: var(--muted); font-size: 1.4rem; }
+  .cslot.dim { opacity: .35; }
+  .cslot.hl { outline: 3px solid var(--accent); outline-offset: 1px; }
   .wsec { margin-top: 22px; }
   .wsh { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .wsh h3 { margin: 0 0 6px; }
@@ -199,9 +200,6 @@
     border-radius: 0; background: none; color: inherit; }
   .trow2 .td { font-weight: 600; }
   .trow2 .tn { white-space: pre-wrap; margin-top: 2px; }
-  .stepper { display: inline-flex; align-items: center; gap: 4px; }
-  .stepper button { min-width: 44px; min-height: 44px; font-size: 1.2rem; padding: 0; }
-  .stepper span { min-width: 40px; text-align: center; font-weight: 600; font-size: 1.1rem; }
   .prow { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .prow span { width: 22px; color: var(--muted); flex: none; }
   .lbl { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
@@ -226,6 +224,7 @@
   .stepper button:disabled { color: var(--line); opacity: 1; }
   .stepper .val { min-width: 96px; text-align: center; font-size: .95rem; }
   .stepper .val.changed { color: var(--accent); font-weight: 600; }
+  .stepper .val.num { min-width: 56px; font-size: 1.1rem; font-weight: 600; }
   button.cook { min-height: 44px; }
   button.cook.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
   .cookhint { font-size: .88rem; color: var(--muted); margin: 8px 0 0; }
@@ -653,7 +652,7 @@
       <div class="muted" id="bottleWine"></div>
       <div id="bCountWrap">
         <label>Montako pulloa?</label>
-        <div class="stepper"><button type="button" id="bMinus" aria-label="Vähemmän">−</button><span id="bCount" aria-live="polite">1</span><button type="button" id="bPlus" aria-label="Enemmän">+</button></div>
+        <div class="stepper"><button type="button" id="bMinus" aria-label="Vähemmän">−</button><span id="bCount" class="val num" aria-live="polite">1</span><button type="button" id="bPlus" aria-label="Enemmän">+</button></div>
       </div>
       <label id="bPlacesLbl">Paikka kaapissa</label>
       <div id="bPlaces"></div>
@@ -2282,12 +2281,12 @@
         const b = taken.get(placeKey(s, p)), w = b && wines.find((x) => x.id === b.wine_id);
         if (w) {
           const cls = cellarHl ? (b.wine_id === cellarHl ? "hl" : "dim") : "";
-          h += `<button class="slot full ${cls}" data-wine="${w.id}" style="--wc:${WCOLOR[w.wine_type] || WCOLOR.muu}"
+          h += `<button class="cslot full ${cls}" data-wine="${w.id}" style="--wc:${WCOLOR[w.wine_type] || WCOLOR.muu}"
             aria-label="Hylly ${s}, paikka ${p}: ${esc(wineTitle(w))}"><span class="sn">${esc(w.name)}</span>${w.vintage ? `<span class="sv">${w.vintage}</span>` : ""}</button>`;
         } else if (canEdit) {
-          h += `<button class="slot empty" data-place="${s}-${p}" aria-label="Hylly ${s}, paikka ${p}: tyhjä. Lisää pullo.">+</button>`;
+          h += `<button class="cslot empty" data-place="${s}-${p}" aria-label="Hylly ${s}, paikka ${p}: tyhjä. Lisää pullo.">+</button>`;
         } else {
-          h += `<div class="slot empty" role="img" aria-label="Hylly ${s}, paikka ${p}: tyhjä"></div>`;
+          h += `<div class="cslot empty" role="img" aria-label="Hylly ${s}, paikka ${p}: tyhjä"></div>`;
         }
       }
       h += `</div>`;
