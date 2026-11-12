@@ -87,7 +87,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     Pullomäärä listalla (🍾 2) ja rajaus **Kaapissa / Juodut / Kaikki** (oletus Kaapissa, jos pulloja on). **🍷 Avaa pullo** kysyy
     päivän, tilaisuuden, tähdet ja muistiinpanon → pullo siirtyy juontihistoriaan. **Kaappikartta** 5 × 3 -ruudukkona (napautus
     avaa viinin, tyhjä paikka → valitse viini → pullot samaan paikkaan). **Ruudussa pullon kuva himmeänä tekstin taustalla**
-    (käyttäjä valitsi vaihtoehdon A 12.11.2026; hylätty B = kuva ruudun yläosassa ja nimi alla). Ostotiedot pullokohtaisesti (päivä, paikka, hinta) ja
+    (käyttäjä valitsi vaihtoehdon A 12.11.2026; hylätty B = kuva ruudun yläosassa ja nimi alla). **Pullon siirto raahaamalla**
+    (käyttäjän toive 12.11.2026, kuten viikkosuunnitelmassa): pitkä painallus → raahaus toiseen paikkaan; varattuun paikkaan
+    pudotettu pullo vaihtaa paikkaa. Myös "Ilman paikkaa" -listan viinin voi raahata kaappiin. Ostotiedot pullokohtaisesti (päivä, paikka, hinta) ja
     Alkon tuotenumero + linkki viinille. Viinin oma arvio = uusimman tähdillä arvioidun juontikerran tähdet.
   - Reseptikuvat aina neliöitä, **viinikuvat pystykuvia 2:3** (käyttäjän toive 11/2026: koko pullo mahtuu kuvaan), kaikki
     värillisiä. Viinin sivulla kuva omassa muodossaan (enintään 300×450, vanhat neliökuvat neliöinä). Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
@@ -165,7 +167,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
 - Viinikellarin testeissä tilallinen stub (insert/update/delete muuttavat muistissa olevaa dataa `window.__DB`; wine_bottles-paikan
-  yksilöllisyys → virhe `23505`), jotta lisäys → avaus → historia voidaan testata peräkkäin.
+  yksilöllisyys → virhe `23505`; `rpc("move_bottle")` vaihtaa paikat kuten tietokanta), jotta lisäys → avaus → historia voidaan
+  testata peräkkäin. Stubin select palauttaa kopiot riveistä (muuten sivun omat muutokset menisivät suoraan `__DB`:hen).
+  Kosketusraahaus (iPhone): konteksti `has_touch=True, is_mobile=True` ja CDP `Input.dispatchTouchEvent`
+  (touchStart → odota 450 ms → touchMove-sarja → touchEnd); tarkista myös, ettei sivu vierinyt.
 - iPadin vaakataso: näkymä 1180×820 (pystyssä 820×1180). Vaakatasoasettelu vaatii `orientation: landscape` ja ≥ 960 px.
   Stubin `auth.signOut` kannattaa kutsua tallennettua `onAuthStateChange`-callbackia (`"SIGNED_OUT", null`), jotta uloskirjautumisen voi testata.
 - Headless-Chromium ei anna Wake Lockia, joten kokkaustila näyttää siinä "ei pysty pitämään näyttöä päällä".
@@ -403,7 +408,14 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     `text-shadow`), tyhjä `.cslot.empty` (muokkaajalle "+"-nappi `data-place`, lukijalle div).
     **Huom. CSS-luokat ovat globaaleja:** `.slot` on Riittää-sivun rivi ja `.stepper` annosmäärän −/+ (pullomäärä käyttää samaa,
     arvo `.val.num`). Tarkista uutta luokkaa lisätessä, ettei nimi ole jo käytössä (`grep -n "\.nimi" keittokirja.html`).
-    Korostus: viinin ruudut `.hl`, muut `.dim`. Alla "Ilman paikkaa" -viinit.
+    Korostus: viinin ruudut `.hl`, muut `.dim`. Alla "Ilman paikkaa" -viinit. Ruutu `cellarTile(w, b, cls)`; kaikilla ruuduilla
+    `data-at="h-p"`, ohje `#cellarHint` (muokkaajalle raahausohje).
+  - **Siirto raahaamalla** (vain muokkaaja): raahattavat `[data-drag="<pullon id>"]` = täydet ruudut ja "Ilman paikkaa" -rivit
+    (viinin ensimmäinen paikaton pullo). Oma tila `cdrag` (viikkosuunnitelman `drag` erikseen; yhteinen `dragJustEnded` estää
+    pudotuksen jälkeisen klikkauksen), pitkä painallus 350 ms, liike > 10 px ennen sitä = vieritys, haamu `.cslot.dragghost`
+    (rivistä rakennetaan ruutu `cellarTile`), kohde `.cslot.drop-ok`, automaattinen vieritys reunoilla, `touchmove` estetään
+    raahauksen aikana. `moveBottle(pullo, "h-p")`: paikat vaihdetaan heti näkyviin, sitten RPC `move_bottle`; virheessä
+    `loadBottles()` ja ilmoitus. Onnistuessa `toast` ("Paikat vaihdettu: A ↔ B").
   - **Tyhjä paikka** (`openWinePick`, `pickPlace`): viinin valinta korvaa valintasivun historiassa → pullolomake; "+ Uusi viini" →
     `#/uusi-viini` (korvaa) ja `pendingPlace` → `openWineEditor(null, true)` ottaa sen `newWinePlace`:ksi → tallennuksen jälkeen
     pullolomake samaan paikkaan (korvaa). Näin tallennuksen jälkeinen takaisin vie kaappikarttaan.
@@ -460,6 +472,9 @@ Yksityinen skeema `private` (ei API:ssa):
 RPC-funktiot (public, security definer):
 - `am_i_admin()`, `can_i_edit()`, `my_hidden_sections()` – kirjautuneen omat oikeudet ja piilotetut osiot.
 - `set_recipe_order(p_ids uuid[], p_pos int[])` – security invoker (RLS), tarkistaa `can_edit()`; päivittää `sort_order`-arvot.
+- `move_bottle(p_id uuid, p_shelf int, p_slot int)` – security invoker, tarkistaa `can_edit()`; siirtää kaapissa olevan pullon
+  paikkaan (null = ei paikkaa). Jos paikassa on toinen pullo, paikat vaihtuvat yhdessä transaktiossa (toinen ensin ilman paikkaa,
+  koska paikan yksilöllisyysindeksi tarkistetaan heti). Paikaton pullo varattuun paikkaan → toinen jää ilman paikkaa.
 - Vain admin (tarkistavat `is_admin()`:n itse): `admin_list_users()` (palauttaa myös `can_edit`, adminilla aina true, ja
   `hidden_sections`), `admin_set_hidden(p_email, p_hidden text[])` (ei adminille: "Admin näkee aina kaiken"),
   `admin_add_member(p_email, p_admin = false, p_can_edit = false)` (ei omia admin-oikeuksia pois),

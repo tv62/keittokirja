@@ -193,6 +193,9 @@
   .cslot.empty { border: 2px dashed var(--dash); background: transparent; color: var(--muted); font-size: 1.4rem; }
   .cslot.dim { opacity: .35; }
   .cslot.hl { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .cslot.drop-ok { outline: 3px dashed var(--accent); outline-offset: 2px; }
+  .cslot.empty.drop-ok { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .cslot.dragghost { padding-left: 4px; padding-right: 4px; box-shadow: 0 12px 30px rgba(0,0,0,.3); }
   .wsec { margin-top: 22px; }
   .wsh { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .wsh h3 { margin: 0 0 6px; }
@@ -641,7 +644,7 @@
     <h2 style="margin:6px 0 4px">Kaappikartta</h2>
     <p class="muted" id="cellarInfo" style="margin:0 0 12px"></p>
     <div class="cellar card" id="cellarGrid"></div>
-    <p class="hint">Hylly 1 on ylin, paikka 1 vasemmalla.</p>
+    <p class="hint" id="cellarHint">Hylly 1 on ylin, paikka 1 vasemmalla.</p>
     <div id="cellarLoose"></div>
   </section>
 
@@ -2288,6 +2291,11 @@
   }
   // Pitkä sana (esim. Gewürztraminer) ei mahdu kapeaan ruutuun → pienempi fontti
   const longWord = (t) => (t || "").split(/[\s\-–]+/).some((x) => x.length > 11);
+  function cellarTile(w, b, cls) {
+    const pic = imgUrl(w, true), s = b.shelf, p = b.slot;
+    return `<button class="cslot full ${cls}${pic ? " haspic" : ""}" data-wine="${w.id}" data-at="${s}-${p}"${canEdit ? ` data-drag="${b.id}"` : ""}
+      style="--wc:${WCOLOR[w.wine_type] || WCOLOR.muu}" aria-label="Hylly ${s}, paikka ${p}: ${esc(wineTitle(w))}">${pic ? `<img class="sbg" src="${esc(pic)}" alt="" loading="lazy">` : ""}<span class="sn${longWord(w.name) ? " lw" : ""}">${esc(w.name)}</span>${w.vintage ? `<span class="sv">${w.vintage}</span>` : ""}</button>`;
+  }
   function renderCellar() {
     const taken = takenPlaces(), loose = inCellar().filter((b) => !b.shelf);
     const hw = cellarHl && wines.find((w) => w.id === cellarHl);
@@ -2299,26 +2307,112 @@
       for (let p = 1; p <= SLOTS; p++) {
         const b = taken.get(placeKey(s, p)), w = b && wines.find((x) => x.id === b.wine_id);
         if (w) {
-          const cls = cellarHl ? (b.wine_id === cellarHl ? "hl" : "dim") : "", pic = imgUrl(w, true);
-          h += `<button class="cslot full ${cls}${pic ? " haspic" : ""}" data-wine="${w.id}" style="--wc:${WCOLOR[w.wine_type] || WCOLOR.muu}"
-            aria-label="Hylly ${s}, paikka ${p}: ${esc(wineTitle(w))}">${pic ? `<img class="sbg" src="${esc(pic)}" alt="" loading="lazy">` : ""}<span class="sn${longWord(w.name) ? " lw" : ""}">${esc(w.name)}</span>${w.vintage ? `<span class="sv">${w.vintage}</span>` : ""}</button>`;
+          h += cellarTile(w, b, cellarHl ? (b.wine_id === cellarHl ? "hl" : "dim") : "");
         } else if (canEdit) {
-          h += `<button class="cslot empty" data-place="${s}-${p}" aria-label="Hylly ${s}, paikka ${p}: tyhjä. Lisää pullo.">+</button>`;
+          h += `<button class="cslot empty" data-place="${s}-${p}" data-at="${s}-${p}" aria-label="Hylly ${s}, paikka ${p}: tyhjä. Lisää pullo.">+</button>`;
         } else {
-          h += `<div class="cslot empty" role="img" aria-label="Hylly ${s}, paikka ${p}: tyhjä"></div>`;
+          h += `<div class="cslot empty" data-at="${s}-${p}" role="img" aria-label="Hylly ${s}, paikka ${p}: tyhjä"></div>`;
         }
       }
       h += `</div>`;
     }
     $("cellarGrid").innerHTML = h;
     const looseWines = [...new Set(loose.map((b) => b.wine_id))].map((id) => wines.find((w) => w.id === id)).filter(Boolean);
-    $("cellarLoose").innerHTML = looseWines.length ? `<h3>Ilman paikkaa</h3><div class="list">${looseWines.map(wineItem).join("")}</div>` : "";
+    $("cellarLoose").innerHTML = looseWines.length ? `<h3>Ilman paikkaa</h3>${canEdit ? `<p class="hint" style="margin-top:-4px">Raahaa pullo
+      kaappiin: pidä riviä hetki sormella ja vedä vapaaseen paikkaan.</p>` : ""}<div class="list">${looseWines.map(wineItem).join("")}</div>` : "";
+    // Raahattava = viinin ensimmäinen paikaton pullo
+    if (canEdit) for (const el of $("cellarLoose").querySelectorAll("[data-wine]")) {
+      const b = loose.find((x) => x.wine_id === el.dataset.wine); if (b) el.dataset.drag = b.id;
+    }
+    $("cellarHint").textContent = "Hylly 1 on ylin, paikka 1 vasemmalla." + (canEdit && inCellar().length
+      ? " Siirrä pulloa pitämällä sitä hetki sormella ja raahaamalla. Varattuun paikkaan pudotettu pullo vaihtaa paikkaa." : "");
   }
   $("cellarView").onclick = (e) => {
     const p = e.target.closest("[data-place]"); if (p) return go(`#/viinit/kaappi/paikka/${p.dataset.place}`);
     const w = e.target.closest("[data-wine]"); if (w) go(`#/viinit/${w.dataset.wine}`);
   };
   $("cellarBackBtn").onclick = () => back("#/viinit");
+
+  // ----- Pullon siirto raahaamalla (vain muokkaaja; kuten viikkosuunnitelmassa) -----
+  // Pitkä painallus ruudussa tai "Ilman paikkaa" -rivissä → haamuruutu seuraa sormea → pudotus paikkaan.
+  // Varattuun paikkaan pudotus vaihtaa paikat (RPC move_bottle, yhdessä transaktiossa).
+  let cdrag = null;
+  $("cellarView").addEventListener("pointerdown", (e) => {
+    if (!canEdit || e.button > 0 || cdrag) return;
+    const el = e.target.closest("[data-drag]"); if (!el) return;
+    cdrag = { el, bid: el.dataset.drag, pid: e.pointerId, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, active: false };
+    cdrag.timer = setTimeout(cellarDragStart, 350);
+  });
+  function cellarDragStart() {
+    const d = cdrag; if (!d) return;
+    const b = bottles.find((x) => x.id === d.bid), w = b && wines.find((x) => x.id === b.wine_id);
+    const tile = $("cellarGrid").querySelector(".cslot");
+    if (!w || !tile) { cdrag = null; return; }
+    d.active = true; d.from = b.shelf ? placeKey(b.shelf, b.slot) : "";
+    const tr = tile.getBoundingClientRect(), r = d.el.getBoundingClientRect();
+    let g;
+    if (d.el.classList.contains("cslot")) { g = d.el.cloneNode(true); d.dx = d.x - r.left; d.dy = d.y - r.top; }
+    else { const t = document.createElement("div"); t.innerHTML = cellarTile(w, b, ""); g = t.firstElementChild; d.dx = tr.width / 2; d.dy = tr.height / 2; }
+    for (const a of ["data-drag", "data-wine", "data-at", "aria-label"]) g.removeAttribute(a);
+    g.classList.remove("hl", "dim"); g.classList.add("dragghost"); g.setAttribute("aria-hidden", "true");
+    g.style.width = tr.width + "px"; g.style.height = tr.height + "px";
+    document.body.appendChild(g); d.ghost = g;
+    d.el.classList.add("dragsrc");
+    try { if (navigator.vibrate) navigator.vibrate(15); } catch {}
+    cellarDragMove(d.x, d.y);
+    const scroll = () => { // automaattinen vieritys reunoilla
+      if (cdrag !== d) return;
+      const edge = 70, h = window.innerHeight;
+      const v = d.cy < edge ? -Math.ceil((edge - d.cy) / 5) : d.cy > h - edge ? Math.ceil((d.cy - (h - edge)) / 5) : 0;
+      if (v) { window.scrollBy(0, v); cellarDragMove(d.cx, d.cy); }
+      d.raf = requestAnimationFrame(scroll);
+    };
+    d.raf = requestAnimationFrame(scroll);
+  }
+  function cellarDragMove(x, y) {
+    const d = cdrag; d.cx = x; d.cy = y;
+    d.ghost.style.transform = `translate(${x - d.dx}px, ${y - d.dy}px)`;
+    if (d.hl) d.hl.classList.remove("drop-ok");
+    const under = document.elementFromPoint(x, y), t = under && under.closest("#cellarGrid [data-at]");
+    d.hl = t && t.dataset.at !== d.from ? t : null;
+    if (d.hl) d.hl.classList.add("drop-ok");
+  }
+  function cellarDragEnd(cancelled) {
+    const d = cdrag; cdrag = null;
+    if (!d) return;
+    clearTimeout(d.timer);
+    if (!d.active) return;
+    cancelAnimationFrame(d.raf);
+    d.ghost.remove(); d.el.classList.remove("dragsrc");
+    if (d.hl) d.hl.classList.remove("drop-ok");
+    dragJustEnded = true; setTimeout(() => { dragJustEnded = false; }, 400); // ei avata viiniä pudotuksen jälkeen
+    if (!cancelled && d.hl) moveBottle(d.bid, d.hl.dataset.at);
+  }
+  document.addEventListener("pointermove", (e) => {
+    const d = cdrag; if (!d || e.pointerId !== d.pid) return;
+    if (!d.active) { if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 10) cellarDragEnd(true); return; } // vieritys
+    e.preventDefault();
+    cellarDragMove(e.clientX, e.clientY);
+  }, { passive: false });
+  document.addEventListener("pointerup", (e) => { if (cdrag && e.pointerId === cdrag.pid) cellarDragEnd(false); });
+  document.addEventListener("pointercancel", (e) => { if (cdrag && e.pointerId === cdrag.pid) cellarDragEnd(true); });
+  document.addEventListener("touchmove", (e) => { if (cdrag && cdrag.active) e.preventDefault(); }, { passive: false });
+  $("cellarView").addEventListener("contextmenu", (e) => { if (e.target.closest("[data-drag]")) e.preventDefault(); });
+  // Siirto heti näkyviin, tallennus taustalla; virheessä haetaan pullot uudelleen.
+  async function moveBottle(bid, at) {
+    const b = bottles.find((x) => x.id === bid); if (!b) return;
+    const [s, p] = at.split("-").map(Number), hadPlace = !!b.shelf;
+    const other = inCellar().find((x) => x.shelf === s && x.slot === p && x.id !== bid);
+    const name = (x) => { const w = x && wines.find((y) => y.id === x.wine_id); return w ? w.name : "Pullo"; };
+    if (other) { other.shelf = b.shelf; other.slot = b.slot; }
+    b.shelf = s; b.slot = p;
+    renderCellar();
+    const { error } = await sb.rpc("move_bottle", { p_id: bid, p_shelf: s, p_slot: p });
+    if (error) { toast("Siirto epäonnistui: " + error.message, true); await loadBottles(); }
+    else toast(!other ? `${name(b)}: hylly ${s}, paikka ${p}`
+      : hadPlace ? `Paikat vaihdettu: ${name(b)} ↔ ${name(other)}` : `${name(b)}: hylly ${s}, paikka ${p}. ${name(other)} siirtyi ilman paikkaa.`);
+    if (currentView === "cellarView") renderCellar();
+  }
 
   // Tyhjä paikka → valitse viini (tai uusi viini) → pullolomake samaan paikkaan
   function openWinePick(s, p) {
