@@ -87,7 +87,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     vaakatasossa pienenä (210 px) otsikon oikealla puolella.
     (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
   - **Yläpalkki** (käyttäjän toive 11/2026): adminilla yläpalkissa vain ⚙️ (Hallinta, 44 px), **Kirjaudu ulos on Hallinta-sivun
-    ylärivillä**. Muilla jäsenillä (ei Hallinta-sivua) Kirjaudu ulos yläpalkissa. Palkki yhden rivin korkuinen.
+    ylärivillä**. Muilla jäsenillä (ei Hallinta-sivua) Kirjaudu ulos yläpalkissa. Palkki yhden rivin korkuinen, yläpuolella 10 px väli
+    (käyttäjän toive 11/2026: iOS 26 Safarin yläreunan sumennus osui otsikkoon; sumennuksen korkeutta sivu ei voi säätää).
   - **Reseptisivu iPadilla vaakatasossa** (11/2026): ainekset vasemmalla ja ohje + muistiinpanot oikealla rinnakkain; ainekset
     pysyvät näkyvissä, kun ohjetta vieritetään. Pystyasennossa ja puhelimessa allekkain kuten ennen.
   - **Ohjeen vaiheet isoilla numeroilla** (käyttäjä valitsi vaihtoehdon B "iso numero" 11/2026; hylätyt: A täytetty pallo,
