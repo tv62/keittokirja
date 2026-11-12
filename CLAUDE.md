@@ -135,7 +135,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - Seuraavaksi todennäköisesti: Viikkosuunnitelman ostoslista (backlog), puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut
   Claude Designista.
 - Viinikellarissa 3 viiniä menun viinilistalta; ne on juotu Lapponia-illallisella (juontihistoriassa ilman päivää, siirretty
-  vanhasta occasion-kentästä). Pulloja kaapissa ei vielä ole (käyttäjä lisää). Lähteen arviot ja Alko-numerot puuttuvat.
+  vanhasta occasion-kentästä). Lisäksi 7 kaapissa olevaa viiniä (1 pullo kutakin) lisätty etikettikuvista 12.11.2026:
+  paikat kaapissa, ostotiedot ja kuvat puuttuvat (käyttäjä kertoo / lisää), Alko-numero 5:llä, kahdella ei löytynyt.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
 
@@ -505,6 +506,22 @@ Redirect URL = sivun osoite.
 - Pelkkä linkki → tallenna `source` ja pyydä käyttäjää liittämään ohjeen teksti (iCloud ja monet sivut estävät lukemisen).
 - Käytä SQL:ssä dollar-quotingia (`$t$...$t$`, `$j$[...]$j$::jsonb`).
 - Raportoi lopuksi lyhyesti, mitä lisättiin ja mitä tulkintoja tehtiin.
+
+## Viinien lisääminen etikettikuvista
+
+Käyttäjä lähettää kuvan pullosta chattiin → Claude lukee etiketin ja lisää viinin suoraan Supabaseen (`execute_sql`).
+- **Kentät:** `name` = viinin nimi ilman tuottajaa (esim. "Gattinara", "Barolo", "Faustino I Gran Reserva"), `producer` erikseen,
+  `vintage`, `wine_type`, `grapes`, `region` (tarvittaessa alue suluissa, esim. "Piemonte (Gattinara)"), `country` suomeksi
+  (Italia, Ranska, Espanja, Argentiina), `food_pairing` lyhyesti omin sanoin. Etiketin palkintotarra → `source_rating` +
+  `source_name` (esim. "Pronssi, Vuoden punaviini 2025" / "Viinilehti"). `description` jätetään tyhjäksi (ei kopioida Alkon tai
+  muiden tekstejä).
+- **Alko:** haku WebSearchilla `"alko.fi/en/products" <tuottaja> <nimi>` (tai viinikartta.fi, jossa "Alkon tuotenumero").
+  Tuotenumero pysyy yleensä samana vuosikerrasta toiseen. Hinta = Alkon hinta (litrahinta × 0,75 + pantti 0,10 €). Jos samaa
+  viiniä ei löydy, `alko_id` ja hinta tyhjiksi ja kerrotaan käyttäjälle.
+- **Pullot:** jokaisesta pullosta rivi `wine_bottles` (status `kaapissa`). Paikka (`shelf`, `slot`) vain, jos käyttäjä kertoo;
+  ostotiedot (`purchased_on`, `purchase_place`, `price`) vain kerrotut. Kuvaa Claude ei voi tallentaa (ei Storage-avainta):
+  käyttäjä lisää sen sovelluksessa (Muokkaa → 📷 Lisää kuva).
+- Tarkista ensin, onko sama viini (nimi + tuottaja + vuosikerta) jo kellarissa → silloin vain uusi pullo.
 
 ## Kuvitetun menun tuominen (Claude Design -canvas)
 
