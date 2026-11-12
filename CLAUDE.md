@@ -29,13 +29,13 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Yksityisyys:** reseptit, menut ja viinit vain perheelle (RLS). Julkinen repo on hyväksytty, koska vain koodi on julkista.
 - **Oikeudet:** uusi jäsen saa oletuksena vain lukea. Admin antaa muokkausoikeuden Hallinta-sivulla. Admin saa aina muokata.
 - **Osioiden näkyvyys (admin päättää, 11/2026):** admin voi piilottaa jäseneltä etusivun osioita (Arkiruoka, Viikonloppuherkut,
-  Vauvan ruoat, Menut, Viinit, Viikkosuunnitelma) Hallinta-sivulla. Piilotus on täysi: kortti, osoitteet ja haku pois, ja RLS estää datan
+  Vauvan ruoat, Menut, Viinikellari, Viikkosuunnitelma) Hallinta-sivulla. Piilotus on täysi: kortti, osoitteet ja haku pois, ja RLS estää datan
   latautumisen. Admin näkee aina kaiken. **Uusi jäsen ei näe oletuksena mitään** (käyttäjän päätös 11/2026): admin avaa osiot
   Hallinta-sivulla. Ennen muutosta lisätyt jäsenet näkevät kaiken.
 - **Käyttäjä haluaa, että Claude tekee muutokset suoraan** (Supabase + push GitHubiin), ei tiedostojen siirtelyä.
 - **Käyttöliittymäpäätökset, joita ei muuteta kysymättä:**
   - Etusivulla ylimpänä **🗓️ Viikkosuunnitelma** (käyttäjän päätös 11/2026, leveä kortti, jossa tämän päivän lounas ja päivällinen),
-    sitten viisi korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinit ja niiden alla oma osio
+    sitten viisi korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinikellari (käyttäjän nimeämä 11/2026) ja niiden alla oma osio
     🍼 Vauvan ruoat (luokka `wide`: iPadilla molempien sarakkeiden levyinen).
   - **Viikkosuunnitelma** (11/2026, ulkoasu hyväksytty Claude Design -luonnoksesta "Viikkosuunnitelma – luonnos"): viikko ma–su,
     joka päivä lounas ja päivällinen (myös arkena). Menneet päivät harmaina ja tiivistettynä (vain päivä + ruokien nimet),
@@ -82,6 +82,12 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     "Kaikki" tekstinä, Tagit-nappi "🏷 ▾" (valittu tagi: "🏷 🥕 ▴").
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
+  - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
+    3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
+    Pullomäärä listalla (🍾 2) ja rajaus **Kaapissa / Juodut / Kaikki** (oletus Kaapissa, jos pulloja on). **🍷 Avaa pullo** kysyy
+    päivän, tilaisuuden, tähdet ja muistiinpanon → pullo siirtyy juontihistoriaan. **Kaappikartta** 5 × 3 -ruudukkona (napautus
+    avaa viinin, tyhjä paikka → valitse viini → pullot samaan paikkaan). Ostotiedot pullokohtaisesti (päivä, paikka, hinta) ja
+    Alkon tuotenumero + linkki viinille. Viinin oma arvio = uusimman tähdillä arvioidun juontikerran tähdet.
   - Resepti- ja viinikuvat aina neliöitä ja värillisiä. Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
     alkukirjain). Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
     vaakatasossa pienenä (210 px) otsikon oikealla puolella.
@@ -128,7 +134,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   jäsenet näkevät osion (heillä ei ollut piilotuksia); uusi jäsen ei näe sitä oletuksena.
 - Seuraavaksi todennäköisesti: Viikkosuunnitelman ostoslista (backlog), puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut
   Claude Designista.
-- Viinikirjassa 3 viiniä menun viinilistalta. Juontipäivä, omat tähdet ja lähteen arvio puuttuvat.
+- Viinikellarissa 3 viiniä menun viinilistalta; ne on juotu Lapponia-illallisella (juontihistoriassa ilman päivää, siirretty
+  vanhasta occasion-kentästä). Pulloja kaapissa ei vielä ole (käyttäjä lisää). Lähteen arviot ja Alko-numerot puuttuvat.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
 
@@ -153,6 +160,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - Reitityksen testaus: `page.go_back()` = takaisin-pyyhkäisy. Huom. `page.goto(sama_url + "#/…")` on vain
   #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
+- Viinikellarin testeissä tilallinen stub (insert/update/delete muuttavat muistissa olevaa dataa `window.__DB`; wine_bottles-paikan
+  yksilöllisyys → virhe `23505`), jotta lisäys → avaus → historia voidaan testata peräkkäin.
 - iPadin vaakataso: näkymä 1180×820 (pystyssä 820×1180). Vaakatasoasettelu vaatii `orientation: landscape` ja ≥ 960 px.
   Stubin `auth.signOut` kannattaa kutsua tallennettua `onAuthStateChange`-callbackia (`"SIGNED_OUT", null`), jotta uloskirjautumisen voi testata.
 - Headless-Chromium ei anna Wake Lockia, joten kokkaustila näyttää siinä "ei pysty pitämään näyttöä päällä".
@@ -168,7 +177,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 
 Näkymät ovat `<section>`-elementtejä, joita `show(view)` vaihtaa (lista `VIEWS`):
 `loadView`, `authView`, `homeView`, `listView`, `detailView`, `editView`, `adminView`, `menusView`, `menuView`,
-`winesView`, `wineView`, `wineEditView`, `planView`, `planAddView`, `planPickView`, `planItemView`.
+`winesView`, `wineView`, `wineEditView`, `cellarView`, `winePickView`, `bottleView`, `tastingView`,
+`planView`, `planAddView`, `planPickView`, `planItemView`.
 Lisää uusi näkymä `VIEWS`-listaan ja reititykseen.
 
 ### Osoitteet ja takaisin-ele (reititys)
@@ -185,7 +195,11 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | `#/resepti/<id>/vauva` | resepti vauvan ruoista avattuna (näyttää `baby_notes`) |
 | `#/uusi-resepti`, `#/uusi-resepti/<kategoria>` | uusi resepti |
 | `#/menut`, `#/menut/<nimi, encodeURIComponent>` | menut, yksi menu |
-| `#/viinit`, `#/viinit/<id>`, `#/viinit/<id>/muokkaa`, `#/uusi-viini` | viinit |
+| `#/viinit`, `#/viinit/<id>`, `#/viinit/<id>/muokkaa`, `#/uusi-viini` | viinikellari, viini, viinilomake |
+| `#/viinit/kaappi`, `#/viinit/kaappi/<viini>` | kaappikartta (viinin pullot korostettuina) |
+| `#/viinit/kaappi/paikka/<hylly>-<paikka>` | tyhjä paikka → valitse viini (vain muokkaaja) |
+| `#/viinit/<id>/pullot/uusi[/<hylly>-<paikka>]`, `#/viinit/<id>/pullo/<pullo>` | pulloja kaappiin, pullon muokkaus (vain muokkaaja) |
+| `#/viinit/<id>/avaa/<pullo>`, `#/viinit/<id>/juotu/<pullo>`, `#/viinit/<id>/juotu/uusi` | avaa pullo, juontikerran muokkaus / lisäys (vain muokkaaja) |
 | `#/hallinta` | käyttäjien hallinta (vain admin) |
 | `#/viikko`, `#/viikko/<maanantai YYYY-MM-DD>` | viikkosuunnitelma (tämä viikko / muu viikko) |
 | `#/viikko/lisaa/<päivä>/<lounas\|paivallinen>` | ruoan lisäys (vain muokkaaja) |
@@ -201,7 +215,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 - Vierityskohta tallennetaan `history.state.y`:hyn ja palautetaan takaisin tultaessa.
 - Listan rajaukset (kategoria, päärajaus, tagi, haku) säilyvät, kun reseptistä palataan. Ne nollataan,
   kun lista avataan etusivun kortista (`resetListFilters()`). Sama viineissä (`wineType`, `wq`).
-- Data (reseptit, menut, viinit, admin-tieto, viikkosuunnitelma `loadPlan()`) ladataan kerralla `loadAll()`-funktiossa ennen
+- Data (reseptit, menut, viinit, pullot `bottleQuery()`, admin-tieto, viikkosuunnitelma `loadPlan()`) ladataan kerralla `loadAll()`-funktiossa ennen
   ensimmäistä `route()`-kutsua. Viikkosuunnitelma haetaan lisäksi uudelleen (`refreshPlan()`), kun etusivu tai viikko avataan
   (enintään 15 s välein) ja kun sovellus palaa näkyviin, jotta muiden muutokset näkyvät.
 - Viikkosuunnitelman sisäiset siirtymät: viikon vaihto `‹ ›` korvaa historiarivin (takaisin-ele → etusivu). Reseptin tallennus
@@ -209,7 +223,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 
 ### Näkymät
 
-- **Etusivu:** hakukenttä (`#hq`) ja kortit Arkiruoka, Viikonloppuherkut, Vauvan ruoat (`data-cat`), Menut ja Viinit (`data-nav`).
+- **Etusivu:** hakukenttä (`#hq`) ja kortit Arkiruoka, Viikonloppuherkut, Vauvan ruoat (`data-cat`), Menut ja Viinikellari (`data-nav`;
+  laskuri "N pulloa kaapissa", ilman pulloja "N viiniä").
   Haku etsii resepteistä (nimi, kuvaus, kategorian nimi, ainekset, tagit, menu), menuista ja viineistä. Haun aikana kortit
   piilotetaan ja tulokset näytetään ryhmiteltynä. Haku säilyy, kun tuloksesta palataan. Otsikko (pata-logo + "Keittokirja")
   vie etusivulle ja tyhjentää haun. `data-home`-elementti = takaisin etusivulle.
@@ -364,8 +379,32 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     punaisina, ilmoitus `toast()` (alhaalla, `#toast`), pudotuksessa lähdekortti välähtää punaisena (`.flashbad`), ei muutoksia.
     `applyMove`: ehdotusten avaimet (`suggPick`, kiinnitys `pinSlot`) + rivien `day/meal/sort`-päivitykset (vaihdossa sort vaihtuu).
 - **Menut:** menukortti- ja viinilistasivut välilehtinä, alla menun reseptit.
-- **Viinit:** lista (pikkukuva, haku, tyyppirajaus, omat tähdet), viinin sivu (kuva, Muokkaa), lomake (kuva,
-  tähtivalitsin 1–5, Poista alaosassa).
+- **Viinikellari** (osio `viinit`): vakiot `SHELVES` = 5, `SLOTS` = 3, `PLACE_RE` (paikka "h-p"); sama rajaus tietokannan check-ehdoissa.
+  Tila `bottles` (wine_bottles), apurit `inCellar(viini?)` (status kaapissa, järjestys hylly/paikka), `tastings(viini)` (status juotu,
+  uusin päivä ensin, päivätön loppuun), `takenPlaces()`, `freePlaces(paitsiPullo)`, `placeTxt`, `pullot(n)`, `eur`, `parsePrice`,
+  `alkoUrl(nro)` = `https://www.alko.fi/tuotteet/<nro>/`, `WCOLOR` (ruudun värikaista viinin tyypin mukaan). `refreshCellar()`
+  hakee viinit ja pullot taustalla, kun lista tai kaappikartta avataan.
+  - **Lista** (`renderWines`): Kaappikartta-nappi (`#cellarBtn`, "3 / 15 paikkaa käytössä"), haku, rajaus `wineStatus`
+    (`#wineStatus`: kaapissa / juodut = ei kaapissa / kaikki; oletus kaapissa, jos pulloja on), tyyppichipit (yksi pyyhkäistävä rivi,
+    "Kaikki tyypit"). Rivi `wineItem`: pikkukuva, nimi + vuosikerta, tuottaja · tyyppi · alue, oikealla allekkain 🍾 määrä ja tähdet.
+  - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot, tiedot (Hinta, Alko-linkki, Ruokapari), "🗄️ Kaapissa · 2 pulloa"
+    (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kaapissa ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
+    kaappiin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
+    Napit `data-wact` (yksi `#wineDetail`-käsittelijä).
+  - **Kaappikartta** (`openCellar(korostus)`, `renderCellar`): `.cellar` > `.shelf` (otsikko "Hylly n" + 3 `.slot`): täysi ruutu
+    `.slot.full` (nimi 2 riviä, vuosikerta, värikaista `--wc`), tyhjä `.slot.empty` (muokkaajalle "+"-nappi `data-place`, lukijalle div).
+    Korostus: viinin ruudut `.hl`, muut `.dim`. Alla "Ilman paikkaa" -viinit.
+  - **Tyhjä paikka** (`openWinePick`, `pickPlace`): viinin valinta korvaa valintasivun historiassa → pullolomake; "+ Uusi viini" →
+    `#/uusi-viini` (korvaa) ja `pendingPlace` → `openWineEditor(null, true)` ottaa sen `newWinePlace`:ksi → tallennuksen jälkeen
+    pullolomake samaan paikkaan (korvaa). Näin tallennuksen jälkeinen takaisin vie kaappikarttaan.
+  - **Pullolomake** (`openBottleForm(viini, pullo?, paikka?)`, tila `bState`): uusille määrä −/+ (1–24) ja jokaiselle paikka
+    (`<select>`: vapaat paikat + "Ei paikkaa", ehdotuksena seuraavat vapaat), ostopäivä (tänään), hinta/pullo (viinin hinta), ostopaikka
+    ("Alko"). Muokkauksessa yksi paikka + "Poista pullo kaapista" (ei juontikertaa, esim. lahja). Varattu paikka (`23505`) → ilmoitus.
+  - **Avaa pullo / juontikerta** (`openTasting(viini, pullo, "avaa"|"uusi"|"muokkaa")`, `tState`, tähdet `tStars`): päivä (tänään),
+    tilaisuus, tähdet, muistiinpanot. Avaus = update `status: "juotu"`, paikka null, ehto `status = kaapissa` (ei kahta avausta).
+    Tallennuksen jälkeen `syncWineRating(viini)`: viinin `own_rating` = uusimman tähdillä arvioidun juontikerran tähdet.
+  - **Viinilomake:** kentät kuten ennen + Alkon tuotenumero (`w_alko`, 3–8 numeroa); Juotu- ja Missä-kentät poistettu (→ juontihistoria).
+    Viinin poisto poistaa myös pullot ja juontihistorian (FK on delete cascade; vahvistus kertoo sen).
 - Napautettavat chipit ovat vähintään 44 px korkeita (sormelle sopiva koko).
 - Käyttäjän syöte escapetaan aina `esc()`-funktiolla ennen `innerHTML`:ää. URLit `safeUrl()`-funktiolla.
 
@@ -373,7 +412,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 
 Kaikissa julkisissa tauluissa on RLS. Säännöt `to authenticated`:
 - **select** ehdolla `(select private.is_family())` – kaikki perheen jäsenet näkevät. Poikkeukset (osioiden näkyvyys):
-  `wines` = `can_see('viinit')`; `menus`, `menu_pages` = `can_see('menut')`; `recipes` = is_family ja (ei kategoriatagia TAI
+  `wines`, `wine_bottles` = `can_see('viinit')`; `menus`, `menu_pages` = `can_see('menut')`; `recipes` = is_family ja (ei kategoriatagia TAI
   `tags && my_visible_cats()` TAI menu:-tagi ja `can_see('menut')`); `meal_plan`, `meal_plan_notes`, `plan_settings` = `can_see('viikko')`.
   Storage: `viinit/`-kuvat vain `can_see('viinit')`.
 - **insert/update/delete** ehdolla `(select private.can_edit())` – vain muokkausoikeus tai admin.
@@ -395,7 +434,8 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 | `meal_plan` | id, day (date), meal (`lounas`/`paivallinen`), sort (järjestys aterian sisällä), title (reseptin nimi tallennushetkellä tai vapaa teksti), recipe_id (null = vapaa teksti; FK recipes, on delete set null), servings (vain alkuperäisellä reseptirivillä), leftover (bool, tähteet), leftover_of (alkuperäinen rivi; FK, on delete set null), created_by, created_at, updated_at (trigger `touch_updated_at`) |
 | `meal_plan_notes` | day (date, pääavain), note (1–300 merkkiä), updated_at |
 | `plan_settings` | id (aina 1, yksi rivi), portions_per_meal (numeric, oletus 2: perhe syö aterialla noin näin monta annosta) |
-| `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, drunk_on (date), occasion, price, source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa) |
+| `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, price, alko_id (Alkon tuotenumero, 3–8 numeroa), source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa), created_at, updated_at. (drunk_on ja occasion poistettu 11/2026 → wine_bottles.) |
+| `wine_bottles` | id, wine_id (FK wines, on delete cascade), status (`kaapissa` = pullo kaapissa / `juotu` = juontikerta), shelf (1–5) + slot (1–3) (molemmat tai ei kumpaakaan; vain kaapissa; yksilöllinen paikka kaapissa olevilla: osittainen indeksi `wine_bottles_place_uniq`), purchased_on, purchase_place, price (per pullo), opened_on (juontipäivä, voi puuttua), occasion, rating (1–5), notes, created_by, created_at, updated_at (trigger `touch_updated_at`) |
 
 Yksityinen skeema `private` (ei API:ssa):
 - `family_members(email, is_admin, can_edit, hidden_sections text[], added_at)` – pääsylista. Vain listalla olevat sähköpostit näkevät datan.
@@ -497,7 +537,7 @@ Supabase ei varmuuskopioi ilmaistason projektia, ja tietokannan varmuuskopio ei 
 - **Automaattinen:** yksityinen repo `tv62/keittokirja-varmuuskopio` (EI julkinen, sisältää perheen datan).
   GitHub Actions (`.github/workflows/varmuuskopio.yml`) ajaa `varmuuskopioi.py`:n sunnuntaisin 01.37 UTC, käsin
   (Actions → Varmuuskopio → Run workflow) ja aina kun ohjelma tai workflow muuttuu.
-  - Hakee REST-rajapinnasta taulut `recipes`, `wines`, `menus`, `menu_pages`, `meal_plan`, `meal_plan_notes`, `plan_settings`
+  - Hakee REST-rajapinnasta taulut `recipes`, `wines`, `wine_bottles`, `menus`, `menu_pages`, `meal_plan`, `meal_plan_notes`, `plan_settings`
     (→ `data/<taulu>.json`; `TABLES` = taulu → järjestyssarake, meal_plan_notes järjestetään `day`-sarakkeella), RPC:llä
     `backup_family_members()` (→ `data/family_members.json`) ja bucketin `recipe-images` kuvat (→ `kuvat/`, vain uudet;
     poistetut poistetaan, historia säilyttää). Lisäksi `viimeisin.txt`, jolloin jokainen ajo on oma committinsa.

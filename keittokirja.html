@@ -166,6 +166,44 @@
   .kv dd { margin: 0; }
   .rating-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .rating-box .card { padding: 12px 14px; }
+  /* Viinikellari */
+  .cellarbtn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 16px; margin-bottom: 12px; }
+  .cellarbtn .e { font-size: 1.6rem; line-height: 1; }
+  .cellarbtn .s { display: block; color: var(--muted); font-size: .85rem; font-weight: 400; }
+  .cellarbtn .go { margin-left: auto; color: var(--muted); font-size: 1.5rem; line-height: 1; }
+  .item .side.wside { flex-direction: column; align-items: flex-end; gap: 4px; }
+  .bcount { font-size: .85rem; padding: 3px 8px; border-radius: 999px; background: var(--chip); white-space: nowrap; flex: none; }
+  .cellar { padding: 12px; display: grid; gap: 8px; max-width: 560px; }
+  .shelf { display: grid; grid-template-columns: 56px repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .shelf .sl { font-size: .8rem; color: var(--muted); align-self: center; }
+  .slot { min-height: 70px; border-radius: 10px; padding: 8px 6px; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; text-align: center; font-size: .8rem; line-height: 1.2; min-width: 0; }
+  .slot.full { background: var(--card); border: 1px solid var(--line); box-shadow: inset 0 6px 0 var(--wc); padding-top: 12px; }
+  .slot.full .sn { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 600;
+    overflow-wrap: anywhere; }
+  .slot.full .sv { color: var(--muted); font-size: .75rem; margin-top: 2px; }
+  .slot.empty { border: 2px dashed var(--dash); background: transparent; color: var(--muted); font-size: 1.4rem; }
+  .slot.dim { opacity: .35; }
+  .slot.hl { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .wsec { margin-top: 22px; }
+  .wsh { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .wsh h3 { margin: 0 0 6px; }
+  .wsh .link { font-size: .9rem; margin-right: -6px; }
+  .brow { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .brow .bi { flex: 1; min-width: 0; }
+  .brow .bp { font-weight: 600; }
+  .brow .m, .trow2 .m { color: var(--muted); font-size: .88rem; }
+  .brow button { min-height: 44px; flex: none; }
+  .brow button.icon { min-width: 44px; padding: 0 10px; font-size: 1.2rem; }
+  .trow2 { display: block; width: 100%; text-align: left; padding: 10px 0; border: none; border-top: 1px solid var(--line);
+    border-radius: 0; background: none; color: inherit; }
+  .trow2 .td { font-weight: 600; }
+  .trow2 .tn { white-space: pre-wrap; margin-top: 2px; }
+  .stepper { display: inline-flex; align-items: center; gap: 4px; }
+  .stepper button { min-width: 44px; min-height: 44px; font-size: 1.2rem; padding: 0; }
+  .stepper span { min-width: 40px; text-align: center; font-weight: 600; font-size: 1.1rem; }
+  .prow { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .prow span { width: 22px; color: var(--muted); flex: none; }
   .lbl { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
   .urow { padding: 14px 16px; }
   .urow .em { font-weight: 600; word-break: break-all; }
@@ -423,7 +461,7 @@
           <span class="e">📜</span><span>Menut<span class="s" id="cnt_menus"></span></span>
         </button>
         <button class="cat card" data-nav="wines">
-          <span class="e">🍷</span><span>Viinit<span class="s" id="cnt_wines"></span></span>
+          <span class="e">🍷</span><span>Viinikellari<span class="s" id="cnt_wines"></span></span>
         </button>
         <button class="cat card wide" data-cat="vauvanruoat">
           <span class="e">🍼</span><span>Vauvan ruoat<span class="s" id="cnt_vauvanruoat"></span></span>
@@ -564,23 +602,95 @@
     <div class="list" id="menuRecipes"></div>
   </section>
 
-  <!-- Viinit -->
+  <!-- Viinikellari -->
   <section id="winesView" class="hidden">
     <button class="link" data-home="1">← Etusivu</button>
-    <h2 style="margin:6px 0 14px">Viinit</h2>
+    <h2 style="margin:6px 0 14px">Viinikellari</h2>
+    <button class="cellarbtn card" id="cellarBtn"><span class="e" aria-hidden="true">🗄️</span>
+      <span><b>Kaappikartta</b><span class="s" id="cellarSum"></span></span><span class="go" aria-hidden="true">›</span></button>
     <div class="search">
       <input id="wq" type="search" placeholder="Hae viiniä, tuottajaa, rypälettä…" autocomplete="off" enterkeyhint="search">
       <button class="primary edit-only" id="newWineBtn">+ Uusi</button>
     </div>
-    <div class="chips primary" id="wineChips"></div>
+    <div class="seg" id="wineStatus" role="group" aria-label="Näytä"></div>
+    <div class="chips primary scroll" id="wineChips"></div>
     <div id="wineMsg" class="msg hidden"></div>
     <div class="list" id="wineList"></div>
   </section>
 
   <!-- Yksi viini -->
   <section id="wineView" class="hidden">
-    <button class="link" id="wineBackBtn">← Viinit</button>
+    <button class="link" id="wineBackBtn">← Viinikellari</button>
     <article class="card" id="wineDetail"></article>
+  </section>
+
+  <!-- Kaappikartta: 5 hyllyä × 3 paikkaa -->
+  <section id="cellarView" class="hidden">
+    <button class="link" id="cellarBackBtn">← Viinikellari</button>
+    <h2 style="margin:6px 0 4px">Kaappikartta</h2>
+    <p class="muted" id="cellarInfo" style="margin:0 0 12px"></p>
+    <div class="cellar card" id="cellarGrid"></div>
+    <p class="hint">Hylly 1 on ylin, paikka 1 vasemmalla.</p>
+    <div id="cellarLoose"></div>
+  </section>
+
+  <!-- Tyhjä paikka kaapissa → mikä viini -->
+  <section id="winePickView" class="hidden">
+    <button class="link" id="wpBackBtn">← Kaappikartta</button>
+    <h2 id="wpTitle" style="margin:6px 0 12px">Mikä viini?</h2>
+    <div class="search">
+      <input id="wpQ" type="search" placeholder="Hae viiniä…" autocomplete="off" enterkeyhint="search">
+      <button class="primary" id="wpNewBtn">+ Uusi viini</button>
+    </div>
+    <div class="list" id="wpList"></div>
+  </section>
+
+  <!-- Pullolomake: pulloja kaappiin / yhden pullon muokkaus -->
+  <section id="bottleView" class="hidden">
+    <button class="link" id="bottleCancelBtn">← Peruuta</button>
+    <form id="bottleForm" class="card">
+      <h2 id="bottleTitle">Pulloja kaappiin</h2>
+      <div class="muted" id="bottleWine"></div>
+      <div id="bCountWrap">
+        <label>Montako pulloa?</label>
+        <div class="stepper"><button type="button" id="bMinus" aria-label="Vähemmän">−</button><span id="bCount" aria-live="polite">1</span><button type="button" id="bPlus" aria-label="Enemmän">+</button></div>
+      </div>
+      <label id="bPlacesLbl">Paikka kaapissa</label>
+      <div id="bPlaces"></div>
+      <div class="row">
+        <div><label for="b_date">Ostopäivä</label><input id="b_date" type="date"></div>
+        <div><label for="b_price">Hinta / pullo (€)</label><input id="b_price" inputmode="decimal" placeholder="esim. 18,90"></div>
+      </div>
+      <label for="b_place">Ostopaikka</label>
+      <input id="b_place" maxlength="100" placeholder="esim. Alko">
+      <div id="bottleMsg" class="msg hidden"></div>
+      <div class="actions"><button type="submit" class="primary" id="bottleSaveBtn">Tallenna</button></div>
+      <div id="bDelWrap" class="actions hidden" style="margin-top:28px">
+        <button type="button" class="danger" id="bDelBtn">Poista pullo kaapista</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Avaa pullo / juontikerta -->
+  <section id="tastingView" class="hidden">
+    <button class="link" id="tastingCancelBtn">← Peruuta</button>
+    <form id="tastingForm" class="card">
+      <h2 id="tastingTitle">🍷 Avaa pullo</h2>
+      <div class="muted" id="tastingWine"></div>
+      <label for="t_date">Päivä</label>
+      <input id="t_date" type="date">
+      <label for="t_occasion">Tilaisuus</label>
+      <input id="t_occasion" maxlength="200" placeholder="esim. Lauantai-illallinen, poropaisti">
+      <label>Tähdet</label>
+      <div class="starpick" id="t_stars" role="group" aria-label="Arvio, 1–5 tähteä"></div>
+      <label for="t_notes">Muistiinpanot</label>
+      <textarea id="t_notes" maxlength="2000" style="min-height:90px" placeholder="Miltä maistui, sopiko ruoalle…"></textarea>
+      <div id="tastingMsg" class="msg hidden"></div>
+      <div class="actions"><button type="submit" class="primary" id="tastingSaveBtn">Tallenna</button></div>
+      <div id="tDelWrap" class="actions hidden" style="margin-top:28px">
+        <button type="button" class="danger" id="tDelBtn">Poista juontikerta</button>
+      </div>
+    </form>
   </section>
 
   <!-- Viinilomake -->
@@ -613,11 +723,9 @@
         <div><label for="w_country">Maa</label><input id="w_country" placeholder="esim. Italia"></div>
       </div>
       <div class="row">
-        <div><label for="w_drunk">Juotu</label><input id="w_drunk" type="date"></div>
         <div><label for="w_price">Hinta (€)</label><input id="w_price" inputmode="decimal" placeholder="esim. 24,90"></div>
+        <div><label for="w_alko">Alkon tuotenumero</label><input id="w_alko" inputmode="numeric" maxlength="8" placeholder="esim. 905267"></div>
       </div>
-      <label for="w_occasion">Missä tai millä kertaa</label>
-      <input id="w_occasion" placeholder="esim. Lapponia alla piemontese -illallinen">
       <h3>Arvio lähteestä</h3>
       <div class="row">
         <div><label for="w_src_rating">Arvio</label><input id="w_src_rating" placeholder="esim. 93/100 tai 4,2/5"></div>
@@ -754,7 +862,7 @@
   const CAT_ICON = { arkiruoka: "🥘", viikonloppuherkut: "🥂", vauvanruoat: "🍼" };
   // Etusivun osiot, jotka admin voi piilottaa käyttäjältä (private.family_members.hidden_sections, RLS estää datan).
   const SECTIONS = [["arkiruoka", "🥘", "Arki"], ["viikonloppuherkut", "🥂", "Viikonloppu"], ["vauvanruoat", "🍼", "Vauva"],
-    ["menut", "📜", "Menut"], ["viinit", "🍷", "Viinit"], ["viikko", "🗓️", "Viikkosuunnitelma"]];
+    ["menut", "📜", "Menut"], ["viinit", "🍷", "Viinikellari"], ["viikko", "🗓️", "Viikkosuunnitelma"]];
   // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu. Kuvake tulee TAG_ICON/PRIM_ICON-vakiosta.
   const PRIMARY = {
     vauvanruoat: [["top", "Top-lista"], ["sose", "Soseet"], ["sormiruoka", "Sormiruoat"]],
@@ -802,6 +910,7 @@
   let recipes = [];
   let menus = [];
   let wines = [];
+  let bottles = []; // wine_bottles: pullot kaapissa ja juontikerrat
   let currentCat = null;
   let isAdmin = false;
   let hidden = new Set();  // tältä käyttäjältä piilotetut osiot (admin: tyhjä)
@@ -847,7 +956,7 @@
     return ws.every((w) => hay.includes(w));
   };
   const recipeHay = (r) => [r.title, r.description, CATS[catOf(r)], menuOf(r),...(r.ingredients || []).map(asText), ...plainTags(r)];
-  const wineHay = (w) => [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.occasion, w.own_notes, w.description];
+  const wineHay = (w) => [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.alko_id, w.own_notes, w.description];
   const menuHay = (m) => [m.name, m.subtitle, m.description];
 
   // ---------- Kuvat (Supabase Storage, yksityinen bucket) ----------
@@ -1089,6 +1198,7 @@
 
   const VIEWS = ["loadView", "authView", "homeView", "listView", "detailView", "editView", "adminView",
                  "menusView", "menuView", "winesView", "wineView", "wineEditView",
+                 "cellarView", "winePickView", "bottleView", "tastingView",
                  "planView", "planAddView", "planPickView", "planItemView"];
   function show(view) {
     for (const v of VIEWS) $(v).classList.toggle("hidden", v !== view);
@@ -1178,13 +1288,35 @@
         if (!b) { openMenus(); return true; }
         if (!allMenus().some((m) => m.name === b)) return false;
         openMenu(b); return true;
+      // #/viinit, #/viinit/kaappi[/<viini>|/paikka/<hylly>-<paikka>], #/viinit/<id>[/muokkaa|/pullot/uusi[/<h>-<p>]|
+      // /pullo/<pullo>|/avaa/<pullo>|/juotu/<pullo>|/juotu/uusi]
       case "viinit": {
         if (hidden.has("viinit")) return false;
         if (!b) { openWines(); return true; }
+        if (b === "kaappi") {
+          if (!c) { openCellar(null); return true; }
+          if (c === "paikka") {
+            const m = PLACE_RE.exec(d || ""); if (!canEdit || !m) return false;
+            openWinePick(+m[1], +m[2]); return true;
+          }
+          if (!wines.some((x) => x.id === c)) return false;
+          openCellar(c); return true;
+        }
         const w = wines.find((x) => x.id === b); if (!w) return false;
-        c === "muokkaa" ? openWineEditor(w) : openWine(w); return true;
+        if (!c) { openWine(w); return true; }
+        if (c === "muokkaa") { openWineEditor(w); return true; }
+        if (!canEdit) return false;
+        const bt = (st) => bottles.find((x) => x.id === d && x.wine_id === w.id && x.status === st);
+        if (c === "pullot" && d === "uusi") { openBottleForm(w, null, PLACE_RE.test(e || "") ? e : null); return true; }
+        if (c === "juotu" && d === "uusi") { openTasting(w, null, "uusi"); return true; }
+        const one = c === "pullo" || c === "avaa" ? bt("kaapissa") : c === "juotu" ? bt("juotu") : undefined;
+        if (one === undefined) return false;
+        // Pullo on jo avattu tai poistettu (esim. takaisin-ele lomakkeeseen) → viinin sivu
+        if (!one) { openWine(w); return true; }
+        c === "pullo" ? openBottleForm(w, one) : openTasting(w, one, c === "avaa" ? "avaa" : "muokkaa");
+        return true;
       }
-      case "uusi-viini": if (hidden.has("viinit")) return false; openWineEditor(null); return true;
+      case "uusi-viini": if (hidden.has("viinit")) return false; openWineEditor(null, true); return true;
       case "hallinta": if (!isAdmin) return false; msg($("adminMsg"), ""); loadUsers(); return true;
       // #/viikko, #/viikko/<maanantai>, #/viikko/lisaa/<päivä>/<ateria>[/<resepti>], #/viikko/ruoka/<id>
       case "viikko": {
@@ -1266,7 +1398,7 @@
       myEmail = (session.user?.email || "").toLowerCase();
       if (!ready && !loading) setTimeout(loadAll, 0);
     } else {
-      ready = false; recipes = []; menus = []; wines = []; isAdmin = false; canEdit = false; myEmail = ""; hidden = new Set();
+      ready = false; recipes = []; menus = []; wines = []; bottles = []; isAdmin = false; canEdit = false; myEmail = ""; hidden = new Set();
       planItems = []; planNotes = new Map(); planLoadedAt = 0;
       markClean(); unlockScreen(); show("authView");
     }
@@ -1288,7 +1420,7 @@
   async function loadAll() {
     loading = true;
     show("loadView");
-    const [r, m, w, a, ed, hs] = await Promise.all([
+    const [r, m, w, a, ed, hs, , wb] = await Promise.all([
       sb.from("recipes").select("*").order("title"),
       sb.from("menus").select("id,name,subtitle,description,sort").order("sort").order("name"),
       wineQuery(),
@@ -1296,6 +1428,7 @@
       sb.rpc("can_i_edit"),
       sb.rpc("my_hidden_sections"),
       loadPlan(),
+      bottleQuery(),
     ]);
     hidden = new Set(Array.isArray(hs.data) ? hs.data : []);
     applyHidden();
@@ -1310,6 +1443,7 @@
     recipes = r.data;
     if (!m.error) menus = m.data;
     if (!w.error) wines = w.data;
+    if (!wb.error) bottles = wb.data;
     await signImages([...recipes, ...wines]);
     isAdmin = a.data === true;
     ready = true;
@@ -1418,7 +1552,8 @@
     }
     const nm = allMenus().length, nw = wines.length;
     $("cnt_menus").textContent = nm + (nm === 1 ? " menu" : " menua");
-    $("cnt_wines").textContent = nw + (nw === 1 ? " viini" : " viiniä");
+    const nb = inCellar().length;
+    $("cnt_wines").textContent = nb ? pullot(nb) + " kaapissa" : nw + (nw === 1 ? " viini" : " viiniä");
     renderPlanCard();
   }
   function openHome() { renderHome(); renderHomeSearch(); show("homeView"); refreshPlan(); }
@@ -1962,58 +2097,133 @@
   }
   window.addEventListener("resize", fitPages);
 
-  // ---------- Viinit ----------
+  // ---------- Viinikellari ----------
   const WTYPES = { "punainen": "Punainen", "valkoinen": "Valkoinen", "rosé": "Rosé", "kuohuviini": "Kuohuviini", "jälkiruokaviini": "Jälkiruokaviini", "muu": "Muu" };
+  // Värikaistale kaappikartan ruudussa viinin tyypin mukaan
+  const WCOLOR = { "punainen": "#8e2635", "valkoinen": "#e3cf7a", "rosé": "#e8a3ae", "kuohuviini": "#d8c06a", "jälkiruokaviini": "#c9852a", "muu": "#9a8f86" };
+  // Kaappi: 5 hyllyä (1 = ylin) × 3 paikkaa (1 = vasen). Sama rajaus tietokannan check-ehdoissa.
+  const SHELVES = 5, SLOTS = 3;
+  const PLACE_RE = new RegExp(`^([1-${SHELVES}])-([1-${SLOTS}])$`);
   let wineType = null;
+  let wineStatus = null; // "kaapissa" | "juodut" | "kaikki"; null = oletus (kaapissa, jos pulloja on)
   let editingWineId = null;
   let wineStars = 0;
+  let curWineId = null;   // avoinna oleva viini
+  let cellarHl = null;    // kaappikartassa korostettava viini
+  let pickPlace = null;   // tyhjä paikka, jolle valitaan viini ([hylly, paikka])
+  let pendingPlace = null, newWinePlace = null; // "Uusi viini" tyhjästä paikasta → pullolomake samaan paikkaan
   const starsTxt = (n) => n ? "★".repeat(n) + "☆".repeat(5 - n) : "";
-  const fmtDate = (d) => d ? new Date(d + "T00:00:00").toLocaleDateString("fi-FI") : "";
+  const pullot = (n) => n + (n === 1 ? " pullo" : " pulloa");
+  const eur = (v) => v != null && v !== "" ? Number(v).toLocaleString("fi-FI", { style: "currency", currency: "EUR" }) : "";
+  // "18,90" → 18.9; tyhjä → null; virheellinen → NaN
+  const parsePrice = (t) => {
+    t = (t || "").replace(/[\s€]/g, "").replace(",", ".");
+    if (!t) return null;
+    const p = Number(t); return isNaN(p) || p < 0 ? NaN : p;
+  };
+  const alkoUrl = (id) => /^[0-9]{3,8}$/.test(id || "") ? `https://www.alko.fi/tuotteet/${id}/` : null;
+  const wineTitle = (w) => w.name + (w.vintage ? " " + w.vintage : "");
 
-  const wineQuery = () => sb.from("wines").select("*")
-    .order("drunk_on", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false });
+  // Pullot ja juontikerrat (wine_bottles): status "kaapissa" = pullo kaapissa, "juotu" = juontikerta
+  const bottleQuery = () => sb.from("wine_bottles").select("*").order("created_at");
+  async function loadBottles() { const r = await bottleQuery(); if (!r.error) bottles = r.data; return r; }
+  const inCellar = (wid) => bottles.filter((b) => b.status === "kaapissa" && (!wid || b.wine_id === wid))
+    .sort((a, b) => (a.shelf || 99) - (b.shelf || 99) || (a.slot || 99) - (b.slot || 99));
+  const tastings = (wid) => bottles.filter((b) => b.status === "juotu" && b.wine_id === wid)
+    .sort((a, b) => (b.opened_on || "").localeCompare(a.opened_on || "") || String(b.created_at).localeCompare(String(a.created_at)));
+  const placeKey = (s, p) => `${s}-${p}`;
+  const placeTxt = (b) => b.shelf ? `Hylly ${b.shelf} · paikka ${b.slot}` : "Ei paikkaa";
+  function takenPlaces(exceptId) {
+    const m = new Map();
+    for (const b of inCellar()) if (b.shelf && b.id !== exceptId) m.set(placeKey(b.shelf, b.slot), b);
+    return m;
+  }
+  function freePlaces(exceptId) {
+    const t = takenPlaces(exceptId), out = [];
+    for (let s = 1; s <= SHELVES; s++) for (let p = 1; p <= SLOTS; p++) if (!t.has(placeKey(s, p))) out.push(placeKey(s, p));
+    return out;
+  }
+
+  const wineQuery = () => sb.from("wines").select("*").order("created_at", { ascending: false });
   async function loadWines(silent) {
     const res = await wineQuery();
     if (!res.error) { wines = res.data; await signImages(wines); }
     else if (!silent) msg($("wineMsg"), "Viinien lataus epäonnistui: " + res.error.message, true);
     return res;
   }
+  // Päivitetään taustalla, jos joku muu perheestä on muuttanut viinejä tai pulloja.
+  const refreshCellar = () => Promise.all([loadWines(true), loadBottles()]);
 
   function openWines() {
     renderWines(); show("winesView");
-    // Päivitetään taustalla, jos joku muu perheestä on lisännyt viinin.
-    loadWines(true).then(() => { if (currentView === "winesView") renderWines(); });
+    refreshCellar().then(() => { if (currentView === "winesView") renderWines(); });
   }
   function wineItem(w) {
+    const n = inCellar(w.id).length;
     return `<button class="item card withpic" data-wine="${w.id}">${thumbHtml(w, w.name)}
       <div class="body">
         <div class="t">${esc(w.name)}${w.vintage ? ` <span class="muted" style="font-weight:400">${w.vintage}</span>` : ""}</div>
-        <div class="m">${esc([w.producer, WTYPES[w.wine_type], w.region || w.country, w.drunk_on ? "juotu " + fmtDate(w.drunk_on) : ""].filter(Boolean).join(" · "))}</div>
+        <div class="m">${esc([w.producer, WTYPES[w.wine_type], w.region || w.country].filter(Boolean).join(" · "))}</div>
       </div>
-      ${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}
+      <span class="side wside">${n ? `<span class="bcount" title="Kaapissa ${pullot(n)}" aria-label="Kaapissa ${pullot(n)}">🍾 ${n}</span>` : ""}${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}</span>
     </button>`;
   }
   function renderWines() {
+    const nIn = inCellar().length, inSet = new Set(inCellar().map((b) => b.wine_id));
+    if (!wineStatus) wineStatus = nIn ? "kaapissa" : "kaikki";
+    $("wineStatus").innerHTML = [["kaapissa", `Kaapissa${nIn ? ` (${nIn})` : ""}`], ["juodut", "Juodut"], ["kaikki", "Kaikki"]]
+      .map(([k, l]) => `<button class="chip ${wineStatus === k ? "on" : ""}" data-wst="${k}" aria-pressed="${wineStatus === k}">${esc(l)}</button>`).join("");
+    $("cellarSum").textContent = `${takenPlaces().size} / ${SHELVES * SLOTS} paikkaa käytössä`;
     const types = Object.keys(WTYPES).filter((k) => wines.some((w) => w.wine_type === k));
     $("wineChips").innerHTML = types.length > 1
-      ? [["", "Kaikki"], ...types.map((k) => [k, WTYPES[k]])].map(([k, l]) =>
+      ? [["", "Kaikki tyypit"], ...types.map((k) => [k, WTYPES[k]])].map(([k, l]) =>
           `<button class="chip ${(wineType || "") === k ? "on" : ""}" data-wtype="${esc(k)}">${esc(l)}</button>`).join("") : "";
     const ws = words($("wq").value);
-    const shown = wines.filter((w) => (!wineType || w.wine_type === wineType) && matches(wineHay(w), ws));
-    msg($("wineMsg"), wines.length ? "" : "Viinikirja on vielä tyhjä. Lisää ensimmäinen viini + Uusi -napista.");
-    $("wineList").innerHTML = shown.map(wineItem).join("") || (wines.length ? `<p class="muted center">Ei osumia.</p>` : "");
+    const stOk = (w) => wineStatus === "kaikki" || (wineStatus === "kaapissa") === inSet.has(w.id);
+    const shown = wines.filter((w) => stOk(w) && (!wineType || w.wine_type === wineType) && matches(wineHay(w), ws));
+    msg($("wineMsg"), wines.length ? "" : "Viinikellari on vielä tyhjä. Lisää ensimmäinen viini + Uusi -napista.");
+    $("wineList").innerHTML = shown.map(wineItem).join("") || (!wines.length ? ""
+      : wineStatus === "kaapissa" && !nIn && !ws.length ? `<p class="muted center">Kaapissa ei ole pulloja. Lisää pullot viinin sivulta tai kaappikartasta.</p>`
+      : `<p class="muted center">Ei osumia.</p>`);
   }
   $("wq").oninput = renderWines;
   $("wq").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("wq").blur(); } };
+  $("wineStatus").onclick = (e) => { const b = e.target.closest("[data-wst]"); if (b) { wineStatus = b.dataset.wst; renderWines(); } };
   $("wineChips").onclick = (e) => { const b = e.target.closest("[data-wtype]"); if (b) { wineType = b.dataset.wtype || null; renderWines(); } };
   $("wineList").onclick = (e) => { const b = e.target.closest("[data-wine]"); if (b) go(`#/viinit/${b.dataset.wine}`); };
   $("newWineBtn").onclick = () => go("#/uusi-viini");
+  $("cellarBtn").onclick = () => go("#/viinit/kaappi");
   $("wineBackBtn").onclick = () => back("#/viinit");
 
+  // ---------- Yksi viini: tiedot, pullot kaapissa, juontihistoria ----------
+  function bottleRow(b) {
+    const info = [b.purchased_on ? "ostettu " + fiDate(b.purchased_on) : "", b.purchase_place, eur(b.price)].filter(Boolean).join(" · ");
+    return `<div class="brow">
+      <div class="bi"><div class="bp">${esc(placeTxt(b))}</div>${info ? `<div class="m">${esc(info)}</div>` : ""}</div>
+      ${canEdit ? `<button class="primary" data-wact="open" data-b="${b.id}">🍷 Avaa</button>
+        <button class="icon" data-wact="editb" data-b="${b.id}" aria-label="Muokkaa pulloa">⋯</button>` : ""}
+    </div>`;
+  }
+  function tastingRow(t) {
+    const tag = canEdit ? "button" : "div";
+    return `<${tag} class="trow2" ${canEdit ? `data-wact="editt" data-b="${t.id}" aria-label="Muokkaa juontikertaa"` : ""}>
+      <div class="td">${t.opened_on ? fiDate(t.opened_on) : "Päivä ei tiedossa"}${t.rating ? ` <span class="stars" role="img" aria-label="${t.rating}/5">${starsTxt(t.rating)}</span>` : ""}</div>
+      ${t.occasion ? `<div>${esc(t.occasion)}</div>` : ""}
+      ${t.notes ? `<div class="m tn">${esc(t.notes)}</div>` : ""}
+    </${tag}>`;
+  }
   function openWine(w) {
-    const srcUrl = safeUrl(w.source_url);
+    curWineId = w.id;
+    renderWine(w); show("wineView");
+    loadBottles().then(() => {
+      const nw = wines.find((x) => x.id === curWineId);
+      if (currentView === "wineView" && nw) renderWine(nw);
+    });
+  }
+  function renderWine(w) {
+    const srcUrl = safeUrl(w.source_url), alko = alkoUrl(w.alko_id);
     const row = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
-    const price = w.price != null ? Number(w.price).toLocaleString("fi-FI", { style: "currency", currency: "EUR" }) : "";
+    const inC = inCellar(w.id), hist = tastings(w.id);
     $("wineDetail").innerHTML = `
       ${bigPic(w, w.name, "rimg-top")}
       <h2>${esc(w.name)}${w.vintage ? ` <span class="muted" style="font-weight:400">${w.vintage}</span>` : ""}</h2>
@@ -2027,17 +2237,234 @@
       </div>
       <dl class="kv">
         ${row("Tyyppi", WTYPES[w.wine_type])}${row("Rypäle", w.grapes)}
-        ${row("Alue", [w.region, w.country].filter(Boolean).join(", "))}
-        ${row("Juotu", fmtDate(w.drunk_on))}${row("Missä", w.occasion)}${row("Hinta", price)}${row("Ruokapari", w.food_pairing)}
+        ${row("Alue", [w.region, w.country].filter(Boolean).join(", "))}${row("Hinta", eur(w.price))}
+        ${alko ? `<dt>Alko</dt><dd><a href="${esc(alko)}" target="_blank" rel="noopener">${esc(w.alko_id)} ↗</a></dd>` : ""}
+        ${row("Ruokapari", w.food_pairing)}
       </dl>
+      <div class="wsec">
+        <div class="wsh"><h3>🗄️ Kaapissa${inC.length ? " · " + pullot(inC.length) : ""}</h3>
+          ${inC.some((b) => b.shelf) ? `<button class="link" data-wact="map">Näytä kaapissa ›</button>` : ""}</div>
+        ${inC.length ? inC.map(bottleRow).join("") : `<p class="muted" style="margin:0 0 8px">Ei pulloja kaapissa.</p>`}
+        ${canEdit ? `<div class="actions" style="margin-top:10px"><button data-wact="addb">+ Lisää pulloja kaappiin</button></div>` : ""}
+      </div>
+      <div class="wsec">
+        <div class="wsh"><h3>🍷 Juontihistoria</h3>${canEdit ? `<button class="link" data-wact="addt">+ Lisää juontikerta</button>` : ""}</div>
+        ${hist.length ? hist.map(tastingRow).join("") : `<p class="muted" style="margin:0">Ei vielä juontikertoja.</p>`}
+      </div>
       ${w.own_notes ? `<h3>Omat muistiinpanot</h3><p class="notes">${esc(w.own_notes)}</p>` : ""}
       ${w.description ? `<h3>Kuvaus</h3><p class="notes">${esc(w.description)}</p>` : ""}
       ${bigPic(w, w.name, "rimg-end")}
-      ${canEdit ? `<div class="actions"><button id="wEditBtn">Muokkaa</button></div>` : ""}`;
-    if (canEdit) $("wEditBtn").onclick = () => go(`#/viinit/${w.id}/muokkaa`);
-    show("wineView");
+      ${canEdit ? `<div class="actions"><button data-wact="edit">Muokkaa</button></div>` : ""}`;
   }
+  $("wineDetail").onclick = (e) => {
+    const t = e.target.closest("[data-wact]"); if (!t || !curWineId) return;
+    const base = `#/viinit/${curWineId}`, bid = t.dataset.b;
+    const to = { map: `#/viinit/kaappi/${curWineId}`, addb: `${base}/pullot/uusi`, open: `${base}/avaa/${bid}`,
+      editb: `${base}/pullo/${bid}`, addt: `${base}/juotu/uusi`, editt: `${base}/juotu/${bid}`, edit: `${base}/muokkaa` }[t.dataset.wact];
+    if (to) go(to);
+  };
 
+  // ---------- Kaappikartta ----------
+  function openCellar(hl) {
+    cellarHl = hl || null;
+    renderCellar(); show("cellarView");
+    refreshCellar().then(() => { if (currentView === "cellarView") renderCellar(); });
+  }
+  function renderCellar() {
+    const taken = takenPlaces(), loose = inCellar().filter((b) => !b.shelf);
+    const hw = cellarHl && wines.find((w) => w.id === cellarHl);
+    $("cellarInfo").textContent = hw ? `Korostettuna: ${wineTitle(hw)}`
+      : `${taken.size} / ${SHELVES * SLOTS} paikkaa käytössä` + (loose.length ? ` · ${pullot(loose.length)} ilman paikkaa` : "");
+    let h = "";
+    for (let s = 1; s <= SHELVES; s++) {
+      h += `<div class="shelf"><div class="sl">Hylly ${s}</div>`;
+      for (let p = 1; p <= SLOTS; p++) {
+        const b = taken.get(placeKey(s, p)), w = b && wines.find((x) => x.id === b.wine_id);
+        if (w) {
+          const cls = cellarHl ? (b.wine_id === cellarHl ? "hl" : "dim") : "";
+          h += `<button class="slot full ${cls}" data-wine="${w.id}" style="--wc:${WCOLOR[w.wine_type] || WCOLOR.muu}"
+            aria-label="Hylly ${s}, paikka ${p}: ${esc(wineTitle(w))}"><span class="sn">${esc(w.name)}</span>${w.vintage ? `<span class="sv">${w.vintage}</span>` : ""}</button>`;
+        } else if (canEdit) {
+          h += `<button class="slot empty" data-place="${s}-${p}" aria-label="Hylly ${s}, paikka ${p}: tyhjä. Lisää pullo.">+</button>`;
+        } else {
+          h += `<div class="slot empty" role="img" aria-label="Hylly ${s}, paikka ${p}: tyhjä"></div>`;
+        }
+      }
+      h += `</div>`;
+    }
+    $("cellarGrid").innerHTML = h;
+    const looseWines = [...new Set(loose.map((b) => b.wine_id))].map((id) => wines.find((w) => w.id === id)).filter(Boolean);
+    $("cellarLoose").innerHTML = looseWines.length ? `<h3>Ilman paikkaa</h3><div class="list">${looseWines.map(wineItem).join("")}</div>` : "";
+  }
+  $("cellarView").onclick = (e) => {
+    const p = e.target.closest("[data-place]"); if (p) return go(`#/viinit/kaappi/paikka/${p.dataset.place}`);
+    const w = e.target.closest("[data-wine]"); if (w) go(`#/viinit/${w.dataset.wine}`);
+  };
+  $("cellarBackBtn").onclick = () => back("#/viinit");
+
+  // Tyhjä paikka → valitse viini (tai uusi viini) → pullolomake samaan paikkaan
+  function openWinePick(s, p) {
+    pickPlace = [s, p];
+    $("wpTitle").textContent = `Mikä viini hyllylle ${s}, paikkaan ${p}?`;
+    $("wpQ").value = "";
+    renderWinePick(); show("winePickView");
+  }
+  function renderWinePick() {
+    const ws = words($("wpQ").value), list = wines.filter((w) => matches(wineHay(w), ws));
+    $("wpList").innerHTML = list.map(wineItem).join("")
+      || `<p class="muted center">${wines.length ? "Ei osumia." : "Viinikellarissa ei ole vielä viinejä. Lisää uusi viini."}</p>`;
+  }
+  $("wpQ").oninput = renderWinePick;
+  $("wpQ").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("wpQ").blur(); } };
+  // Valinta korvaa valintasivun historiassa, joten tallennuksen jälkeen takaisin-ele vie kaappikarttaan.
+  $("wpList").onclick = (e) => {
+    const b = e.target.closest("[data-wine]");
+    if (b && pickPlace) go(`#/viinit/${b.dataset.wine}/pullot/uusi/${pickPlace.join("-")}`, { replace: true });
+  };
+  $("wpNewBtn").onclick = () => { if (pickPlace) { pendingPlace = pickPlace.join("-"); go("#/uusi-viini", { replace: true }); } };
+  $("wpBackBtn").onclick = () => back("#/viinit/kaappi");
+
+  // ---------- Pullolomake: pulloja kaappiin / pullon muokkaus ----------
+  let bState = null; // { wine, bottle (muokattava) | null, count, places: ["h-p" | ""] }
+  function openBottleForm(w, b, preset) {
+    const free = freePlaces(b ? b.id : null);
+    bState = { wine: w, bottle: b || null, count: 1,
+      places: b ? [b.shelf ? placeKey(b.shelf, b.slot) : ""] : [preset && free.includes(preset) ? preset : (free[0] || "")] };
+    $("bottleTitle").textContent = b ? "Muokkaa pulloa" : "Pulloja kaappiin";
+    $("bottleWine").textContent = wineTitle(w);
+    $("bCountWrap").classList.toggle("hidden", !!b);
+    $("b_date").value = b ? (b.purchased_on || "") : todayIso();
+    $("b_place").value = b ? (b.purchase_place || "") : "Alko";
+    const pr = b ? b.price : w.price;
+    $("b_price").value = pr != null ? String(pr).replace(".", ",") : "";
+    $("bDelWrap").classList.toggle("hidden", !b);
+    msg($("bottleMsg"), "");
+    renderBottlePlaces(); show("bottleView");
+  }
+  function renderBottlePlaces() {
+    const free = freePlaces(bState.bottle ? bState.bottle.id : null);
+    // Uusille pulloille ehdotetaan seuraavia vapaita paikkoja; loput "Ei paikkaa"
+    while (bState.places.length < bState.count) {
+      const used = new Set(bState.places);
+      bState.places.push(free.find((k) => !used.has(k)) || "");
+    }
+    bState.places.length = bState.count;
+    $("bCount").textContent = bState.count;
+    $("bPlacesLbl").textContent = bState.count > 1 ? "Paikat kaapissa" : "Paikka kaapissa";
+    const many = bState.count > 1;
+    $("bPlaces").innerHTML = bState.places.map((v, i) => {
+      const opts = free.filter((k) => k === v || !bState.places.includes(k)).map((k) => {
+        const [s, p] = k.split("-");
+        return `<option value="${k}" ${k === v ? "selected" : ""}>Hylly ${s} · paikka ${p}</option>`;
+      }).join("");
+      return `<div class="prow">${many ? `<span>${i + 1}.</span>` : ""}
+        <select data-i="${i}" aria-label="Pullon ${i + 1} paikka"><option value="" ${v ? "" : "selected"}>Ei paikkaa</option>${opts}</select></div>`;
+    }).join("") + (free.length < bState.count ? `<p class="hint">Kaapissa on ${free.length} vapaata paikkaa. Muut pullot tallentuvat ilman paikkaa.</p>` : "");
+  }
+  $("bPlaces").onchange = (e) => {
+    const sel = e.target.closest("select"); if (!sel) return;
+    bState.places[+sel.dataset.i] = sel.value; renderBottlePlaces();
+  };
+  $("bMinus").onclick = () => { if (bState.count > 1) { bState.count--; renderBottlePlaces(); } };
+  $("bPlus").onclick = () => { if (bState.count < 24) { bState.count++; renderBottlePlaces(); } };
+  $("bottleCancelBtn").onclick = () => back(bState ? `#/viinit/${bState.wine.id}` : "#/viinit");
+  $("bottleForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const price = parsePrice($("b_price").value);
+    if (Number.isNaN(price)) return msg($("bottleMsg"), "Tarkista hinta, esim. 18,90", true);
+    const base = { purchased_on: $("b_date").value || null, purchase_place: $("b_place").value.trim() || null, price };
+    const rows = bState.places.map((k) => {
+      const [s, p] = k ? k.split("-").map(Number) : [null, null];
+      return { ...base, shelf: s, slot: p };
+    });
+    const btn = $("bottleSaveBtn"); btn.disabled = true; msg($("bottleMsg"), "");
+    const res = bState.bottle
+      ? await sb.from("wine_bottles").update(rows[0]).eq("id", bState.bottle.id).select()
+      : await sb.from("wine_bottles").insert(rows.map((r) => ({ ...r, wine_id: bState.wine.id }))).select();
+    btn.disabled = false;
+    if (res.error) {
+      await loadBottles(); renderBottlePlaces();
+      return msg($("bottleMsg"), res.error.code === "23505"
+        ? "Paikka on jo varattu (joku on ehkä juuri lisännyt pullon). Valitse toinen paikka."
+        : "Tallennus epäonnistui: " + res.error.message, true);
+    }
+    await loadBottles();
+    back(`#/viinit/${bState.wine.id}`);
+  };
+  $("bDelBtn").onclick = async () => {
+    const b = bState && bState.bottle; if (!b) return;
+    if (!confirm("Poistetaanko pullo kaapista kirjaamatta juontia? (esim. annettu lahjaksi)")) return;
+    const { error } = await sb.from("wine_bottles").delete().eq("id", b.id);
+    if (error) return msg($("bottleMsg"), "Poisto epäonnistui: " + error.message, true);
+    await loadBottles();
+    back(`#/viinit/${bState.wine.id}`);
+  };
+
+  // ---------- Avaa pullo / juontikerta ----------
+  let tState = null; // { wine, bottle, mode: "avaa" (kaappipullo) | "uusi" (ilman pulloa) | "muokkaa" (juontikerta) }
+  let tStars = 0;
+  function renderTStars() {
+    $("t_stars").innerHTML = [1, 2, 3, 4, 5].map((n) =>
+      `<button type="button" class="${n <= tStars ? "on" : ""}" data-star="${n}" aria-pressed="${n <= tStars}" aria-label="${n} tähteä">★</button>`).join("");
+  }
+  $("t_stars").onclick = (e) => {
+    const b = e.target.closest("[data-star]"); if (!b) return;
+    const n = +b.dataset.star; tStars = tStars === n ? 0 : n; renderTStars();
+  };
+  function openTasting(w, b, mode) {
+    tState = { wine: w, bottle: b, mode };
+    const edit = mode === "muokkaa";
+    $("tastingTitle").textContent = mode === "avaa" ? "🍷 Avaa pullo" : edit ? "Muokkaa juontikertaa" : "Lisää juontikerta";
+    $("tastingWine").textContent = wineTitle(w) + (mode === "avaa" && b.shelf ? " · " + placeTxt(b) : "");
+    $("t_date").value = edit ? (b.opened_on || "") : todayIso();
+    $("t_occasion").value = edit ? (b.occasion || "") : "";
+    $("t_notes").value = edit ? (b.notes || "") : "";
+    tStars = edit ? (b.rating || 0) : 0; renderTStars();
+    $("tastingSaveBtn").textContent = mode === "avaa" ? "🍷 Avaa pullo" : "Tallenna";
+    $("tDelWrap").classList.toggle("hidden", !edit);
+    msg($("tastingMsg"), "");
+    show("tastingView");
+  }
+  // Viinin oma arvio = uusimman tähdillä arvioidun juontikerran tähdet (jos sellainen on).
+  async function syncWineRating(w) {
+    const last = tastings(w.id).find((t) => t.rating);
+    if (!last || last.rating === w.own_rating) return;
+    const { data, error } = await sb.from("wines").update({ own_rating: last.rating }).eq("id", w.id).select().single();
+    if (!error && data) { const i = wines.findIndex((x) => x.id === w.id); if (i >= 0) wines[i] = { ...wines[i], ...data }; }
+  }
+  $("tastingCancelBtn").onclick = () => back(tState ? `#/viinit/${tState.wine.id}` : "#/viinit");
+  $("tastingForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const { wine: w, bottle: b, mode } = tState;
+    const row = { status: "juotu", opened_on: $("t_date").value || null, occasion: $("t_occasion").value.trim() || null,
+      rating: tStars || null, notes: $("t_notes").value.trim() || null };
+    const btn = $("tastingSaveBtn"); btn.disabled = true; msg($("tastingMsg"), "");
+    let res;
+    if (mode === "avaa") {
+      // Vain kaapissa oleva pullo voidaan avata (ei kahta avausta samalle pullolle)
+      res = await sb.from("wine_bottles").update({ ...row, shelf: null, slot: null }).eq("id", b.id).eq("status", "kaapissa").select();
+      if (!res.error && !res.data.length) res = { error: { message: "Pullo on jo avattu tai poistettu." } };
+    } else if (mode === "uusi") {
+      res = await sb.from("wine_bottles").insert({ ...row, wine_id: w.id }).select();
+    } else {
+      res = await sb.from("wine_bottles").update(row).eq("id", b.id).select();
+    }
+    btn.disabled = false;
+    if (res.error) return msg($("tastingMsg"), "Tallennus epäonnistui: " + res.error.message, true);
+    await loadBottles();
+    await syncWineRating(w);
+    back(`#/viinit/${w.id}`);
+  };
+  $("tDelBtn").onclick = async () => {
+    const b = tState && tState.bottle; if (!b) return;
+    if (!confirm("Poistetaanko juontikerta?")) return;
+    const { error } = await sb.from("wine_bottles").delete().eq("id", b.id);
+    if (error) return msg($("tastingMsg"), "Poisto epäonnistui: " + error.message, true);
+    await loadBottles();
+    back(`#/viinit/${tState.wine.id}`);
+  };
+
+  // ---------- Viinilomake ----------
   function renderStarPick() {
     $("w_stars").innerHTML = [1, 2, 3, 4, 5].map((n) =>
       `<button type="button" class="${n <= wineStars ? "on" : ""}" data-star="${n}" aria-pressed="${n <= wineStars}" aria-label="${n} tähteä">★</button>`).join("");
@@ -2048,13 +2475,15 @@
   };
 
   const WFIELDS = { w_name: "name", w_producer: "producer", w_vintage: "vintage", w_type: "wine_type", w_grapes: "grapes",
-    w_region: "region", w_country: "country", w_drunk: "drunk_on", w_price: "price", w_occasion: "occasion",
+    w_region: "region", w_country: "country", w_price: "price", w_alko: "alko_id",
     w_src_rating: "source_rating", w_src_name: "source_name", w_src_url: "source_url", w_own_notes: "own_notes",
     w_desc: "description", w_food: "food_pairing" };
   const wineFormState = () => JSON.stringify([...Object.keys(WFIELDS).map((id) => $(id).value), wineStars, winePic.kind]);
 
-  function openWineEditor(w) {
+  function openWineEditor(w, fromRoute) {
     editingWineId = w ? w.id : null;
+    // "Uusi viini" kaappikartan tyhjästä paikasta: tallennuksen jälkeen pullolomake samaan paikkaan
+    if (fromRoute && !w) { newWinePlace = pendingPlace; pendingPlace = null; } else newWinePlace = null;
     $("wineEditTitle").textContent = w ? "Muokkaa viiniä" : "Uusi viini";
     for (const [id, col] of Object.entries(WFIELDS)) {
       let v = w ? w[col] : "";
@@ -2076,9 +2505,13 @@
     for (const [id, col] of Object.entries(WFIELDS)) row[col] = $(id).value.trim() || null;
     row.vintage = row.vintage ? parseInt(row.vintage, 10) : null;
     if (row.price) {
-      const p = parseFloat(row.price.replace(/\s/g, "").replace(",", "."));
-      if (isNaN(p)) return msg($("wineEditMsg"), "Tarkista hinta, esim. 24,90", true);
+      const p = parsePrice(row.price);
+      if (Number.isNaN(p)) return msg($("wineEditMsg"), "Tarkista hinta, esim. 24,90", true);
       row.price = p;
+    }
+    if (row.alko_id) {
+      row.alko_id = row.alko_id.replace(/\s/g, "");
+      if (!/^[0-9]{3,8}$/.test(row.alko_id)) return msg($("wineEditMsg"), "Alkon tuotenumero on pelkkiä numeroita, esim. 905267", true);
     }
     row.own_rating = wineStars || null;
     const old = editingWineId ? wines.find((x) => x.id === editingWineId) : null;
@@ -2108,15 +2541,18 @@
     if (i >= 0) wines[i] = data; else wines.unshift(data);
     markClean();
     if (editingWineId) back(`#/viinit/${data.id}`);
+    else if (newWinePlace) { const pl = newWinePlace; newWinePlace = null; go(`#/viinit/${data.id}/pullot/uusi/${pl}`, { replace: true, force: true }); }
     else go(`#/viinit/${data.id}`, { replace: true, force: true });
   };
 
   $("wDelBtn").onclick = async () => {
     const w = wines.find((x) => x.id === editingWineId); if (!w) return;
-    if (!confirm(`Poistetaanko "${w.name}" pysyvästi?`)) return;
+    const n = bottles.filter((b) => b.wine_id === w.id).length;
+    if (!confirm(`Poistetaanko "${w.name}" pysyvästi?${n ? " Myös sen pullot ja juontihistoria poistuvat." : ""}`)) return;
     const { error } = await sb.from("wines").delete().eq("id", w.id);
     if (error) return alert("Poisto epäonnistui: " + error.message);
     wines = wines.filter((x) => x.id !== w.id);
+    bottles = bottles.filter((b) => b.wine_id !== w.id);
     removeImage(w.image_path);
     leaveDeleted("#/viinit");
   };
