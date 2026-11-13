@@ -146,6 +146,11 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   vanhasta occasion-kentästä). Lisäksi 7 kaapissa olevaa viiniä (1 pullo kutakin) lisätty etikettikuvista 12.11.2026:
   ostotiedot puuttuvat, Alko-numero 5:llä, kahdella ei löytynyt. Käyttäjä lisäsi kuvat neliöinä ennen pystykuvia (12.11.2026):
   koko pullo näkyy vasta, kun kuva vaihdetaan (Muokkaa → 📷 Vaihda kuva; alkuperäisiä ei ole tallessa, Claude ei voi rajata).
+- Vivinosta tuotu 13.11.2026 41 juotua viiniä ja 42 juontikertaa (skannauspäivät 2023–2026), omat tähdet 4 viinille.
+  Viinilehden arvio (tähdet, kuvaus omin sanoin, linkki) 32:lle, joista osa eri vuosikerrasta (merkitty `source_rating`iin);
+  López de Haron vastaavuus epävarma, Cono Surin tähtiä ei saatu luettua (vain "Vuoden punaviini 2025"). Ilman arviota 9.
+  Avoinna: 6 Vivinon skannausta on samoja viinejä kuin kaapissa (yhdessä Vivinon vuosikerta väärin): kysytty, juotiinko pullo jo
+  vai skannattiinko ostaessa. Kuvia ei tuotu.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
 
@@ -547,8 +552,15 @@ Käyttäjä lähettää kuvan pullosta chattiin → Claude lukee etiketin ja lis
 - **Kentät:** `name` = viinin nimi ilman tuottajaa (esim. "Gattinara", "Barolo", "Faustino I Gran Reserva"), `producer` erikseen,
   `vintage`, `wine_type`, `grapes`, `region` (tarvittaessa alue suluissa, esim. "Piemonte (Gattinara)"), `country` suomeksi
   (Italia, Ranska, Espanja, Argentiina), `food_pairing` lyhyesti omin sanoin. Etiketin palkintotarra → `source_rating` +
-  `source_name` (esim. "Pronssi, Vuoden punaviini 2025" / "Viinilehti"). `description` jätetään tyhjäksi (ei kopioida Alkon tai
-  muiden tekstejä).
+  `source_name` (esim. "Pronssi, Vuoden punaviini 2025" / "Viinilehti"). `description` = lyhyt tiivistelmä Viinilehden arviosta
+  **omin sanoin** (1–2 virkettä: tyyli, aromit, täyteläisyys), linkki arvioon `source_url`:ssa. Ei koskaan kopioitua tekstiä
+  (Viinilehti, Alko, Vivino). Jos arviota ei löydy, `description` jää tyhjäksi.
+- **Viinilehti** (käyttäjän valinta 13.11.2026: lähdearvioksi Viinilehden tähdet ja kuvaus, ei Vivinon arvioita): haku
+  WebSearchilla `viinilehti.fi/viinit <tuottaja> <nimi>`. Tähdet sivun kuvakkeesta (`N-2011-stars.svg`): 5 = Tyylikäs huippuviini,
+  4 = Harmoninen, laadultaan erinomainen, 3 = Laadukas ja hyvin tehty, alempi "Sopusuhtainen kokonaisuus" (tähtiä ei näytetä).
+  `source_rating` = "★★★★ Harmoninen, laadultaan erinomainen", perään "(arvio vuosikerrasta 2021)", jos arvio on eri vuosikerrasta,
+  ja palkinto (" · pronssi, Vuoden punaviini 2024"). `source_name` = "Viinilehti". Rypäleet ja ruokapari (omin sanoin) samasta arviosta.
+  Alkon numero on Viinilehden osoitteen alussa (esim. `…/viinit/923915-…`); tarkista pullokoko (0,375 l → ei `alko_id`:tä).
 - **Alko:** haku WebSearchilla `"alko.fi/en/products" <tuottaja> <nimi>` (tai viinikartta.fi, jossa "Alkon tuotenumero").
   Tuotenumero pysyy yleensä samana vuosikerrasta toiseen. Hinta = Alkon hinta (litrahinta × 0,75 + pantti 0,10 €). Jos samaa
   viiniä ei löydy, `alko_id` ja hinta tyhjiksi ja kerrotaan käyttäjälle.
@@ -556,6 +568,22 @@ Käyttäjä lähettää kuvan pullosta chattiin → Claude lukee etiketin ja lis
   ostotiedot (`purchased_on`, `purchase_place`, `price`) vain kerrotut. Kuvaa Claude ei voi tallentaa (ei Storage-avainta):
   käyttäjä lisää sen sovelluksessa (Muokkaa → 📷 Lisää kuva).
 - Tarkista ensin, onko sama viini (nimi + tuottaja + vuosikerta) jo kellarissa → silloin vain uusi pullo.
+
+## Juotujen viinien tuonti Vivinosta
+
+Käyttäjä on skannannut juomansa viinit Vivinoon ("jos olen skannannut, olen myös juonut sen").
+1. **Vienti:** Vivinon tilin asetuksista tietojen lataus (tai pyyntö Vivinon tuelle). Vivino lähettää zip-tiedoston
+   sähköpostiin, ja käyttäjä liittää sen chattiin.
+2. **Käytä vain `full_wine_list.csv`:tä.** Zipissä on myös henkilötietoja (profiili, sähköposti, kirjautumisten IP-osoitteet ja
+   sijainnit): niitä ei lueta, käytetä eikä tallenneta minnekään. Vivinon dataa ei laiteta repoon.
+3. **Viinit:** Winery → `producer`, Wine name → `name`, Vintage, Wine type → `wine_type` (Red Wine = punainen jne.), Region →
+   `region` (alue suluissa kuten etiketeissä), Country suomeksi. Sama viini (tuottaja + nimi + vuosikerta) kerran.
+   **Juontikerrat:** jokaisesta skannauksesta `wine_bottles`-rivi, status `juotu`, `opened_on` = Scan date.
+   Oma arvio (Your rating) pyöristetään lähimpään kokonaiseen tähteen (3,9 → 4) juontikerran `rating`-kenttään, ja
+   `own_rating` päivitetään (uusin tähditetty). **Vivinon keskiarvoja, arvioita ja kuvauksia ei tuoda.** Lähdearvio Viinilehdestä
+   (ks. edellinen luku).
+4. **Päällekkäiset:** jos sama viini on jo kellarissa (esim. kaapissa), kysy käyttäjältä, skannasiko hän sen ostaessaan (ei
+   lisätä mitään) vai onko pullo jo juotu (juontikerta skannauspäivällä). Vivinon vuosikerta voi olla väärin: vertaa etikettiin.
 
 ## Kuvitetun menun tuominen (Claude Design -canvas)
 
