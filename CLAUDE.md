@@ -149,8 +149,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - Vivinosta tuotu 13.11.2026 41 juotua viiniä ja 42 juontikertaa (skannauspäivät 2023–2026), omat tähdet 4 viinille.
   Viinilehden arvio (tähdet, kuvaus omin sanoin, linkki) 32:lle, joista osa eri vuosikerrasta (merkitty `source_rating`iin);
   López de Haron vastaavuus epävarma, Cono Surin tähtiä ei saatu luettua (vain "Vuoden punaviini 2025"). Ilman arviota 9.
-  Avoinna: 6 Vivinon skannausta on samoja viinejä kuin kaapissa (yhdessä Vivinon vuosikerta väärin): kysytty, juotiinko pullo jo
-  vai skannattiinko ostaessa. Kuvia ei tuotu.
+  6 Vivinon skannausta oli samoja viinejä kuin kaapissa: ne skannattiin ostaessa (käyttäjä: kaapin viinit juomatta), ei lisätty.
+  Kuvat: 37 viinillä Vivinon etikettikuva `image_url`-linkkinä (images.vivino.com), 7 ilman kuvaa (4 Vivino-viiniä + Lapponia-menun 3).
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
 
@@ -582,6 +582,10 @@ Käyttäjä on skannannut juomansa viinit Vivinoon ("jos olen skannannut, olen m
    Oma arvio (Your rating) pyöristetään lähimpään kokonaiseen tähteen (3,9 → 4) juontikerran `rating`-kenttään, ja
    `own_rating` päivitetään (uusin tähditetty). **Vivinon keskiarvoja, arvioita ja kuvauksia ei tuoda.** Lähdearvio Viinilehdestä
    (ks. edellinen luku).
+   **Kuva:** Label image (käyttäjän oma etikettikuva Vivinossa, `https://images.vivino.com/labels/…`) → `wines.image_url`, vain jos
+   `image_path` puuttuu (sivu käyttää `image_url`:ia varalla). Kuva on Vivinon palvelimella: se ei ole varmuuskopiossa ja katoaa,
+   jos Vivino poistaa sen. Työtilasta images.vivino.com ei näy (verkkoesto), joten näkyvyys tarkistetaan sivulla. Oman kuvan
+   tallennus (Muokkaa → 📷 Vaihda kuva) korvaa linkin.
 4. **Päällekkäiset:** jos sama viini on jo kellarissa (esim. kaapissa), kysy käyttäjältä, skannasiko hän sen ostaessaan (ei
    lisätä mitään) vai onko pullo jo juotu (juontikerta skannauspäivällä). Vivinon vuosikerta voi olla väärin: vertaa etikettiin.
 
