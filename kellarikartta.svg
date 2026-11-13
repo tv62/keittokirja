@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs>
+<radialGradient id="gl" cx=".38" cy=".34" r=".72"><stop offset="0" stop-color="#55575c"/><stop offset=".45" stop-color="#1a1b1e"/><stop offset="1" stop-color="#050506"/></radialGradient>
+<radialGradient id="cap" cx=".4" cy=".36" r=".7"><stop offset="0" stop-color="#ee5038"/><stop offset=".7" stop-color="#bd2219"/><stop offset="1" stop-color="#7e1410"/></radialGradient>
+<linearGradient id="wd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c58a50"/><stop offset="1" stop-color="#93582c"/></linearGradient>
+</defs>
+<rect x="1" y="1" width="62" height="62" rx="14" fill="#fbf6ee" stroke="#e2d6c4" stroke-width="1.5"/>
+<line x1="21.72" y1="30.56" x2="42.28" y2="30.56" stroke="#9a5f30" stroke-width="1.25" stroke-linecap="round"/>
+<line x1="15.64" y1="42.72" x2="48.36" y2="42.72" stroke="#9a5f30" stroke-width="1.25" stroke-linecap="round"/>
+<line x1="9.56" y1="54.88" x2="54.44" y2="54.88" stroke="#9a5f30" stroke-width="1.25" stroke-linecap="round"/>
+<line x1="32.00" y1="10.00" x2="9.56" y2="54.88" stroke="#9a5f30" stroke-width="1.25" stroke-linecap="round"/>
+<line x1="32.00" y1="10.00" x2="54.44" y2="54.88" stroke="#9a5f30" stroke-width="1.25" stroke-linecap="round"/>
+<circle cx="32.00" cy="24.20" r="5.46" fill="url(#gl)"/>
+<circle cx="32.00" cy="24.20" r="2.51" fill="url(#cap)"/>
+<path d="M28.62,22.57 A3.82,3.82 0 0 1 31.18,20.49" stroke="#fff" stroke-width="0.76" stroke-linecap="round" fill="none" opacity=".35"/>
+<circle cx="25.92" cy="36.36" r="5.46" fill="url(#gl)"/>
+<circle cx="25.92" cy="36.36" r="2.51" fill="url(#cap)"/>
+<path d="M22.54,34.73 A3.82,3.82 0 0 1 25.10,32.65" stroke="#fff" stroke-width="0.76" stroke-linecap="round" fill="none" opacity=".35"/>
+<circle cx="38.08" cy="36.36" r="5.46" fill="url(#gl)"/>
+<circle cx="38.08" cy="36.36" r="2.51" fill="url(#cap)"/>
+<path d="M34.70,34.73 A3.82,3.82 0 0 1 37.26,32.65" stroke="#fff" stroke-width="0.76" stroke-linecap="round" fill="none" opacity=".35"/>
+<circle cx="19.84" cy="48.52" r="5.46" fill="url(#gl)"/>
+<circle cx="19.84" cy="48.52" r="2.51" fill="url(#cap)"/>
+<path d="M16.46,46.89 A3.82,3.82 0 0 1 19.02,44.81" stroke="#fff" stroke-width="0.76" stroke-linecap="round" fill="none" opacity=".35"/>
+<circle cx="32.00" cy="48.52" r="5.46" fill="url(#gl)"/>
+<circle cx="32.00" cy="48.52" r="2.51" fill="url(#cap)"/>
+<path d="M28.62,46.89 A3.82,3.82 0 0 1 31.18,44.81" stroke="#fff" stroke-width="0.76" stroke-linecap="round" fill="none" opacity=".35"/>
+<circle cx="44.16" cy="48.52" r="5.46" fill="url(#gl)"/>
+<circle cx="44.16" cy="48.52" r="2.51" fill="url(#cap)"/>
+<path d="M40.78,46.89 A3.82,3.82 0 0 1 43.34,44.81" stroke="#fff" stroke-width="0.76" stroke-linecap="round" fill="none" opacity=".35"/>
+</svg>

@@ -18,6 +18,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Uudelleen: `rsvg-convert -w 1024 -h 1024 kuvake.svg -o k.png` ja pienennys PIL:llä (LANCZOS). Läpinäkymätön, ei pyöristystä
   (iOS pyöristää). Jo tallennettu kotivalikon pikakuvake ei päivity: poista ja lisää uudelleen Safarin Jaa-valikosta.
   Otsikon logo `pata.svg` = sama pata läpinäkyvällä taustalla ilman varjoa, viewBox rajattu pataan (`h1 .logo`, 1.15em).
+- **Kellarikartan kuvake** `kellarikartta.svg` (käyttäjän valinta E 13.11.2026, oma piirros samalla tyylillä kuin pata):
+  pyramidiviiniteline 3-2-1, mustat pullot, punaiset korkit, ohuet puurimat, **aina vaalea pyöristetty tausta** (erottuu myös
+  tummassa tilassa). Hylätyt: tynnyri pystyssä / telineellä, 3×3-teline, holvikellari, pyramidi 4-3-2-1, pyramidi pystyrimoin.
 - Käyttäjä käyttää enimmäkseen iPadia ja iPhonea (Safari). Suunnittele mobiili edellä.
 
 ## Käyttäjä ja tehdyt päätökset
@@ -88,7 +91,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     ⏳ Valmis, mutta kehittyy / 🌱 Kehittyy varastoinnin myötä) ja hinta-laatusuhde (käyttäjän valinta 13.11.2026: 💎 Löytö ja
     💎 Edullinen ostos, ⚖️ Laatu vastaa hintaa, 💸 Kallis) tähtien alla, Viinilehden järjestyksessä.
   - **Termi on kellari, ei kaappi** (käyttäjän toive 13.11.2026): Kellarissa, Kellarikartta, pulloja kellariin; kaapin 🗄️-emoji pois
-    (Kellarissa 🍾, Kellarikartta 🗺️; käyttäjä ei pidä 🗺️:sta → oma piirros backlogissa). Tietokannan status `kaapissa` ja osoitteet `#/viinit/kaappi…` ennallaan (eivät näy käyttäjälle).
+    (Kellarissa 🍾, Kellarikartta = oma pyramidikuvake `kellarikartta.svg`). Tietokannan status `kaapissa` ja osoitteet `#/viinit/kaappi…` ennallaan (eivät näy käyttäjälle).
   - **Viinilistan järjestys** (käyttäjän päätös 13.11.2026, lopullinen): juontipäivän mukaan, uusin ensin; jos juontipäivää ei
     tiedetä, ostopäivä (kellarin pulloilla ostopäivä). **Juontipäivä ja ostopäivä erikseen:** Vivinon skannauspäivä on ostopäivä
     (skannattu ostaessa), ei juontipäivä; sitä ei kopioida juontipäiväksi (järjestys on sama ilman arvattua juontipäivää).
@@ -101,7 +104,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
     Pullomäärä listalla (🍾 2) ja rajaus Kellarissa / Avatut / kaikki (**oletus koko lista**, käyttäjän toive 13.11.2026). **Listan rajaukset tiiviisti**
-    (käyttäjä valitsi vaihtoehdon A 13.11.2026; hylätty B = kaksi valikkoa): 🗺️ Kellarikartta pienenä nappina otsikon vieressä,
+    (käyttäjä valitsi vaihtoehdon A 13.11.2026; hylätty B = kaksi valikkoa): Kellarikartta pienenä nappina (pyramidikuvake) otsikon vieressä,
     yksi pyyhkäistävä rivi: 🍾 Kellarissa + pullomäärä ja 🍷 Avatut (käyttäjän nimeämä 13.11.2026, ennen Juodut; = viinit, joilla on juontikerta,
     sama viini voi olla myös kaapissa; **avattujen määrä = eri viinit vuosikerroittain, näkyy vain valitussa napissa "🍷 Avatut 41"**,
     käyttäjän valinta 13.11.2026; nimi näkyy vain valitussa, valitun napautus = kaikki viinit) | viinityypit
@@ -438,7 +441,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   uusin päivä ensin, päivätön loppuun), `takenPlaces()`, `freePlaces(paitsiPullo)`, `placeTxt`, `pullot(n)`, `eur`, `parsePrice`,
   `alkoUrl(nro)` = `https://www.alko.fi/tuotteet/<nro>/`, `WCOLOR` (ruudun värikaista viinin tyypin mukaan). `refreshCellar()`
   hakee viinit ja pullot taustalla, kun lista tai kaappikartta avataan.
-  - **Lista** (`renderWines`): otsikkorivi `.whead` = h2 + `#cellarBtn` (`.cellarpill`, "🗺️ Kellarikartta 3/15", `#cellarSum`;
+  - **Lista** (`renderWines`): otsikkorivi `.whead` = h2 + `#cellarBtn` (`.cellarpill`, kuvake `<img class="cmapico" src="kellarikartta.svg">` 1,75em + "Kellarikartta 3/15", `#cellarSum`;
     aria-label kertoo paikat), haku, rajausrivi `#wineFilt` (`.chips.primary.scroll.wfilt`): `wineStatus` `data-wst` kaapissa (`inSet`) /
     juodut (nimi "Avatut", `openSet` = viinit, joilla on `juotu`-rivi; määrä `.n` vain valittuna, aria-labelissa aina), valitun napautus → `"kaikki"` (oletus `"kaikki"`, nollautuu etusivun kortista avattaessa kuten `wineType` ja haku); erotin `.fsep`; tyyppiryhmät
     `data-wtype` = `WGROUPS`-avaimet (`[avain, nimi, wine_type-lista, väri?]`: punainen, valkoinen, rosé, kuohuvat = kuohuviini +

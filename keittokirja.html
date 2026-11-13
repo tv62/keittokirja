@@ -187,6 +187,8 @@
   .cellarpill { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px;
     font-weight: 600; font-size: .92rem; white-space: nowrap; flex: none; }
   .cellarpill .s { color: var(--muted); font-weight: 400; }
+  /* Kellarikartan kuvake: pyramidiviiniteline vaalealla taustalla (käyttäjän valinta E 13.11.2026), oma piirros */
+  .cellarpill .cmapico { height: 1.75em; width: auto; display: block; margin-left: -4px; }
   .wfilt { gap: 6px; }
   .chips.primary.wfilt .chip { min-width: 44px; justify-content: center; gap: 6px; padding: 7px 11px; }
   .wfilt .chip .n { font-weight: 600; }
@@ -652,7 +654,7 @@
   <section id="winesView" class="hidden">
     <button class="link" data-home="1">← Etusivu</button>
     <div class="whead"><h2>Viinikellari</h2>
-      <button class="cellarpill" id="cellarBtn"><span aria-hidden="true">🗺️</span> Kellarikartta <span class="s" id="cellarSum"></span></button></div>
+      <button class="cellarpill" id="cellarBtn"><img class="cmapico" src="kellarikartta.svg" alt="" width="26" height="26"> Kellarikartta <span class="s" id="cellarSum"></span></button></div>
     <div class="search">
       <input id="wq" type="search" placeholder="Hae viiniä, tuottajaa, rypälettä…" autocomplete="off" enterkeyhint="search">
       <button class="primary edit-only" id="newWineBtn">+ Uusi</button>
