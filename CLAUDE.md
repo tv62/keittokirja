@@ -87,7 +87,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
     Pullomäärä listalla (🍾 2) ja rajaus Kaapissa / Avatut / kaikki (**oletus koko lista**, käyttäjän toive 13.11.2026). **Listan rajaukset tiiviisti**
     (käyttäjä valitsi vaihtoehdon A 13.11.2026; hylätty B = kaksi valikkoa): 🗄️ Kaappikartta pienenä nappina otsikon vieressä,
-    yksi pyyhkäistävä rivi: 🍾 Kaapissa + määrä ja 🍷 Avatut (käyttäjän nimeämä 13.11.2026, ennen Juodut; nimi näkyy vain valitussa, valitun napautus = kaikki viinit) | viinityypit
+    yksi pyyhkäistävä rivi: 🍾 Kaapissa + pullomäärä ja 🍷 Avatut (käyttäjän nimeämä 13.11.2026, ennen Juodut; = viinit, joilla on juontikerta,
+    sama viini voi olla myös kaapissa; **avattujen määrä = eri viinit vuosikerroittain, näkyy vain valitussa napissa "🍷 Avatut 41"**,
+    käyttäjän valinta 13.11.2026; nimi näkyy vain valitussa, valitun napautus = kaikki viinit) | viinityypit
     värimerkkeinä (valitussa myös nimi, uusi napautus poistaa); **kuohuviinit ja jälkiruokaviinit samassa merkissä** (käyttäjän toive).
     Listarivillä tyypin edessä sama värimerkki (opettaa värit). **Listarivillä alue ilman sulkuosaa** (käyttäjän toive 13.11.2026:
     "Veneto (Amarone della Valpolicella)" → "Veneto"; koko alue viinin sivulla). **Oma arvio iPhonella pystyssä rivin oikeassa
@@ -146,8 +148,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   jäsenet näkevät osion (heillä ei ollut piilotuksia); uusi jäsen ei näe sitä oletuksena.
 - Seuraavaksi todennäköisesti: Viikkosuunnitelman ostoslista (backlog), puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut
   Claude Designista.
-- Viinikellarissa 3 viiniä menun viinilistalta; ne on juotu Lapponia-illallisella (juontihistoriassa ilman päivää, siirretty
-  vanhasta occasion-kentästä). Lisäksi 7 kaapissa olevaa viiniä (1 pullo kutakin) lisätty etikettikuvista 12.11.2026:
+- Viinikellarissa 3 viiniä menun viinilistalta (Lapponia-illallinen). Niiden juontikerrat (ilman päivää, siirretty vanhasta
+  occasion-kentästä) poistettiin sovelluksesta iPhonella 12.11.2026 klo 22.13 (lokit); rivit ovat varmuuskopiossa 12.11. (commit 1e16715). Lisäksi 7 kaapissa olevaa viiniä (1 pullo kutakin) lisätty etikettikuvista 12.11.2026:
   ostotiedot puuttuvat, Alko-numero 5:llä, kahdella ei löytynyt. Käyttäjä lisäsi kuvat neliöinä ennen pystykuvia (12.11.2026):
   koko pullo näkyy vasta, kun kuva vaihdetaan (Muokkaa → 📷 Vaihda kuva; alkuperäisiä ei ole tallessa, Claude ei voi rajata).
 - Vivinosta tuotu 13.11.2026 41 juotua viiniä ja 42 juontikertaa (skannauspäivät 2023–2026), omat tähdet 4 viinille.
@@ -409,8 +411,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   `alkoUrl(nro)` = `https://www.alko.fi/tuotteet/<nro>/`, `WCOLOR` (ruudun värikaista viinin tyypin mukaan). `refreshCellar()`
   hakee viinit ja pullot taustalla, kun lista tai kaappikartta avataan.
   - **Lista** (`renderWines`): otsikkorivi `.whead` = h2 + `#cellarBtn` (`.cellarpill`, "🗄️ Kaappikartta 3/15", `#cellarSum`;
-    aria-label kertoo paikat), haku, rajausrivi `#wineFilt` (`.chips.primary.scroll.wfilt`): `wineStatus` `data-wst` kaapissa / juodut
-    (nimi "Avatut" = ei kaapissa), valitun napautus → `"kaikki"` (oletus `"kaikki"`, nollautuu etusivun kortista avattaessa kuten `wineType` ja haku); erotin `.fsep`; tyyppiryhmät
+    aria-label kertoo paikat), haku, rajausrivi `#wineFilt` (`.chips.primary.scroll.wfilt`): `wineStatus` `data-wst` kaapissa (`inSet`) /
+    juodut (nimi "Avatut", `openSet` = viinit, joilla on `juotu`-rivi; määrä `.n` vain valittuna, aria-labelissa aina), valitun napautus → `"kaikki"` (oletus `"kaikki"`, nollautuu etusivun kortista avattaessa kuten `wineType` ja haku); erotin `.fsep`; tyyppiryhmät
     `data-wtype` = `WGROUPS`-avaimet (`[avain, nimi, wine_type-lista, väri?]`: punainen, valkoinen, rosé, kuohuvat = kuohuviini +
     jälkiruokaviini, muu), näkyvät vain olemassa olevat ja vain jos niitä on ≥ 2; `inGroup(w, ryhmä)`; merkki `.wdot` (`--c`, väri
     `WCOLOR`), valitussa nimi (yli 12 merkkiä → `.l2` kahdelle riville), valittu vieritetään näkyviin. `wineType` = ryhmän avain.

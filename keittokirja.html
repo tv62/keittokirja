@@ -2212,10 +2212,14 @@
   }
   function renderWines() {
     const nIn = inCellar().length, inSet = new Set(inCellar().map((b) => b.wine_id));
+    // Avatut = viinit (vuosikerroittain), joilla on vähintään yksi juontikerta. Sama viini voi olla myös kaapissa.
+    const openSet = new Set(bottles.filter((b) => b.status === "juotu").map((b) => b.wine_id));
     // Tila: 🍾 Kaapissa / 🍷 Avatut (avain "juodut"; valitun napautus = kaikki viinit), tyypit värimerkkeinä. Nimi näkyy vain valitussa.
+    // Kaapissa-napissa pullomäärä aina, Avatut-napissa avattujen viinien määrä vain valittuna (käyttäjän valinta 13.11.2026).
     const stat = [["kaapissa", "🍾", "Kaapissa"], ["juodut", "🍷", "Avatut"]].map(([k, ic, l]) => {
-      const on = wineStatus === k, n = k === "kaapissa" && nIn ? nIn : 0;
-      return `<button class="chip ${on ? "on" : ""}" data-wst="${k}" aria-pressed="${on}" aria-label="${l}${n ? ` (${pullot(n)})` : ""}"><span aria-hidden="true">${ic}</span>${on ? `<span>${l}</span>` : ""}${n ? `<span class="n" aria-hidden="true">${n}</span>` : ""}</button>`;
+      const on = wineStatus === k, n = k === "kaapissa" ? nIn : on ? openSet.size : 0;
+      const al = k === "kaapissa" ? (nIn ? ` (${pullot(nIn)})` : "") : ` (${openSet.size} ${openSet.size === 1 ? "viini" : "viiniä"})`;
+      return `<button class="chip ${on ? "on" : ""}" data-wst="${k}" aria-pressed="${on}" aria-label="${l}${al}"><span aria-hidden="true">${ic}</span>${on ? `<span>${l}</span>` : ""}${n ? `<span class="n" aria-hidden="true">${n}</span>` : ""}</button>`;
     }).join("");
     const groups = WGROUPS.filter(([g]) => wines.some((w) => inGroup(w, g)));
     const typ = groups.length > 1 ? groups.map(([g, l, ts, c]) => { const on = wineType === g;
@@ -2227,7 +2231,7 @@
     $("cellarSum").textContent = `${takenPlaces().size}/${SHELVES * SLOTS}`;
     $("cellarBtn").setAttribute("aria-label", `Kaappikartta, ${takenPlaces().size} / ${SHELVES * SLOTS} paikkaa käytössä`);
     const ws = words($("wq").value);
-    const stOk = (w) => wineStatus === "kaikki" || (wineStatus === "kaapissa") === inSet.has(w.id);
+    const stOk = (w) => wineStatus === "kaikki" || (wineStatus === "kaapissa" ? inSet : openSet).has(w.id);
     const shown = wines.filter((w) => stOk(w) && (!wineType || inGroup(w, wineType)) && matches(wineHay(w), ws));
     // Järjestys: uusin tapahtuma ensin (juontipäivä = Vivinon skannauspäivä, kaapin pullon ostopäivä tai kaappiin lisäyspäivä).
     // Pelkät päivättömät juontikerrat loppuun; viini ilman pulloja ja juontikertoja = viinin lisäyspäivä.
