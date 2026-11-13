@@ -641,7 +641,7 @@
   <section id="winesView" class="hidden">
     <button class="link" data-home="1">← Etusivu</button>
     <div class="whead"><h2>Viinikellari</h2>
-      <button class="cellarpill" id="cellarBtn"><span aria-hidden="true">🗄️</span> Kaappikartta <span class="s" id="cellarSum"></span></button></div>
+      <button class="cellarpill" id="cellarBtn"><span aria-hidden="true">🗺️</span> Kellarikartta <span class="s" id="cellarSum"></span></button></div>
     <div class="search">
       <input id="wq" type="search" placeholder="Hae viiniä, tuottajaa, rypälettä…" autocomplete="off" enterkeyhint="search">
       <button class="primary edit-only" id="newWineBtn">+ Uusi</button>
@@ -660,7 +660,7 @@
   <!-- Kaappikartta: 5 hyllyä × 3 paikkaa -->
   <section id="cellarView" class="hidden">
     <button class="link" id="cellarBackBtn">← Viinikellari</button>
-    <h2 style="margin:6px 0 4px">Kaappikartta</h2>
+    <h2 style="margin:6px 0 4px">Kellarikartta</h2>
     <p class="muted" id="cellarInfo" style="margin:0 0 12px"></p>
     <div class="cellar card" id="cellarGrid"></div>
     <p class="hint" id="cellarHint">Hylly 1 on ylin, paikka 1 vasemmalla.</p>
@@ -669,7 +669,7 @@
 
   <!-- Tyhjä paikka kaapissa → mikä viini -->
   <section id="winePickView" class="hidden">
-    <button class="link" id="wpBackBtn">← Kaappikartta</button>
+    <button class="link" id="wpBackBtn">← Kellarikartta</button>
     <h2 id="wpTitle" style="margin:6px 0 12px">Mikä viini?</h2>
     <div class="search">
       <input id="wpQ" type="search" placeholder="Hae viiniä…" autocomplete="off" enterkeyhint="search">
@@ -682,13 +682,13 @@
   <section id="bottleView" class="hidden">
     <button class="link" id="bottleCancelBtn">← Peruuta</button>
     <form id="bottleForm" class="card">
-      <h2 id="bottleTitle">Pulloja kaappiin</h2>
+      <h2 id="bottleTitle">Pulloja kellariin</h2>
       <div class="muted" id="bottleWine"></div>
       <div id="bCountWrap">
         <label>Montako pulloa?</label>
         <div class="stepper"><button type="button" id="bMinus" aria-label="Vähemmän">−</button><span id="bCount" class="val num" aria-live="polite">1</span><button type="button" id="bPlus" aria-label="Enemmän">+</button></div>
       </div>
-      <label id="bPlacesLbl">Paikka kaapissa</label>
+      <label id="bPlacesLbl">Paikka kellarissa</label>
       <div id="bPlaces"></div>
       <div class="row">
         <div><label for="b_date">Ostopäivä</label><input id="b_date" type="date"></div>
@@ -699,7 +699,7 @@
       <div id="bottleMsg" class="msg hidden"></div>
       <div class="actions"><button type="submit" class="primary" id="bottleSaveBtn">Tallenna</button></div>
       <div id="bDelWrap" class="actions hidden" style="margin-top:28px">
-        <button type="button" class="danger" id="bDelBtn">Poista pullo kaapista</button>
+        <button type="button" class="danger" id="bDelBtn">Poista pullo kellarista</button>
       </div>
     </form>
   </section>
@@ -1614,7 +1614,7 @@
     const nm = allMenus().length, nw = wines.length;
     $("cnt_menus").textContent = nm + (nm === 1 ? " menu" : " menua");
     const nb = inCellar().length;
-    $("cnt_wines").textContent = nb ? pullot(nb) + " kaapissa" : nw + (nw === 1 ? " viini" : " viiniä");
+    $("cnt_wines").textContent = nb ? pullot(nb) + " kellarissa" : nw + (nw === 1 ? " viini" : " viiniä");
     renderPlanCard();
   }
   function openHome() { renderHome(); renderHomeSearch(); show("homeView"); refreshPlan(); }
@@ -2233,7 +2233,7 @@
         <div class="m">${[w.producer && esc(w.producer), WTYPES[w.wine_type] && `<span class="nw"><span class="wdot sm" style="--c:${WCOLOR[w.wine_type] || WCOLOR.muu}" aria-hidden="true"></span>${esc(WTYPES[w.wine_type])}</span>`,
           (w.region || w.country) && esc(shortRegion(w.region || w.country))].filter(Boolean).join(" · ")}</div>
       </div>
-      <span class="side wside">${n ? `<span class="bcount" title="Kaapissa ${pullot(n)}" aria-label="Kaapissa ${pullot(n)}">🍾 ${n}</span>` : ""}${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}</span>
+      <span class="side wside">${n ? `<span class="bcount" title="Kellarissa ${pullot(n)}" aria-label="Kellarissa ${pullot(n)}">🍾 ${n}</span>` : ""}${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}</span>
     </button>`;
   }
   function renderWines() {
@@ -2242,7 +2242,7 @@
     const openSet = new Set(bottles.filter((b) => b.status === "juotu").map((b) => b.wine_id));
     // Tila: 🍾 Kaapissa / 🍷 Avatut (avain "juodut"; valitun napautus = kaikki viinit), tyypit värimerkkeinä. Nimi näkyy vain valitussa.
     // Kaapissa-napissa pullomäärä aina, Avatut-napissa avattujen viinien määrä vain valittuna (käyttäjän valinta 13.11.2026).
-    const stat = [["kaapissa", "🍾", "Kaapissa"], ["juodut", "🍷", "Avatut"]].map(([k, ic, l]) => {
+    const stat = [["kaapissa", "🍾", "Kellarissa"], ["juodut", "🍷", "Avatut"]].map(([k, ic, l]) => {
       const on = wineStatus === k, n = k === "kaapissa" ? nIn : on ? openSet.size : 0;
       const al = k === "kaapissa" ? (nIn ? ` (${pullot(nIn)})` : "") : ` (${openSet.size} ${openSet.size === 1 ? "viini" : "viiniä"})`;
       return `<button class="chip ${on ? "on" : ""}" data-wst="${k}" aria-pressed="${on}" aria-label="${l}${al}"><span aria-hidden="true">${ic}</span>${on ? `<span>${l}</span>` : ""}${n ? `<span class="n" aria-hidden="true">${n}</span>` : ""}</button>`;
@@ -2255,7 +2255,7 @@
     const right = ton ? ton.offsetLeft - fc.offsetLeft + ton.offsetWidth + 8 : 0;
     fc.scrollLeft = right > fc.clientWidth ? right - fc.clientWidth : 0;
     $("cellarSum").textContent = `${takenPlaces().size}/${SHELVES * SLOTS}`;
-    $("cellarBtn").setAttribute("aria-label", `Kaappikartta, ${takenPlaces().size} / ${SHELVES * SLOTS} paikkaa käytössä`);
+    $("cellarBtn").setAttribute("aria-label", `Kellarikartta, ${takenPlaces().size} / ${SHELVES * SLOTS} paikkaa käytössä`);
     const ws = words($("wq").value);
     const stOk = (w) => wineStatus === "kaikki" || (wineStatus === "kaapissa" ? inSet : openSet).has(w.id);
     const shown = wines.filter((w) => stOk(w) && (!wineType || inGroup(w, wineType)) && matches(wineHay(w), ws));
@@ -2271,7 +2271,7 @@
     shown.sort((a, b) => dOf(b).localeCompare(dOf(a)) || (b.created_at || "").localeCompare(a.created_at || "") || a.name.localeCompare(b.name, "fi"));
     msg($("wineMsg"), wines.length ? "" : "Viinikellari on vielä tyhjä. Lisää ensimmäinen viini + Uusi -napista.");
     $("wineList").innerHTML = shown.map(wineItem).join("") || (!wines.length ? ""
-      : wineStatus === "kaapissa" && !nIn && !ws.length ? `<p class="muted center">Kaapissa ei ole pulloja. Lisää pullot viinin sivulta tai kaappikartasta.</p>`
+      : wineStatus === "kaapissa" && !nIn && !ws.length ? `<p class="muted center">Kellarissa ei ole pulloja. Lisää pullot viinin sivulta tai kellarikartasta.</p>`
       : `<p class="muted center">Ei osumia.</p>`);
   }
   $("wq").oninput = renderWines;
@@ -2311,7 +2311,7 @@
     });
   }
   // Viinilehden juotavuusmerkinnät (lasi / pullo kallellaan / pullo pystyssä)
-  const READY_ICON = { "Valmis juotavaksi": "🍷", "Valmis, mutta kehittyy": "⏳", "Kehittyy varastoinnin myötä": "🗄️" };
+  const READY_ICON = { "Valmis juotavaksi": "🍷", "Valmis, mutta kehittyy": "⏳", "Kehittyy varastoinnin myötä": "🌱" };
   function renderWine(w) {
     const srcUrl = safeUrl(w.source_url), alko = alkoUrl(w.alko_id);
     const row = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
@@ -2335,10 +2335,10 @@
         ${row("Ruokapari", w.food_pairing)}
       </dl>
       <div class="wsec">
-        <div class="wsh"><h3>🗄️ Kaapissa${inC.length ? " · " + pullot(inC.length) : ""}</h3>
-          ${inC.some((b) => b.shelf) ? `<button class="link" data-wact="map">Näytä kaapissa ›</button>` : ""}</div>
-        ${inC.length ? inC.map(bottleRow).join("") : `<p class="muted" style="margin:0 0 8px">Ei pulloja kaapissa.</p>`}
-        ${canEdit ? `<div class="actions" style="margin-top:10px"><button data-wact="addb">+ Lisää pulloja kaappiin</button></div>` : ""}
+        <div class="wsh"><h3>🍾 Kellarissa${inC.length ? " · " + pullot(inC.length) : ""}</h3>
+          ${inC.some((b) => b.shelf) ? `<button class="link" data-wact="map">Näytä kartalla ›</button>` : ""}</div>
+        ${inC.length ? inC.map(bottleRow).join("") : `<p class="muted" style="margin:0 0 8px">Ei pulloja kellarissa.</p>`}
+        ${canEdit ? `<div class="actions" style="margin-top:10px"><button data-wact="addb">+ Lisää pulloja kellariin</button></div>` : ""}
       </div>
       <div class="wsec">
         <div class="wsh"><h3>🍷 Juontihistoria</h3>${canEdit ? `<button class="link" data-wact="addt">+ Lisää juontikerta</button>` : ""}</div>
@@ -2393,7 +2393,7 @@
     $("cellarGrid").innerHTML = h;
     const looseWines = [...new Set(loose.map((b) => b.wine_id))].map((id) => wines.find((w) => w.id === id)).filter(Boolean);
     $("cellarLoose").innerHTML = looseWines.length ? `<h3>Ilman paikkaa</h3>${canEdit ? `<p class="hint" style="margin-top:-4px">Raahaa pullo
-      kaappiin: pidä riviä hetki sormella ja vedä vapaaseen paikkaan.</p>` : ""}<div class="list">${looseWines.map(wineItem).join("")}</div>` : "";
+      kellariin: pidä riviä hetki sormella ja vedä vapaaseen paikkaan.</p>` : ""}<div class="list">${looseWines.map(wineItem).join("")}</div>` : "";
     // Raahattava = viinin ensimmäinen paikaton pullo
     if (canEdit) for (const el of $("cellarLoose").querySelectorAll("[data-wine]")) {
       const b = loose.find((x) => x.wine_id === el.dataset.wine); if (b) el.dataset.drag = b.id;
@@ -2516,7 +2516,7 @@
     const free = freePlaces(b ? b.id : null);
     bState = { wine: w, bottle: b || null, count: 1,
       places: b ? [b.shelf ? placeKey(b.shelf, b.slot) : ""] : [preset && free.includes(preset) ? preset : (free[0] || "")] };
-    $("bottleTitle").textContent = b ? "Muokkaa pulloa" : "Pulloja kaappiin";
+    $("bottleTitle").textContent = b ? "Muokkaa pulloa" : "Pulloja kellariin";
     $("bottleWine").textContent = wineTitle(w);
     $("bCountWrap").classList.toggle("hidden", !!b);
     $("b_date").value = b ? (b.purchased_on || "") : todayIso();
@@ -2536,7 +2536,7 @@
     }
     bState.places.length = bState.count;
     $("bCount").textContent = bState.count;
-    $("bPlacesLbl").textContent = bState.count > 1 ? "Paikat kaapissa" : "Paikka kaapissa";
+    $("bPlacesLbl").textContent = bState.count > 1 ? "Paikat kellarissa" : "Paikka kellarissa";
     const many = bState.count > 1;
     $("bPlaces").innerHTML = bState.places.map((v, i) => {
       const opts = free.filter((k) => k === v || !bState.places.includes(k)).map((k) => {
@@ -2545,7 +2545,7 @@
       }).join("");
       return `<div class="prow">${many ? `<span>${i + 1}.</span>` : ""}
         <select data-i="${i}" aria-label="Pullon ${i + 1} paikka"><option value="" ${v ? "" : "selected"}>Ei paikkaa</option>${opts}</select></div>`;
-    }).join("") + (free.length < bState.count ? `<p class="hint">Kaapissa on ${free.length} vapaata paikkaa. Muut pullot tallentuvat ilman paikkaa.</p>` : "");
+    }).join("") + (free.length < bState.count ? `<p class="hint">Kellarissa on ${free.length} vapaata paikkaa. Muut pullot tallentuvat ilman paikkaa.</p>` : "");
   }
   $("bPlaces").onchange = (e) => {
     const sel = e.target.closest("select"); if (!sel) return;
@@ -2579,7 +2579,7 @@
   };
   $("bDelBtn").onclick = async () => {
     const b = bState && bState.bottle; if (!b) return;
-    if (!confirm("Poistetaanko pullo kaapista kirjaamatta juontia? (esim. annettu lahjaksi)")) return;
+    if (!confirm("Poistetaanko pullo kellarista kirjaamatta juontia? (esim. annettu lahjaksi)")) return;
     const { error } = await sb.from("wine_bottles").delete().eq("id", b.id);
     if (error) return msg($("bottleMsg"), "Poisto epäonnistui: " + error.message, true);
     await loadBottles();

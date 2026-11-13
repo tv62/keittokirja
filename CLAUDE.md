@@ -83,13 +83,15 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä. **Arviokortissa Viinilehden merkinnät
     pieninä pilleinä** (käyttäjän toive 13.11.2026): "Luonteikas viini", juotavuus (🍷 Valmis juotavaksi / ⏳ Valmis, mutta kehittyy /
-    🗄️ Kehittyy varastoinnin myötä) ja "💶 <hinta-laatusuhde>" arviotekstin alla, Viinilehden järjestyksessä.
+    🌱 Kehittyy varastoinnin myötä) ja "💶 <hinta-laatusuhde>" arviotekstin alla, Viinilehden järjestyksessä.
+  - **Termi on kellari, ei kaappi** (käyttäjän toive 13.11.2026): Kellarissa, Kellarikartta, pulloja kellariin; kaapin 🗄️-emoji pois
+    (Kellarissa 🍾, Kellarikartta 🗺️). Tietokannan status `kaapissa` ja osoitteet `#/viinit/kaappi…` ennallaan (eivät näy käyttäjälle).
   - **Viinilistan järjestys** (käyttäjän toive 13.11.2026): oletuksena skannaus- eli juontipäivän mukaan, uusin ensin (kaapin pullot ostopäivän mukaan).
   - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
-    Pullomäärä listalla (🍾 2) ja rajaus Kaapissa / Avatut / kaikki (**oletus koko lista**, käyttäjän toive 13.11.2026). **Listan rajaukset tiiviisti**
-    (käyttäjä valitsi vaihtoehdon A 13.11.2026; hylätty B = kaksi valikkoa): 🗄️ Kaappikartta pienenä nappina otsikon vieressä,
-    yksi pyyhkäistävä rivi: 🍾 Kaapissa + pullomäärä ja 🍷 Avatut (käyttäjän nimeämä 13.11.2026, ennen Juodut; = viinit, joilla on juontikerta,
+    Pullomäärä listalla (🍾 2) ja rajaus Kellarissa / Avatut / kaikki (**oletus koko lista**, käyttäjän toive 13.11.2026). **Listan rajaukset tiiviisti**
+    (käyttäjä valitsi vaihtoehdon A 13.11.2026; hylätty B = kaksi valikkoa): 🗺️ Kellarikartta pienenä nappina otsikon vieressä,
+    yksi pyyhkäistävä rivi: 🍾 Kellarissa + pullomäärä ja 🍷 Avatut (käyttäjän nimeämä 13.11.2026, ennen Juodut; = viinit, joilla on juontikerta,
     sama viini voi olla myös kaapissa; **avattujen määrä = eri viinit vuosikerroittain, näkyy vain valitussa napissa "🍷 Avatut 41"**,
     käyttäjän valinta 13.11.2026; nimi näkyy vain valitussa, valitun napautus = kaikki viinit) | viinityypit
     värimerkkeinä (valitussa myös nimi, uusi napautus poistaa); **kuohuviinit ja jälkiruokaviinit samassa merkissä** (käyttäjän toive).
@@ -97,11 +99,11 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     "Veneto (Amarone della Valpolicella)" → "Veneto"; koko alue viinin sivulla). **Oma arvio iPhonella pystyssä rivin oikeassa
     reunassa** (käyttäjä valitsi vaihtoehdon D 13.11.2026; hylätyt: A "★ 4", B tähdet metarivillä, C ei tähtiä listalla), 🍾-merkki
     tähtien vasemmalla; iPadilla tähdet vaakarivissä 🍾-merkin alla kuten ennen. **🍷 Avaa pullo** kysyy
-    päivän, tilaisuuden, tähdet ja muistiinpanon → pullo siirtyy juontihistoriaan. **Kaappikartta** 5 × 3 -ruudukkona (napautus
+    päivän, tilaisuuden, tähdet ja muistiinpanon → pullo siirtyy juontihistoriaan. **Kellarikartta** 5 × 3 -ruudukkona (napautus
     avaa viinin, tyhjä paikka → valitse viini → pullot samaan paikkaan). **Ruudussa pullon kuva himmeänä tekstin taustalla**
     (käyttäjä valitsi vaihtoehdon A 12.11.2026; hylätty B = kuva ruudun yläosassa ja nimi alla). **Pullon siirto raahaamalla**
     (käyttäjän toive 12.11.2026, kuten viikkosuunnitelmassa): pitkä painallus → raahaus toiseen paikkaan; varattuun paikkaan
-    pudotettu pullo vaihtaa paikkaa. Myös "Ilman paikkaa" -listan viinin voi raahata kaappiin. Ostotiedot pullokohtaisesti (päivä, paikka, hinta) ja
+    pudotettu pullo vaihtaa paikkaa. Myös "Ilman paikkaa" -listan viinin voi raahata kellariin. Ostotiedot pullokohtaisesti (päivä, paikka, hinta) ja
     Alkon tuotenumero + linkki viinille. Viinin oma arvio = uusimman tähdillä arvioidun juontikerran tähdet.
   - Reseptikuvat aina neliöitä, **viinikuvat pystykuvia 2:3** (käyttäjän toive 11/2026: koko pullo mahtuu kuvaan), kaikki
     värillisiä. Viinin sivulla kuva omassa muodossaan (enintään 300×450, vanhat neliökuvat neliöinä). Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
@@ -162,8 +164,12 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Viinilehden merkinnät (luonteikas, hinta-laatu) täytetty 13.11.2026 kaikille 33 viinille, joilla on Viinilehden arvio
   (López de Haron sivulla ei hinta-laatumerkintää; Tommasi Crearo viinivinkkisivulta). Cono Surin tähdet tarkistettu (5).
   Boschettin Barolo 2020: käyttäjä lisäsi linkin, Claude täytti tähdet, merkinnät ja Alko-numeron.
-  Juotavuus täytetty samoille (31 Valmis juotavaksi, 3 Valmis, mutta kehittyy) ja kaapin Faustino 2016:lle (tähdet 2016,
-  luonteikas + juotavuus vuosikerran 2017 sivulta, koska Viinilehti korvasi 2016-sivun). Muille kaapin viineille ei ole haettu.
+  Juotavuus täytetty samoille (31 Valmis juotavaksi, 3 Valmis, mutta kehittyy) ja kellarin Faustino 2016:lle (tähdet 2016,
+  luonteikas + juotavuus vuosikerran 2017 sivulta, koska Viinilehti korvasi 2016-sivun).
+  Kellarin viinit 13.11.2026: Norton Privada 2023 (5★, Valmis mutta kehittyy, Löytö), Caparsa Chianti Classico (arvio 2022:
+  5★, Valmis juotavaksi, Laatu vastaa hintaa; Vivino tunnisti pullon Caparsino Riservaksi, ei varmistettu), Gattinara 2021
+  (arvio 2015: 4★, Luonteikas, Kallis; juotavuutta ei merkitty, koska 2015:n juotavuus ei koske nuorta 2021:tä). Ei Viinilehden
+  arviota: L'Oratoire des Papes 2023 (punainen; vain Blanc arvioitu), Scacciadiavoli Sagrantino 2018 (ei myöskään Alkossa).
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
 
@@ -230,7 +236,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | `#/viinit`, `#/viinit/<id>`, `#/viinit/<id>/muokkaa`, `#/uusi-viini` | viinikellari, viini, viinilomake |
 | `#/viinit/kaappi`, `#/viinit/kaappi/<viini>` | kaappikartta (viinin pullot korostettuina) |
 | `#/viinit/kaappi/paikka/<hylly>-<paikka>` | tyhjä paikka → valitse viini (vain muokkaaja) |
-| `#/viinit/<id>/pullot/uusi[/<hylly>-<paikka>]`, `#/viinit/<id>/pullo/<pullo>` | pulloja kaappiin, pullon muokkaus (vain muokkaaja) |
+| `#/viinit/<id>/pullot/uusi[/<hylly>-<paikka>]`, `#/viinit/<id>/pullo/<pullo>` | pulloja kellariin, pullon muokkaus (vain muokkaaja) |
 | `#/viinit/<id>/avaa/<pullo>`, `#/viinit/<id>/juotu/<pullo>`, `#/viinit/<id>/juotu/uusi` | avaa pullo, juontikerran muokkaus / lisäys (vain muokkaaja) |
 | `#/hallinta` | käyttäjien hallinta (vain admin) |
 | `#/viikko`, `#/viikko/<maanantai YYYY-MM-DD>` | viikkosuunnitelma (tämä viikko / muu viikko) |
@@ -256,7 +262,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 ### Näkymät
 
 - **Etusivu:** hakukenttä (`#hq`) ja kortit Arkiruoka, Viikonloppuherkut, Vauvan ruoat (`data-cat`), Menut ja Viinikellari (`data-nav`;
-  laskuri "N pulloa kaapissa", ilman pulloja "N viiniä").
+  laskuri "N pulloa kellarissa", ilman pulloja "N viiniä").
   Haku etsii resepteistä (nimi, kuvaus, kategorian nimi, ainekset, tagit, menu), menuista ja viineistä. Haun aikana kortit
   piilotetaan ja tulokset näytetään ryhmiteltynä. Haku säilyy, kun tuloksesta palataan. Otsikko (pata-logo + "Keittokirja")
   vie etusivulle ja tyhjentää haun. `data-home`-elementti = takaisin etusivulle.
@@ -417,7 +423,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   uusin päivä ensin, päivätön loppuun), `takenPlaces()`, `freePlaces(paitsiPullo)`, `placeTxt`, `pullot(n)`, `eur`, `parsePrice`,
   `alkoUrl(nro)` = `https://www.alko.fi/tuotteet/<nro>/`, `WCOLOR` (ruudun värikaista viinin tyypin mukaan). `refreshCellar()`
   hakee viinit ja pullot taustalla, kun lista tai kaappikartta avataan.
-  - **Lista** (`renderWines`): otsikkorivi `.whead` = h2 + `#cellarBtn` (`.cellarpill`, "🗄️ Kaappikartta 3/15", `#cellarSum`;
+  - **Lista** (`renderWines`): otsikkorivi `.whead` = h2 + `#cellarBtn` (`.cellarpill`, "🗺️ Kellarikartta 3/15", `#cellarSum`;
     aria-label kertoo paikat), haku, rajausrivi `#wineFilt` (`.chips.primary.scroll.wfilt`): `wineStatus` `data-wst` kaapissa (`inSet`) /
     juodut (nimi "Avatut", `openSet` = viinit, joilla on `juotu`-rivi; määrä `.n` vain valittuna, aria-labelissa aina), valitun napautus → `"kaikki"` (oletus `"kaikki"`, nollautuu etusivun kortista avattaessa kuten `wineType` ja haku); erotin `.fsep`; tyyppiryhmät
     `data-wtype` = `WGROUPS`-avaimet (`[avain, nimi, wine_type-lista, väri?]`: punainen, valkoinen, rosé, kuohuvat = kuohuviini +
@@ -430,11 +436,11 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     (juontikerta `opened_on` = Vivinon skannauspäivä, kaapin pullo `purchased_on` tai pullon `created_at`); pelkät päivättömät
     juontikerrat loppuun; viini ilman pulloja = viinin `created_at`. Tasatilanteessa uusin lisätty, sitten nimi.
   - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot (lähdekortissa `.vbadges` > `.vbadge`: `source_characterful` →
-    "Luonteikas viini", `source_readiness` → `READY_ICON` + teksti, `source_value` → "💶 …"), tiedot (Hinta, Alko-linkki, Ruokapari), "🗄️ Kaapissa · 2 pulloa"
-    (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kaapissa ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
-    kaappiin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
+    "Luonteikas viini", `source_readiness` → `READY_ICON` + teksti, `source_value` → "💶 …"), tiedot (Hinta, Alko-linkki, Ruokapari), "🍾 Kellarissa · 2 pulloa"
+    (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kartalla ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
+    kellariin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
     Napit `data-wact` (yksi `#wineDetail`-käsittelijä).
-  - **Kaappikartta** (`openCellar(korostus)`, `renderCellar`): `.cellar` > `.shelf` (otsikko "Hylly n" + 3 `.cslot`): täysi ruutu
+  - **Kellarikartta** (`openCellar(korostus)`, `renderCellar`): `.cellar` > `.shelf` (otsikko "Hylly n" + 3 `.cslot`): täysi ruutu
     `.cslot.full` (min. 112 px; nimi enintään 3 riviä, pitkä sana > 11 merkkiä `longWord` → `.sn.lw` pienempi fontti; vuosikerta;
     värikaista `--wc` = `::before`; kuvallisella `.haspic` + `<img class="sbg">` = pikkukuva `opacity .3`, tekstille vaalea hehku
     `text-shadow`), tyhjä `.cslot.empty` (muokkaajalle "+"-nappi `data-place`, lukijalle div).
@@ -453,7 +459,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     pullolomake samaan paikkaan (korvaa). Näin tallennuksen jälkeinen takaisin vie kaappikarttaan.
   - **Pullolomake** (`openBottleForm(viini, pullo?, paikka?)`, tila `bState`): uusille määrä −/+ (1–24) ja jokaiselle paikka
     (`<select>`: vapaat paikat + "Ei paikkaa", ehdotuksena seuraavat vapaat), ostopäivä (tänään), hinta/pullo (viinin hinta), ostopaikka
-    ("Alko"). Muokkauksessa yksi paikka + "Poista pullo kaapista" (ei juontikertaa, esim. lahja). Varattu paikka (`23505`) → ilmoitus.
+    ("Alko"). Muokkauksessa yksi paikka + "Poista pullo kellarista" (ei juontikertaa, esim. lahja). Varattu paikka (`23505`) → ilmoitus.
   - **Avaa pullo / juontikerta** (`openTasting(viini, pullo, "avaa"|"uusi"|"muokkaa")`, `tState`, tähdet `tStars`): päivä (tänään),
     tilaisuus, tähdet, muistiinpanot. Avaus = update `status: "juotu"`, paikka null, ehto `status = kaapissa` (ei kahta avausta).
     Tallennuksen jälkeen `syncWineRating(viini)`: viinin `own_rating` = uusimman tähdillä arvioidun juontikerran tähdet.
