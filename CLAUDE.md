@@ -21,6 +21,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Kellarikartan kuvake** `kellarikartta.svg` (käyttäjän valinta E 13.11.2026, oma piirros samalla tyylillä kuin pata):
   pyramidiviiniteline 3-2-1, mustat pullot, punaiset korkit, ohuet puurimat, **aina vaalea pyöristetty tausta** (erottuu myös
   tummassa tilassa). Hylätyt: tynnyri pystyssä / telineellä, 3×3-teline, holvikellari, pyramidi 4-3-2-1, pyramidi pystyrimoin.
+- **Kellarissa-merkki** `pullo.svg` (käyttäjän valinta P1 13.11.2026, korvasi 🍾-emojin): viinipullo pystyssä, musta lasi, punainen
+  korkki, kermanvärinen etiketti, ei taustaa (hylätty P2 = vaalea tausta, liian huomiota herättävä joka rivillä tummassa tilassa).
+  Käytössä rajausnapissa, listarivin pullomäärässä ja viinin sivun Kellarissa-otsikossa (`BOTTLE_ICO`, luokka `.bico`).
 - Käyttäjä käyttää enimmäkseen iPadia ja iPhonea (Safari). Suunnittele mobiili edellä.
 
 ## Käyttäjä ja tehdyt päätökset
@@ -91,7 +94,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     ⏳ Valmis, mutta kehittyy / 🌱 Kehittyy varastoinnin myötä) ja hinta-laatusuhde (käyttäjän valinta 13.11.2026: 💎 Löytö ja
     💎 Edullinen ostos, ⚖️ Laatu vastaa hintaa, 💸 Kallis) tähtien alla, Viinilehden järjestyksessä.
   - **Termi on kellari, ei kaappi** (käyttäjän toive 13.11.2026): Kellarissa, Kellarikartta, pulloja kellariin; kaapin 🗄️-emoji pois
-    (Kellarissa 🍾, Kellarikartta = oma pyramidikuvake `kellarikartta.svg`). Tietokannan status `kaapissa` ja osoitteet `#/viinit/kaappi…` ennallaan (eivät näy käyttäjälle).
+    (Kellarissa = oma pullomerkki `pullo.svg`, Kellarikartta = oma pyramidikuvake `kellarikartta.svg`). Tietokannan status `kaapissa` ja osoitteet `#/viinit/kaappi…` ennallaan (eivät näy käyttäjälle).
   - **Viinilistan järjestys** (käyttäjän päätös 13.11.2026, lopullinen): juontipäivän mukaan, uusin ensin; jos juontipäivää ei
     tiedetä, ostopäivä (kellarin pulloilla ostopäivä). **Juontipäivä ja ostopäivä erikseen:** Vivinon skannauspäivä on ostopäivä
     (skannattu ostaessa), ei juontipäivä; sitä ei kopioida juontipäiväksi (järjestys on sama ilman arvattua juontipäivää).
@@ -103,16 +106,16 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     se tiedetään (ei "Päivä ei tiedossa" -tekstiä); ostotiedot omalla harmaalla rivillä "ostettu 9.1.2026 · Alko".
   - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
-    Pullomäärä listalla (🍾 2) ja rajaus Kellarissa / Avatut / kaikki (**oletus koko lista**, käyttäjän toive 13.11.2026). **Listan rajaukset tiiviisti**
+    Pullomäärä listalla (pullomerkki + 2) ja rajaus Kellarissa / Avatut / kaikki (**oletus koko lista**, käyttäjän toive 13.11.2026). **Listan rajaukset tiiviisti**
     (käyttäjä valitsi vaihtoehdon A 13.11.2026; hylätty B = kaksi valikkoa): Kellarikartta pienenä nappina (pyramidikuvake) otsikon vieressä,
-    yksi pyyhkäistävä rivi: 🍾 Kellarissa + pullomäärä ja 🍷 Avatut (käyttäjän nimeämä 13.11.2026, ennen Juodut; = viinit, joilla on juontikerta,
+    yksi pyyhkäistävä rivi: Kellarissa (pullomerkki) + pullomäärä ja 🍷 Avatut (käyttäjän nimeämä 13.11.2026, ennen Juodut; = viinit, joilla on juontikerta,
     sama viini voi olla myös kaapissa; **avattujen määrä = eri viinit vuosikerroittain, näkyy vain valitussa napissa "🍷 Avatut 41"**,
     käyttäjän valinta 13.11.2026; nimi näkyy vain valitussa, valitun napautus = kaikki viinit) | viinityypit
     värimerkkeinä (valitussa myös nimi, uusi napautus poistaa); **kuohuviinit ja jälkiruokaviinit samassa merkissä** (käyttäjän toive).
     Listarivillä tyypin edessä sama värimerkki (opettaa värit). **Listarivillä alue ilman sulkuosaa** (käyttäjän toive 13.11.2026:
     "Veneto (Amarone della Valpolicella)" → "Veneto"; koko alue viinin sivulla). **Oma arvio iPhonella pystyssä rivin oikeassa
-    reunassa** (käyttäjä valitsi vaihtoehdon D 13.11.2026; hylätyt: A "★ 4", B tähdet metarivillä, C ei tähtiä listalla), 🍾-merkki
-    tähtien vasemmalla; iPadilla tähdet vaakarivissä 🍾-merkin alla kuten ennen. **🍷 Avaa pullo** kysyy
+    reunassa** (käyttäjä valitsi vaihtoehdon D 13.11.2026; hylätyt: A "★ 4", B tähdet metarivillä, C ei tähtiä listalla), pullomäärä
+    tähtien vasemmalla; iPadilla tähdet vaakarivissä pullomäärän alla kuten ennen. **🍷 Avaa pullo** kysyy
     päivän, tilaisuuden, tähdet ja muistiinpanon → pullo siirtyy juontihistoriaan. **Kellarikartta** 5 × 3 -ruudukkona (napautus
     avaa viinin, tyhjä paikka → valitse viini → pullot samaan paikkaan). **Ruudussa pullon kuva himmeänä tekstin taustalla**
     (käyttäjä valitsi vaihtoehdon A 12.11.2026; hylätty B = kuva ruudun yläosassa ja nimi alla). **Pullon siirto raahaamalla**
@@ -448,7 +451,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     jälkiruokaviini, muu), näkyvät vain olemassa olevat ja vain jos niitä on ≥ 2; `inGroup(w, ryhmä)`; merkki `.wdot` (`--c`, väri
     `WCOLOR`), valitussa nimi (yli 12 merkkiä → `.l2` kahdelle riville), valittu vieritetään näkyviin. `wineType` = ryhmän avain.
     Rivi `wineItem`: pikkukuva, nimi + vuosikerta, tuottaja · `.wdot.sm` tyyppi (`.nw` samalla rivillä) · alue (`shortRegion`: sulkuosa
-    pois, haku `wineHay` käyttää koko aluetta), oikealla `.wside`: 🍾 määrä ja tähdet allekkain; alle 600 px `.wside` rivinä ja
+    pois, haku `wineHay` käyttää koko aluetta), oikealla `.wside`: `.bcount` (`BOTTLE_ICO` + määrä) ja tähdet allekkain; alle 600 px `.wside` rivinä ja
     `.wside .stars` pystyssä (`writing-mode: vertical-rl; text-orientation: upright`, 0,8rem, täydet ylhäällä).
     **Järjestys** (käyttäjän päätös 13.11.2026: juontipäivän mukaan): uusin tapahtuma ensin = viinin pullojen uusin päivä:
     juontikerralla `opened_on || purchased_on`, kellarin pullolla `purchased_on || created_at`; pelkät päivättömät juontikerrat
@@ -456,7 +459,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot `.rating-box.card` > 2 × `.rrow` (grid: `.lbl` 92 px + arvo;
     `srcRatingHtml`: alun ★-merkit → `starsTxt(n)` samalla tyylillä kuin oma arvio, loput `.srest` harmaana; muu teksti sellaisenaan),
     lähderivillä `.vbadges` > `.vbadge`: `source_characterful` → "Luonteikas viini", `source_readiness` → `READY_ICON` + teksti,
-    `source_value` → `VALUE_ICON` + teksti), tiedot (Hinta, Alko-linkki, Ruokapari), "🍾 Kellarissa · 2 pulloa"
+    `source_value` → `VALUE_ICON` + teksti), tiedot (Hinta, Alko-linkki, Ruokapari), "Kellarissa · 2 pulloa" (pullomerkki edessä)
     (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kartalla ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
     kellariin", "🍷 Juontihistoria" ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
     Juontihistoria `wineHistory(w)` = kaikkien saman `wineKey`:n (tuottaja + nimi, `normName`: välilyönnit ja kirjainkoko ohitetaan)

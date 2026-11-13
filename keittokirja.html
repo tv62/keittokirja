@@ -189,6 +189,11 @@
   .cellarpill .s { color: var(--muted); font-weight: 400; }
   /* Kellarikartan kuvake: pyramidiviiniteline vaalealla taustalla (käyttäjän valinta E 13.11.2026), oma piirros */
   .cellarpill .cmapico { height: 1.75em; width: auto; display: block; margin-left: -4px; }
+  /* Kellarissa-merkki: viinipullo pystyssä, punainen korkki, kermanvärinen etiketti (käyttäjän valinta P1 13.11.2026) */
+  .bico { height: 1.25em; width: auto; display: inline-block; vertical-align: -0.28em; }
+  .chip .bico { height: 1.45em; }
+  .bcount .bico { margin-right: 3px; }
+  .wsh h3 .bico { height: 1.3em; margin-right: 2px; }
   .wfilt { gap: 6px; }
   .chips.primary.wfilt .chip { min-width: 44px; justify-content: center; gap: 6px; padding: 7px 11px; }
   .wfilt .chip .n { font-weight: 600; }
@@ -201,7 +206,7 @@
   .nw { white-space: nowrap; }
   .chip.on .wdot { box-shadow: 0 0 0 2px var(--accent-ink); }
   .item .side.wside { flex-direction: column; align-items: flex-end; gap: 4px; }
-  /* Puhelimessa oma arvio pystyssä rivin oikeassa reunassa (käyttäjän valinta D 13.11.2026), 🍾-merkki vasemmalla. */
+  /* Puhelimessa oma arvio pystyssä rivin oikeassa reunassa (käyttäjän valinta D 13.11.2026), pullomerkki vasemmalla. */
   @media (max-width: 599px) {
     .item .side.wside { flex-direction: row; align-items: center; gap: 8px; }
     .wside .stars { writing-mode: vertical-rl; text-orientation: upright; font-size: .8rem; letter-spacing: -2px; line-height: 1; margin-right: -6px; }
@@ -2254,6 +2259,7 @@
     refreshCellar().then(() => { if (currentView === "winesView") renderWines(); });
   }
   // Listalla alue ilman sulkuosaa ("Veneto (Amarone della Valpolicella)" → "Veneto"); koko alue näkyy viinin sivulla.
+  const BOTTLE_ICO = `<img class="bico" src="pullo.svg" alt="" width="10" height="26">`; // Kellarissa-merkki
   const shortRegion = (r) => r.replace(/\s*\([^)]*\)\s*$/, "").trim() || r;
   function wineItem(w) {
     const n = inCellar(w.id).length;
@@ -2263,16 +2269,16 @@
         <div class="m">${[w.producer && esc(w.producer), WTYPES[w.wine_type] && `<span class="nw"><span class="wdot sm" style="--c:${WCOLOR[w.wine_type] || WCOLOR.muu}" aria-hidden="true"></span>${esc(WTYPES[w.wine_type])}</span>`,
           (w.region || w.country) && esc(shortRegion(w.region || w.country))].filter(Boolean).join(" · ")}</div>
       </div>
-      <span class="side wside">${n ? `<span class="bcount" title="Kellarissa ${pullot(n)}" aria-label="Kellarissa ${pullot(n)}">🍾 ${n}</span>` : ""}${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}</span>
+      <span class="side wside">${n ? `<span class="bcount" title="Kellarissa ${pullot(n)}" aria-label="Kellarissa ${pullot(n)}">${BOTTLE_ICO}${n}</span>` : ""}${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}</span>
     </button>`;
   }
   function renderWines() {
     const nIn = inCellar().length, inSet = new Set(inCellar().map((b) => b.wine_id));
     // Avatut = viinit (vuosikerroittain), joilla on vähintään yksi juontikerta. Sama viini voi olla myös kaapissa.
     const openSet = new Set(bottles.filter((b) => b.status === "juotu").map((b) => b.wine_id));
-    // Tila: 🍾 Kaapissa / 🍷 Avatut (avain "juodut"; valitun napautus = kaikki viinit), tyypit värimerkkeinä. Nimi näkyy vain valitussa.
+    // Tila: Kellarissa (pullomerkki) / 🍷 Avatut (avain "juodut"; valitun napautus = kaikki viinit), tyypit värimerkkeinä. Nimi näkyy vain valitussa.
     // Kaapissa-napissa pullomäärä aina, Avatut-napissa avattujen viinien määrä vain valittuna (käyttäjän valinta 13.11.2026).
-    const stat = [["kaapissa", "🍾", "Kellarissa"], ["juodut", "🍷", "Avatut"]].map(([k, ic, l]) => {
+    const stat = [["kaapissa", BOTTLE_ICO, "Kellarissa"], ["juodut", "🍷", "Avatut"]].map(([k, ic, l]) => {
       const on = wineStatus === k, n = k === "kaapissa" ? nIn : on ? openSet.size : 0;
       const al = k === "kaapissa" ? (nIn ? ` (${pullot(nIn)})` : "") : ` (${openSet.size} ${openSet.size === 1 ? "viini" : "viiniä"})`;
       return `<button class="chip ${on ? "on" : ""}" data-wst="${k}" aria-pressed="${on}" aria-label="${l}${al}"><span aria-hidden="true">${ic}</span>${on ? `<span>${l}</span>` : ""}${n ? `<span class="n" aria-hidden="true">${n}</span>` : ""}</button>`;
@@ -2387,7 +2393,7 @@
         ${row("Ruokapari", w.food_pairing)}
       </dl>
       <div class="wsec">
-        <div class="wsh"><h3>🍾 Kellarissa${inC.length ? " · " + pullot(inC.length) : ""}</h3>
+        <div class="wsh"><h3>${BOTTLE_ICO} Kellarissa${inC.length ? " · " + pullot(inC.length) : ""}</h3>
           ${inC.some((b) => b.shelf) ? `<button class="link" data-wact="map">Näytä kartalla ›</button>` : ""}</div>
         ${inC.length ? inC.map(bottleRow).join("") : `<p class="muted" style="margin:0 0 8px">Ei pulloja kellarissa.</p>`}
         ${canEdit ? `<div class="actions" style="margin-top:10px"><button data-wact="addb">+ Lisää pulloja kellariin</button></div>` : ""}
