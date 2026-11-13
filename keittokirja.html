@@ -1623,7 +1623,7 @@
     const n = e.target.closest("[data-nav]");
     if (n) {
       if (n.dataset.nav === "menus") return go("#/menut");
-      wineType = null; $("wq").value = "";
+      wineType = null; wineStatus = "kaikki"; $("wq").value = "";
       return go("#/viinit");
     }
     const b = e.target.closest("[data-cat]");
@@ -2144,7 +2144,7 @@
   const WGROUPS = [["punainen", "Punainen", ["punainen"]], ["valkoinen", "Valkoinen", ["valkoinen"]], ["rosé", "Rosé", ["rosé"]],
     ["kuohuvat", "Kuohuvat ja jälkiruokaviinit", ["kuohuviini", "jälkiruokaviini"], WCOLOR["jälkiruokaviini"]], ["muu", "Muu", ["muu"]]];
   const inGroup = (w, g) => { const x = WGROUPS.find((y) => y[0] === g); return !x || x[2].includes(w.wine_type || "muu"); };
-  let wineStatus = null; // "kaapissa" | "juodut" | "kaikki"; null = oletus (kaapissa, jos pulloja on)
+  let wineStatus = "kaikki"; // "kaapissa" | "juodut" | "kaikki" (oletus: koko lista, käyttäjän toive 13.11.2026)
   let editingWineId = null;
   let wineStars = 0;
   let curWineId = null;   // avoinna oleva viini
@@ -2212,7 +2212,6 @@
   }
   function renderWines() {
     const nIn = inCellar().length, inSet = new Set(inCellar().map((b) => b.wine_id));
-    if (!wineStatus) wineStatus = nIn ? "kaapissa" : "kaikki";
     // Tila: 🍾 Kaapissa / 🍷 Juodut (valitun napautus = kaikki viinit), tyypit värimerkkeinä. Nimi näkyy vain valitussa.
     const stat = [["kaapissa", "🍾", "Kaapissa"], ["juodut", "🍷", "Juodut"]].map(([k, ic, l]) => {
       const on = wineStatus === k, n = k === "kaapissa" && nIn ? nIn : 0;
