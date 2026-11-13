@@ -81,12 +81,19 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     reseptisivulla kuvake + nimi, jotta merkitykset oppii. **Päärajaus-chipit (yläbanneri) pelkkinä emojeina** (11/2026),
     "Kaikki" tekstinä, Tagit-nappi "🏷 ▾" (valittu tagi: "🏷 🥕 ▴").
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
-  - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä. **Arviokortissa Viinilehden merkinnät
-    pieninä pilleinä** (käyttäjän toive 13.11.2026): "Luonteikas viini", juotavuus (🍷 Valmis juotavaksi / ⏳ Valmis, mutta kehittyy /
-    🌱 Kehittyy varastoinnin myötä) ja "💶 <hinta-laatusuhde>" arviotekstin alla, Viinilehden järjestyksessä.
+  - **Viinin sivulla oma arvio ja lähteen arvio päällekkäin** (käyttäjän toive 13.11.2026, ennen rinnakkain): yksi kortti, ylempänä
+    Oma arvio, alla lähde (Viinilehti), tähdet samassa sarakkeessa vertailua varten. **Lähteen arviosta vain tähdet** (ei "Tyylikäs
+    huippuviini" -tekstiä); jos arvio on toisesta vuosikerrasta, pelkkä vuosi suluissa "★★★★ (2015)"; palkinto perään " · pronssi, …".
+    Alla linkki "Avaa arvio". **Viinilehden merkinnät pieninä pilleinä** (13.11.2026): "Luonteikas viini", juotavuus (🍷 Valmis juotavaksi /
+    ⏳ Valmis, mutta kehittyy / 🌱 Kehittyy varastoinnin myötä) ja hinta-laatusuhde (käyttäjän valinta 13.11.2026: 💎 Löytö ja
+    💎 Edullinen ostos, ⚖️ Laatu vastaa hintaa, 💸 Kallis) tähtien alla, Viinilehden järjestyksessä.
   - **Termi on kellari, ei kaappi** (käyttäjän toive 13.11.2026): Kellarissa, Kellarikartta, pulloja kellariin; kaapin 🗄️-emoji pois
-    (Kellarissa 🍾, Kellarikartta 🗺️). Tietokannan status `kaapissa` ja osoitteet `#/viinit/kaappi…` ennallaan (eivät näy käyttäjälle).
-  - **Viinilistan järjestys** (käyttäjän toive 13.11.2026): oletuksena skannaus- eli juontipäivän mukaan, uusin ensin (kaapin pullot ostopäivän mukaan).
+    (Kellarissa 🍾, Kellarikartta 🗺️; käyttäjä ei pidä 🗺️:sta → oma piirros backlogissa). Tietokannan status `kaapissa` ja osoitteet `#/viinit/kaappi…` ennallaan (eivät näy käyttäjälle).
+  - **Viinilistan järjestys** (käyttäjän päätös 13.11.2026, korvasi saman päivän "skannauspäivän mukaan"): ostopäivän mukaan, uusin
+    ensin. **Juontipäivä ja ostopäivä erikseen:** Vivinon skannauspäivä on ostopäivä (skannattu ostaessa), ei juontipäivä.
+  - **Juontihistoria** (käyttäjän toive 13.11.2026): mukana saman viinin muiden vuosikertojen juontikerrat, vuosikerta suluissa
+    päivämäärän perässä ("31.12.2025 (2021)"; kaikilla riveillä, jos joukossa on muu vuosikerta). Juontipäivä lihavoituna vain, jos
+    se tiedetään (ei "Päivä ei tiedossa" -tekstiä); ostotiedot omalla harmaalla rivillä "ostettu 9.1.2026 · Alko".
   - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
     Pullomäärä listalla (🍾 2) ja rajaus Kellarissa / Avatut / kaikki (**oletus koko lista**, käyttäjän toive 13.11.2026). **Listan rajaukset tiiviisti**
@@ -157,6 +164,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   ostotiedot puuttuvat, Alko-numero 5:llä, kahdella ei löytynyt. Käyttäjä lisäsi kuvat neliöinä ennen pystykuvia (12.11.2026):
   koko pullo näkyy vasta, kun kuva vaihdetaan (Muokkaa → 📷 Vaihda kuva; alkuperäisiä ei ole tallessa, Claude ei voi rajata).
 - Vivinosta tuotu 13.11.2026 41 juotua viiniä ja 42 juontikertaa (skannauspäivät 2023–2026), omat tähdet 4 viinille.
+  Skannauspäivät siirrettiin samana päivänä ostopäiviksi (`purchased_on`, käyttäjän päätös); juontipäivä (`opened_on`) tyhjä, koska sitä
+  ei tiedetä. Lähdearviot lyhennetty muotoon "★★★★ (2015)" (tyylitekstit pois).
   Viinilehden arvio (tähdet, kuvaus omin sanoin, linkki) 32:lle, joista osa eri vuosikerrasta (merkitty `source_rating`iin);
   López de Haron vastaavuus epävarma, Cono Surin tähtiä ei saatu luettua (vain "Vuoden punaviini 2025"). Ilman arviota 9.
   6 Vivinon skannausta oli samoja viinejä kuin kaapissa: ne skannattiin ostaessa (käyttäjä: kaapin viinit juomatta), ei lisätty.
@@ -432,13 +441,19 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     Rivi `wineItem`: pikkukuva, nimi + vuosikerta, tuottaja · `.wdot.sm` tyyppi (`.nw` samalla rivillä) · alue (`shortRegion`: sulkuosa
     pois, haku `wineHay` käyttää koko aluetta), oikealla `.wside`: 🍾 määrä ja tähdet allekkain; alle 600 px `.wside` rivinä ja
     `.wside .stars` pystyssä (`writing-mode: vertical-rl; text-orientation: upright`, 0,8rem, täydet ylhäällä).
-    **Järjestys** (käyttäjän toive 13.11.2026: "skannauspäivän mukaan"): uusin tapahtuma ensin = viinin pullojen uusin päivä
-    (juontikerta `opened_on` = Vivinon skannauspäivä, kaapin pullo `purchased_on` tai pullon `created_at`); pelkät päivättömät
-    juontikerrat loppuun; viini ilman pulloja = viinin `created_at`. Tasatilanteessa uusin lisätty, sitten nimi.
-  - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot (lähdekortissa `.vbadges` > `.vbadge`: `source_characterful` →
-    "Luonteikas viini", `source_readiness` → `READY_ICON` + teksti, `source_value` → "💶 …"), tiedot (Hinta, Alko-linkki, Ruokapari), "🍾 Kellarissa · 2 pulloa"
+    **Järjestys** (käyttäjän päätös 13.11.2026: ostopäivän mukaan): viinin pullojen ja juontikertojen uusin `purchased_on`; ilman
+    ostopäivää juontikerralla `opened_on`, kellarin pullolla `created_at` (kellariin lisäys); pelkät päivättömät juontikerrat loppuun;
+    viini ilman pulloja = viinin `created_at`. Tasatilanteessa uusin lisätty, sitten nimi.
+  - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot `.rating-box.card` > 2 × `.rrow` (grid: `.lbl` 92 px + arvo;
+    `srcRatingHtml`: alun ★-merkit → `starsTxt(n)` samalla tyylillä kuin oma arvio, loput `.srest` harmaana; muu teksti sellaisenaan),
+    lähderivillä `.vbadges` > `.vbadge`: `source_characterful` → "Luonteikas viini", `source_readiness` → `READY_ICON` + teksti,
+    `source_value` → `VALUE_ICON` + teksti), tiedot (Hinta, Alko-linkki, Ruokapari), "🍾 Kellarissa · 2 pulloa"
     (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kartalla ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
-    kellariin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
+    kellariin", "🍷 Juontihistoria" ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
+    Juontihistoria `wineHistory(w)` = kaikkien saman `wineKey`:n (tuottaja + nimi, `normName`: välilyönnit ja kirjainkoko ohitetaan)
+    viinien juontikerrat, järjestys `tSort` (juontipäivä, sen puuttuessa ostopäivä, uusin ensin; myös `tastings()`). `tastingRow(t, showV)`:
+    `showV` = joukossa on eri vuosikerta kuin sivun viinillä → vuosikerta `.tv` ensimmäisen päivämäärän perässä (juontipäivä, sen
+    puuttuessa ostopäivä). Rivillä `data-w` = juontikerran oma viini, joten muokkaus avautuu `#/viinit/<oma viini>/juotu/<id>`.
     Napit `data-wact` (yksi `#wineDetail`-käsittelijä).
   - **Kellarikartta** (`openCellar(korostus)`, `renderCellar`): `.cellar` > `.shelf` (otsikko "Hylly n" + 3 `.cslot`): täysi ruutu
     `.cslot.full` (min. 112 px; nimi enintään 3 riviä, pitkä sana > 11 merkkiä `longWord` → `.sn.lw` pienempi fontti; vuosikerta;
@@ -460,8 +475,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   - **Pullolomake** (`openBottleForm(viini, pullo?, paikka?)`, tila `bState`): uusille määrä −/+ (1–24) ja jokaiselle paikka
     (`<select>`: vapaat paikat + "Ei paikkaa", ehdotuksena seuraavat vapaat), ostopäivä (tänään), hinta/pullo (viinin hinta), ostopaikka
     ("Alko"). Muokkauksessa yksi paikka + "Poista pullo kellarista" (ei juontikertaa, esim. lahja). Varattu paikka (`23505`) → ilmoitus.
-  - **Avaa pullo / juontikerta** (`openTasting(viini, pullo, "avaa"|"uusi"|"muokkaa")`, `tState`, tähdet `tStars`): päivä (tänään),
-    tilaisuus, tähdet, muistiinpanot. Avaus = update `status: "juotu"`, paikka null, ehto `status = kaapissa` (ei kahta avausta).
+  - **Avaa pullo / juontikerta** (`openTasting(viini, pullo, "avaa"|"uusi"|"muokkaa")`, `tState`, tähdet `tStars`): Juontipäivä (tänään),
+    muokkauksessa myös Ostopäivä (`t_buy`, `#t_buyWrap`), tilaisuus, tähdet, muistiinpanot. Avaus = update `status: "juotu"`, paikka null, ehto `status = kaapissa` (ei kahta avausta).
     Tallennuksen jälkeen `syncWineRating(viini)`: viinin `own_rating` = uusimman tähdillä arvioidun juontikerran tähdet.
   - **Viinilomake:** kentät kuten ennen + Alkon tuotenumero (`w_alko`, 3–8 numeroa); Juotu- ja Missä-kentät poistettu (→ juontihistoria).
     Arvio lähteestä -osiossa Hinta-laatusuhde (`w_src_value`, valinta: – / Löytö / Edullinen ostos / Laatu vastaa hintaa / Kallis)
@@ -585,8 +600,8 @@ Käyttäjä lähettää kuvan pullosta chattiin → Claude lukee etiketin ja lis
 - **Viinilehti** (käyttäjän valinta 13.11.2026: lähdearvioksi Viinilehden tähdet ja kuvaus, ei Vivinon arvioita): haku
   WebSearchilla `viinilehti.fi/viinit <tuottaja> <nimi>`. Tähdet sivun kuvakkeesta (`N-2011-stars.svg`): 5 = Tyylikäs huippuviini,
   4 = Harmoninen, laadultaan erinomainen, 3 = Laadukas ja hyvin tehty, alempi "Sopusuhtainen kokonaisuus" (tähtiä ei näytetä).
-  `source_rating` = "★★★★ Harmoninen, laadultaan erinomainen", perään "(arvio vuosikerrasta 2021)", jos arvio on eri vuosikerrasta,
-  ja palkinto (" · pronssi, Vuoden punaviini 2024"). `source_name` = "Viinilehti". Rypäleet ja ruokapari (omin sanoin) samasta arviosta.
+  `source_rating` = pelkät tähdet "★★★★" (ei tyylitekstiä, käyttäjän toive 13.11.2026), perään vuosi suluissa "(2021)", jos arvio on
+  eri vuosikerrasta, ja palkinto (" · pronssi, Vuoden punaviini 2024"). Alle 3 tähden arviossa teksti "Sopusuhtainen kokonaisuus". `source_name` = "Viinilehti". Rypäleet ja ruokapari (omin sanoin) samasta arviosta.
   Alkon numero on Viinilehden osoitteen alussa (esim. `…/viinit/923915-…`); tarkista pullokoko (0,375 l → ei `alko_id`:tä).
   Sivun merkinnät tähtien jälkeen: "Luonteikas viini" (vain osalla) → `source_characterful = true`; juotavuus → `source_readiness`
   (Viinilehden symbolit: lasi = Valmis juotavaksi, pullo kallellaan = Valmis, mutta kehittyy, pullo pystyssä = liian nuori,
@@ -613,7 +628,8 @@ Käyttäjä on skannannut juomansa viinit Vivinoon ("jos olen skannannut, olen m
    sijainnit): niitä ei lueta, käytetä eikä tallenneta minnekään. Vivinon dataa ei laiteta repoon.
 3. **Viinit:** Winery → `producer`, Wine name → `name`, Vintage, Wine type → `wine_type` (Red Wine = punainen jne.), Region →
    `region` (alue suluissa kuten etiketeissä), Country suomeksi. Sama viini (tuottaja + nimi + vuosikerta) kerran.
-   **Juontikerrat:** jokaisesta skannauksesta `wine_bottles`-rivi, status `juotu`, `opened_on` = Scan date.
+   **Juontikerrat:** jokaisesta skannauksesta `wine_bottles`-rivi, status `juotu`, `purchased_on` = Scan date (skannattu ostaessa,
+   käyttäjän päätös 13.11.2026), `opened_on` tyhjä.
    Oma arvio (Your rating) pyöristetään lähimpään kokonaiseen tähteen (3,9 → 4) juontikerran `rating`-kenttään, ja
    `own_rating` päivitetään (uusin tähditetty). **Vivinon keskiarvoja, arvioita ja kuvauksia ei tuoda.** Lähdearvio Viinilehdestä
    (ks. edellinen luku).
@@ -622,7 +638,7 @@ Käyttäjä on skannannut juomansa viinit Vivinoon ("jos olen skannannut, olen m
    jos Vivino poistaa sen. Työtilasta images.vivino.com ei näy (verkkoesto), joten näkyvyys tarkistetaan sivulla. Oman kuvan
    tallennus (Muokkaa → 📷 Vaihda kuva) korvaa linkin.
 4. **Päällekkäiset:** jos sama viini on jo kellarissa (esim. kaapissa), kysy käyttäjältä, skannasiko hän sen ostaessaan (ei
-   lisätä mitään) vai onko pullo jo juotu (juontikerta skannauspäivällä). Vivinon vuosikerta voi olla väärin: vertaa etikettiin.
+   lisätä mitään) vai onko pullo jo juotu (juontikerta, ostopäivä = skannauspäivä). Vivinon vuosikerta voi olla väärin: vertaa etikettiin.
 
 ## Kuvitetun menun tuominen (Claude Design -canvas)
 

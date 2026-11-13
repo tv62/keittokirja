@@ -164,8 +164,15 @@
   .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 16px 0 0; }
   .kv dt { color: var(--muted); }
   .kv dd { margin: 0; }
-  .rating-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-  .rating-box .card { padding: 12px 14px; }
+  /* Oma arvio ja lähteen arvio päällekkäin, tähdet samassa sarakkeessa vertailua varten */
+  .rating-box.card { margin-top: 14px; padding: 2px 14px; }
+  .rrow { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: baseline; padding: 10px 0; }
+  .rrow + .rrow { border-top: 1px solid var(--line); }
+  .rrow .lbl { overflow-wrap: anywhere; }
+  .rrow .stars { font-size: 1.35rem; }
+  .rrow .srest { color: var(--muted); }
+  .rrow .vbadges { margin: 6px 0 2px; }
+  .trow2 .tv { font-weight: 400; color: var(--muted); }
   /* Viinilehden lisämerkinnät arviokortissa: Luonteikas viini, hinta-laatusuhde */
   .vbadges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
   .vbadge { font-size: .8rem; padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--ink); white-space: nowrap; }
@@ -710,8 +717,9 @@
     <form id="tastingForm" class="card">
       <h2 id="tastingTitle">🍷 Avaa pullo</h2>
       <div class="muted" id="tastingWine"></div>
-      <label for="t_date">Päivä</label>
+      <label for="t_date">Juontipäivä</label>
       <input id="t_date" type="date">
+      <div id="t_buyWrap" class="hidden"><label for="t_buy">Ostopäivä</label><input id="t_buy" type="date"></div>
       <label for="t_occasion">Tilaisuus</label>
       <input id="t_occasion" maxlength="200" placeholder="esim. Lauantai-illallinen, poropaisti">
       <label>Tähdet</label>
@@ -761,7 +769,7 @@
       </div>
       <h3>Arvio lähteestä</h3>
       <div class="row">
-        <div><label for="w_src_rating">Arvio</label><input id="w_src_rating" placeholder="esim. 93/100 tai 4,2/5"></div>
+        <div><label for="w_src_rating">Arvio</label><input id="w_src_rating" placeholder="esim. ★★★★ (2021) tai 93/100"></div>
         <div><label for="w_src_name">Lähde</label><input id="w_src_name" placeholder="esim. Viinilehti"></div>
       </div>
       <div class="row">
@@ -2194,8 +2202,17 @@
   async function loadBottles() { const r = await bottleQuery(); if (!r.error) bottles = r.data; return r; }
   const inCellar = (wid) => bottles.filter((b) => b.status === "kaapissa" && (!wid || b.wine_id === wid))
     .sort((a, b) => (a.shelf || 99) - (b.shelf || 99) || (a.slot || 99) - (b.slot || 99));
-  const tastings = (wid) => bottles.filter((b) => b.status === "juotu" && b.wine_id === wid)
-    .sort((a, b) => (b.opened_on || "").localeCompare(a.opened_on || "") || String(b.created_at).localeCompare(String(a.created_at)));
+  // Juontikerrat uusin ensin: juontipäivä, sen puuttuessa ostopäivä (Vivinosta tuoduilla vain ostopäivä)
+  const tDay = (t) => t.opened_on || t.purchased_on || "";
+  const tSort = (a, b) => tDay(b).localeCompare(tDay(a)) || String(b.created_at).localeCompare(String(a.created_at));
+  const tastings = (wid) => bottles.filter((b) => b.status === "juotu" && b.wine_id === wid).sort(tSort);
+  // Saman viinin kaikkien vuosikertojen juontikerrat (tuottaja + nimi, kirjainkoko ja välilyönnit ohitetaan)
+  const normName = (s) => (s || "").trim().replace(/\s+/g, " ").toLowerCase();
+  const wineKey = (w) => normName(w.producer) + "|" + normName(w.name);
+  function wineHistory(w) {
+    const k = wineKey(w), ids = new Set(wines.filter((x) => x.id === w.id || wineKey(x) === k).map((x) => x.id));
+    return bottles.filter((b) => b.status === "juotu" && ids.has(b.wine_id)).sort(tSort);
+  }
   const placeKey = (s, p) => `${s}-${p}`;
   const placeTxt = (b) => b.shelf ? `Hylly ${b.shelf} · paikka ${b.slot}` : "Ei paikkaa";
   function takenPlaces(exceptId) {
@@ -2259,12 +2276,12 @@
     const ws = words($("wq").value);
     const stOk = (w) => wineStatus === "kaikki" || (wineStatus === "kaapissa" ? inSet : openSet).has(w.id);
     const shown = wines.filter((w) => stOk(w) && (!wineType || inGroup(w, wineType)) && matches(wineHay(w), ws));
-    // Järjestys: uusin tapahtuma ensin (juontipäivä = Vivinon skannauspäivä, kaapin pullon ostopäivä tai kaappiin lisäyspäivä).
-    // Pelkät päivättömät juontikerrat loppuun; viini ilman pulloja ja juontikertoja = viinin lisäyspäivä.
-    // Tasatilanteessa uusin lisätty, sitten nimi.
+    // Järjestys: uusin ostopäivä ensin (viinin pullojen ja juontikertojen uusin ostopäivä; Vivinon skannauspäivä = ostopäivä).
+    // Ilman ostopäivää: juontikerralla juontipäivä, kellarin pullolla kellariin lisäyspäivä. Päivättömät juontikerrat loppuun;
+    // viini ilman pulloja ja juontikertoja = viinin lisäyspäivä. Tasatilanteessa uusin lisätty, sitten nimi.
     const wd = new Map();
     for (const b of bottles) {
-      const d = (b.status === "juotu" ? b.opened_on : b.purchased_on || (b.created_at || "").slice(0, 10)) || "";
+      const d = b.purchased_on || (b.status === "juotu" ? b.opened_on : (b.created_at || "").slice(0, 10)) || "";
       if (!wd.has(b.wine_id) || d > wd.get(b.wine_id)) wd.set(b.wine_id, d);
     }
     const dOf = (w) => wd.has(w.id) ? wd.get(w.id) : (w.created_at || "").slice(0, 10);
@@ -2294,14 +2311,32 @@
         <button class="icon" data-wact="editb" data-b="${b.id}" aria-label="Muokkaa pulloa">⋯</button>` : ""}
     </div>`;
   }
-  function tastingRow(t) {
+  // Juontikerta: juontipäivä (vain jos tiedossa) ja ostopäivä erikseen. showV = historiassa on useita vuosikertoja:
+  // vuosikerta suluissa ensimmäisen päivämäärän perässä.
+  function tastingRow(t, showV) {
     const tag = canEdit ? "button" : "div";
-    return `<${tag} class="trow2" ${canEdit ? `data-wact="editt" data-b="${t.id}" aria-label="Muokkaa juontikertaa"` : ""}>
-      <div class="td">${t.opened_on ? fiDate(t.opened_on) : "Päivä ei tiedossa"}${t.rating ? ` <span class="stars" role="img" aria-label="${t.rating}/5">${starsTxt(t.rating)}</span>` : ""}</div>
+    const w = wines.find((x) => x.id === t.wine_id);
+    const vin = showV ? ` <span class="tv">(${w && w.vintage ? w.vintage : "ei vuosikertaa"})</span>` : "";
+    const st = t.rating ? `<span class="stars" role="img" aria-label="${t.rating}/5">${starsTxt(t.rating)}</span>` : "";
+    const buy = [t.purchased_on ? "ostettu " + fiDate(t.purchased_on) : "", t.purchase_place, eur(t.price)].filter(Boolean).map(esc).join(" · ");
+    const vinOnBuy = !t.opened_on && t.purchased_on;
+    const head = [t.opened_on ? fiDate(t.opened_on) + vin : vinOnBuy ? "" : vin.trim(), st].filter(Boolean).join(" ");
+    return `<${tag} class="trow2" ${canEdit ? `data-wact="editt" data-w="${t.wine_id}" data-b="${t.id}" aria-label="Muokkaa juontikertaa"` : ""}>
+      ${head ? `<div class="td">${head}</div>` : ""}
       ${t.occasion ? `<div>${esc(t.occasion)}</div>` : ""}
       ${t.notes ? `<div class="m tn">${esc(t.notes)}</div>` : ""}
+      ${buy ? `<div class="m">${buy}${vinOnBuy ? vin : ""}</div>` : ""}
     </${tag}>`;
   }
+  // Lähteen arvio: alun tähdet (★★★★) samalla tähtirivillä kuin oma arvio, loput (vuosikerta, palkinto) perään.
+  function srcRatingHtml(s) {
+    const m = /^\s*(★{1,5})☆*\s*(.*)$/.exec(s || "");
+    if (!m) return s ? esc(s) : "–";
+    const n = m[1].length;
+    return `<span class="stars" role="img" aria-label="${n}/5">${starsTxt(n)}</span>${m[2] ? ` <span class="srest">${esc(m[2])}</span>` : ""}`;
+  }
+  // Hinta-laatusuhteen kuvake (Viinilehti)
+  const VALUE_ICON = { "Löytö": "💎", "Edullinen ostos": "💎", "Laatu vastaa hintaa": "⚖️", "Kallis": "💸" };
   function openWine(w) {
     curWineId = w.id;
     renderWine(w); show("wineView");
@@ -2315,18 +2350,21 @@
   function renderWine(w) {
     const srcUrl = safeUrl(w.source_url), alko = alkoUrl(w.alko_id);
     const row = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
-    const inC = inCellar(w.id), hist = tastings(w.id);
+    const inC = inCellar(w.id), hist = wineHistory(w);
+    // Muiden vuosikertojen juontikerrat mukana → vuosikerta jokaiselle riville
+    const vOf = (t) => { const x = wines.find((y) => y.id === t.wine_id); return x ? x.vintage || null : null; };
+    const multiV = hist.some((t) => vOf(t) !== (w.vintage || null));
     $("wineDetail").innerHTML = `
       ${bigPic(w, w.name, "tall rimg-top")}
       <h2>${esc(w.name)}${w.vintage ? ` <span class="muted" style="font-weight:400">${w.vintage}</span>` : ""}</h2>
       ${w.producer ? `<div class="muted">${esc(w.producer)}</div>` : ""}
-      <div class="rating-box">
-        <div class="card"><div class="lbl">Oma arvio</div>
-          <div class="stars" style="font-size:1.35rem;margin-top:4px">${w.own_rating ? starsTxt(w.own_rating) : "–"}</div></div>
-        <div class="card"><div class="lbl">Arvio${w.source_name ? " · " + esc(w.source_name) : ""}</div>
-          <div style="font-size:1.2rem;margin-top:4px">${w.source_rating ? esc(w.source_rating) : "–"}</div>
-          ${w.source_characterful || w.source_readiness || w.source_value ? `<div class="vbadges">${w.source_characterful ? `<span class="vbadge">Luonteikas viini</span>` : ""}${w.source_readiness ? `<span class="vbadge" title="Juotavuus">${READY_ICON[w.source_readiness] || "🍷"} ${esc(w.source_readiness)}</span>` : ""}${w.source_value ? `<span class="vbadge" title="Hinta-laatusuhde">💶 ${esc(w.source_value)}</span>` : ""}</div>` : ""}
-          ${srcUrl ? `<a href="${esc(srcUrl)}" target="_blank" rel="noopener" style="font-size:.85rem">Avaa arvio</a>` : ""}</div>
+      <div class="rating-box card">
+        <div class="rrow"><div class="lbl">Oma arvio</div>
+          <div>${w.own_rating ? `<span class="stars" role="img" aria-label="${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : "–"}</div></div>
+        <div class="rrow"><div class="lbl">${w.source_name ? esc(w.source_name) : "Arvio"}</div>
+          <div>${srcRatingHtml(w.source_rating)}
+          ${w.source_characterful || w.source_readiness || w.source_value ? `<div class="vbadges">${w.source_characterful ? `<span class="vbadge">Luonteikas viini</span>` : ""}${w.source_readiness ? `<span class="vbadge" title="Juotavuus">${READY_ICON[w.source_readiness] || "🍷"} ${esc(w.source_readiness)}</span>` : ""}${w.source_value ? `<span class="vbadge" title="Hinta-laatusuhde">${VALUE_ICON[w.source_value] || "💎"} ${esc(w.source_value)}</span>` : ""}</div>` : ""}
+          ${srcUrl ? `<div><a href="${esc(srcUrl)}" target="_blank" rel="noopener" style="font-size:.85rem">Avaa arvio</a></div>` : ""}</div></div>
       </div>
       <dl class="kv">
         ${row("Tyyppi", WTYPES[w.wine_type])}${row("Rypäle", w.grapes)}
@@ -2342,7 +2380,7 @@
       </div>
       <div class="wsec">
         <div class="wsh"><h3>🍷 Juontihistoria</h3>${canEdit ? `<button class="link" data-wact="addt">+ Lisää juontikerta</button>` : ""}</div>
-        ${hist.length ? hist.map(tastingRow).join("") : `<p class="muted" style="margin:0">Ei vielä juontikertoja.</p>`}
+        ${hist.length ? hist.map((t) => tastingRow(t, multiV)).join("") : `<p class="muted" style="margin:0">Ei vielä juontikertoja.</p>`}
       </div>
       ${w.own_notes ? `<h3>Omat muistiinpanot</h3><p class="notes">${esc(w.own_notes)}</p>` : ""}
       ${w.description ? `<h3>Kuvaus</h3><p class="notes">${esc(w.description)}</p>` : ""}
@@ -2353,7 +2391,7 @@
     const t = e.target.closest("[data-wact]"); if (!t || !curWineId) return;
     const base = `#/viinit/${curWineId}`, bid = t.dataset.b;
     const to = { map: `#/viinit/kaappi/${curWineId}`, addb: `${base}/pullot/uusi`, open: `${base}/avaa/${bid}`,
-      editb: `${base}/pullo/${bid}`, addt: `${base}/juotu/uusi`, editt: `${base}/juotu/${bid}`, edit: `${base}/muokkaa` }[t.dataset.wact];
+      editb: `${base}/pullo/${bid}`, addt: `${base}/juotu/uusi`, editt: `#/viinit/${t.dataset.w || curWineId}/juotu/${bid}`, edit: `${base}/muokkaa` }[t.dataset.wact];
     if (to) go(to);
   };
 
@@ -2603,6 +2641,8 @@
     $("tastingTitle").textContent = mode === "avaa" ? "🍷 Avaa pullo" : edit ? "Muokkaa juontikertaa" : "Lisää juontikerta";
     $("tastingWine").textContent = wineTitle(w) + (mode === "avaa" && b.shelf ? " · " + placeTxt(b) : "");
     $("t_date").value = edit ? (b.opened_on || "") : todayIso();
+    $("t_buy").value = edit ? (b.purchased_on || "") : "";
+    $("t_buyWrap").classList.toggle("hidden", !edit);
     $("t_occasion").value = edit ? (b.occasion || "") : "";
     $("t_notes").value = edit ? (b.notes || "") : "";
     tStars = edit ? (b.rating || 0) : 0; renderTStars();
@@ -2624,6 +2664,7 @@
     const { wine: w, bottle: b, mode } = tState;
     const row = { status: "juotu", opened_on: $("t_date").value || null, occasion: $("t_occasion").value.trim() || null,
       rating: tStars || null, notes: $("t_notes").value.trim() || null };
+    if (mode === "muokkaa") row.purchased_on = $("t_buy").value || null;
     const btn = $("tastingSaveBtn"); btn.disabled = true; msg($("tastingMsg"), "");
     let res;
     if (mode === "avaa") {
