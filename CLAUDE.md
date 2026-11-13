@@ -19,8 +19,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   (iOS pyöristää). Jo tallennettu kotivalikon pikakuvake ei päivity: poista ja lisää uudelleen Safarin Jaa-valikosta.
   Otsikon logo `pata.svg` = sama pata läpinäkyvällä taustalla ilman varjoa, viewBox rajattu pataan (`h1 .logo`, 1.15em).
 - **Kellarikartan kuvake** `kellarikartta.svg` (käyttäjän valinta E 13.11.2026, oma piirros samalla tyylillä kuin pata):
-  pyramidiviiniteline 3-2-1, mustat pullot, punaiset korkit, ohuet puurimat, **aina vaalea pyöristetty tausta** (erottuu myös
-  tummassa tilassa). Hylätyt: tynnyri pystyssä / telineellä, 3×3-teline, holvikellari, pyramidi 4-3-2-1, pyramidi pystyrimoin.
+  pyramidiviiniteline 3-2-1, mustat pullot, punaiset korkit, ohuet puurimat, **kolmion sisällä vaalea puu** (käyttäjän toive
+  13.11.2026: tausta vain telineen muotoisena, erottuu myös tummassa tilassa; vaihtoehto kerma `#f8efdc`, aiempi pyöristetty
+  neliötausta hylätty). Napissa 1,6em. Hylätyt: tynnyri pystyssä / telineellä, 3×3-teline, holvikellari, pyramidi 4-3-2-1,
+  pyramidi pystyrimoin.
 - **Kellarissa-merkki** `pullo.svg` (käyttäjän valinta P1 13.11.2026, korvasi 🍾-emojin): viinipullo pystyssä, musta lasi, punainen
   korkki, kermanvärinen etiketti, ei taustaa (hylätty P2 = vaalea tausta, liian huomiota herättävä joka rivillä tummassa tilassa).
   Käytössä rajausnapissa, listarivin pullomäärässä ja viinin sivun Kellarissa-otsikossa (`BOTTLE_ICO`, luokka `.bico`).
@@ -444,7 +446,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   uusin päivä ensin, päivätön loppuun), `takenPlaces()`, `freePlaces(paitsiPullo)`, `placeTxt`, `pullot(n)`, `eur`, `parsePrice`,
   `alkoUrl(nro)` = `https://www.alko.fi/tuotteet/<nro>/`, `WCOLOR` (ruudun värikaista viinin tyypin mukaan). `refreshCellar()`
   hakee viinit ja pullot taustalla, kun lista tai kaappikartta avataan.
-  - **Lista** (`renderWines`): otsikkorivi `.whead` = h2 + `#cellarBtn` (`.cellarpill`, kuvake `<img class="cmapico" src="kellarikartta.svg">` 1,75em + "Kellarikartta 3/15", `#cellarSum`;
+  - **Lista** (`renderWines`): otsikkorivi `.whead` = h2 + `#cellarBtn` (`.cellarpill`, kuvake `<img class="cmapico" src="kellarikartta.svg">` 1,6em + "Kellarikartta 3/15", `#cellarSum`;
     aria-label kertoo paikat), haku, rajausrivi `#wineFilt` (`.chips.primary.scroll.wfilt`): `wineStatus` `data-wst` kaapissa (`inSet`) /
     juodut (nimi "Avatut", `openSet` = viinit, joilla on `juotu`-rivi; määrä `.n` vain valittuna, aria-labelissa aina), valitun napautus → `"kaikki"` (oletus `"kaikki"`, nollautuu etusivun kortista avattaessa kuten `wineType` ja haku); erotin `.fsep`; tyyppiryhmät
     `data-wtype` = `WGROUPS`-avaimet (`[avain, nimi, wine_type-lista, väri?]`: punainen, valkoinen, rosé, kuohuvat = kuohuviini +
