@@ -185,6 +185,11 @@
   .nw { white-space: nowrap; }
   .chip.on .wdot { box-shadow: 0 0 0 2px var(--accent-ink); }
   .item .side.wside { flex-direction: column; align-items: flex-end; gap: 4px; }
+  /* Puhelimessa oma arvio pystyssä rivin oikeassa reunassa (käyttäjän valinta D 13.11.2026), 🍾-merkki vasemmalla. */
+  @media (max-width: 599px) {
+    .item .side.wside { flex-direction: row; align-items: center; gap: 8px; }
+    .wside .stars { writing-mode: vertical-rl; text-orientation: upright; font-size: .8rem; letter-spacing: -2px; line-height: 1; margin-right: -6px; }
+  }
   .bcount { font-size: .85rem; padding: 3px 8px; border-radius: 999px; background: var(--chip); white-space: nowrap; flex: none; }
   .cellar { padding: 12px; display: grid; gap: 8px; max-width: 560px; }
   .shelf { display: grid; grid-template-columns: 46px repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -2192,13 +2197,15 @@
     renderWines(); show("winesView");
     refreshCellar().then(() => { if (currentView === "winesView") renderWines(); });
   }
+  // Listalla alue ilman sulkuosaa ("Veneto (Amarone della Valpolicella)" → "Veneto"); koko alue näkyy viinin sivulla.
+  const shortRegion = (r) => r.replace(/\s*\([^)]*\)\s*$/, "").trim() || r;
   function wineItem(w) {
     const n = inCellar(w.id).length;
     return `<button class="item card withpic" data-wine="${w.id}">${thumbHtml(w, w.name, true)}
       <div class="body">
         <div class="t">${esc(w.name)}${w.vintage ? ` <span class="muted" style="font-weight:400">${w.vintage}</span>` : ""}</div>
         <div class="m">${[w.producer && esc(w.producer), WTYPES[w.wine_type] && `<span class="nw"><span class="wdot sm" style="--c:${WCOLOR[w.wine_type] || WCOLOR.muu}" aria-hidden="true"></span>${esc(WTYPES[w.wine_type])}</span>`,
-          (w.region || w.country) && esc(w.region || w.country)].filter(Boolean).join(" · ")}</div>
+          (w.region || w.country) && esc(shortRegion(w.region || w.country))].filter(Boolean).join(" · ")}</div>
       </div>
       <span class="side wside">${n ? `<span class="bcount" title="Kaapissa ${pullot(n)}" aria-label="Kaapissa ${pullot(n)}">🍾 ${n}</span>` : ""}${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}</span>
     </button>`;

@@ -89,7 +89,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     (käyttäjä valitsi vaihtoehdon A 13.11.2026; hylätty B = kaksi valikkoa): 🗄️ Kaappikartta pienenä nappina otsikon vieressä,
     yksi pyyhkäistävä rivi: 🍾 Kaapissa + määrä ja 🍷 Juodut (nimi näkyy vain valitussa, valitun napautus = kaikki viinit) | viinityypit
     värimerkkeinä (valitussa myös nimi, uusi napautus poistaa); **kuohuviinit ja jälkiruokaviinit samassa merkissä** (käyttäjän toive).
-    Listarivillä tyypin edessä sama värimerkki (opettaa värit). **🍷 Avaa pullo** kysyy
+    Listarivillä tyypin edessä sama värimerkki (opettaa värit). **Listarivillä alue ilman sulkuosaa** (käyttäjän toive 13.11.2026:
+    "Veneto (Amarone della Valpolicella)" → "Veneto"; koko alue viinin sivulla). **Oma arvio iPhonella pystyssä rivin oikeassa
+    reunassa** (käyttäjä valitsi vaihtoehdon D 13.11.2026; hylätyt: A "★ 4", B tähdet metarivillä, C ei tähtiä listalla), 🍾-merkki
+    tähtien vasemmalla; iPadilla tähdet vaakarivissä 🍾-merkin alla kuten ennen. **🍷 Avaa pullo** kysyy
     päivän, tilaisuuden, tähdet ja muistiinpanon → pullo siirtyy juontihistoriaan. **Kaappikartta** 5 × 3 -ruudukkona (napautus
     avaa viinin, tyhjä paikka → valitse viini → pullot samaan paikkaan). **Ruudussa pullon kuva himmeänä tekstin taustalla**
     (käyttäjä valitsi vaihtoehdon A 12.11.2026; hylätty B = kuva ruudun yläosassa ja nimi alla). **Pullon siirto raahaamalla**
@@ -411,8 +414,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     `data-wtype` = `WGROUPS`-avaimet (`[avain, nimi, wine_type-lista, väri?]`: punainen, valkoinen, rosé, kuohuvat = kuohuviini +
     jälkiruokaviini, muu), näkyvät vain olemassa olevat ja vain jos niitä on ≥ 2; `inGroup(w, ryhmä)`; merkki `.wdot` (`--c`, väri
     `WCOLOR`), valitussa nimi (yli 12 merkkiä → `.l2` kahdelle riville), valittu vieritetään näkyviin. `wineType` = ryhmän avain.
-    Rivi `wineItem`: pikkukuva, nimi + vuosikerta, tuottaja · `.wdot.sm` tyyppi (`.nw` samalla rivillä) · alue, oikealla allekkain
-    🍾 määrä ja tähdet.
+    Rivi `wineItem`: pikkukuva, nimi + vuosikerta, tuottaja · `.wdot.sm` tyyppi (`.nw` samalla rivillä) · alue (`shortRegion`: sulkuosa
+    pois, haku `wineHay` käyttää koko aluetta), oikealla `.wside`: 🍾 määrä ja tähdet allekkain; alle 600 px `.wside` rivinä ja
+    `.wside .stars` pystyssä (`writing-mode: vertical-rl; text-orientation: upright`, 0,8rem, täydet ylhäällä).
     **Järjestys** (käyttäjän toive 13.11.2026: "skannauspäivän mukaan"): uusin tapahtuma ensin = viinin pullojen uusin päivä
     (juontikerta `opened_on` = Vivinon skannauspäivä, kaapin pullo `purchased_on` tai pullon `created_at`); pelkät päivättömät
     juontikerrat loppuun; viini ilman pulloja = viinin `created_at`. Tasatilanteessa uusin lisätty, sitten nimi.
