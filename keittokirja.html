@@ -774,12 +774,18 @@
             <option>Kallis</option>
           </select>
         </div>
-        <div style="display:flex;align-items:flex-end">
-          <label style="display:flex;align-items:center;gap:8px;color:var(--ink);min-height:44px">
-            <input type="checkbox" id="w_src_char" style="width:auto;margin:0"> Luonteikas viini
-          </label>
+        <div><label for="w_src_ready">Juotavuus</label>
+          <select id="w_src_ready">
+            <option value="">–</option>
+            <option>Valmis juotavaksi</option>
+            <option>Valmis, mutta kehittyy</option>
+            <option>Kehittyy varastoinnin myötä</option>
+          </select>
         </div>
       </div>
+      <label style="display:flex;align-items:center;gap:8px;color:var(--ink);min-height:44px">
+        <input type="checkbox" id="w_src_char" style="width:auto;margin:0"> Luonteikas viini
+      </label>
       <label for="w_src_url">Linkki arvioon</label>
       <input id="w_src_url" type="url" placeholder="https://…">
       <h3>Oma arvio</h3>
@@ -1006,7 +1012,7 @@
   };
   const recipeHay = (r) => [r.title, r.description, CATS[catOf(r)], menuOf(r),...(r.ingredients || []).map(asText), ...plainTags(r)];
   const wineHay = (w) => [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.alko_id, w.own_notes, w.description,
-    w.source_value, w.source_characterful && "luonteikas"];
+    w.source_value, w.source_readiness, w.source_characterful && "luonteikas"];
   const menuHay = (m) => [m.name, m.subtitle, m.description];
 
   // ---------- Kuvat (Supabase Storage, yksityinen bucket) ----------
@@ -2304,6 +2310,8 @@
       if (currentView === "wineView" && nw) renderWine(nw);
     });
   }
+  // Viinilehden juotavuusmerkinnät (lasi / pullo kallellaan / pullo pystyssä)
+  const READY_ICON = { "Valmis juotavaksi": "🍷", "Valmis, mutta kehittyy": "⏳", "Kehittyy varastoinnin myötä": "🗄️" };
   function renderWine(w) {
     const srcUrl = safeUrl(w.source_url), alko = alkoUrl(w.alko_id);
     const row = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
@@ -2317,7 +2325,7 @@
           <div class="stars" style="font-size:1.35rem;margin-top:4px">${w.own_rating ? starsTxt(w.own_rating) : "–"}</div></div>
         <div class="card"><div class="lbl">Arvio${w.source_name ? " · " + esc(w.source_name) : ""}</div>
           <div style="font-size:1.2rem;margin-top:4px">${w.source_rating ? esc(w.source_rating) : "–"}</div>
-          ${w.source_characterful || w.source_value ? `<div class="vbadges">${w.source_characterful ? `<span class="vbadge">Luonteikas viini</span>` : ""}${w.source_value ? `<span class="vbadge" title="Hinta-laatusuhde">💶 ${esc(w.source_value)}</span>` : ""}</div>` : ""}
+          ${w.source_characterful || w.source_readiness || w.source_value ? `<div class="vbadges">${w.source_characterful ? `<span class="vbadge">Luonteikas viini</span>` : ""}${w.source_readiness ? `<span class="vbadge" title="Juotavuus">${READY_ICON[w.source_readiness] || "🍷"} ${esc(w.source_readiness)}</span>` : ""}${w.source_value ? `<span class="vbadge" title="Hinta-laatusuhde">💶 ${esc(w.source_value)}</span>` : ""}</div>` : ""}
           ${srcUrl ? `<a href="${esc(srcUrl)}" target="_blank" rel="noopener" style="font-size:.85rem">Avaa arvio</a>` : ""}</div>
       </div>
       <dl class="kv">
@@ -2654,7 +2662,7 @@
 
   const WFIELDS = { w_name: "name", w_producer: "producer", w_vintage: "vintage", w_type: "wine_type", w_grapes: "grapes",
     w_region: "region", w_country: "country", w_price: "price", w_alko: "alko_id",
-    w_src_rating: "source_rating", w_src_name: "source_name", w_src_url: "source_url", w_src_value: "source_value", w_own_notes: "own_notes",
+    w_src_rating: "source_rating", w_src_name: "source_name", w_src_url: "source_url", w_src_value: "source_value", w_src_ready: "source_readiness", w_own_notes: "own_notes",
     w_desc: "description", w_food: "food_pairing" };
   const wineFormState = () => JSON.stringify([...Object.keys(WFIELDS).map((id) => $(id).value), $("w_src_char").checked, wineStars, winePic.kind]);
 

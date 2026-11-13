@@ -82,7 +82,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     "Kaikki" tekstinä, Tagit-nappi "🏷 ▾" (valittu tagi: "🏷 🥕 ▴").
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä. **Arviokortissa Viinilehden merkinnät
-    pieninä pilleinä** (käyttäjän toive 13.11.2026): "Luonteikas viini" ja "💶 <hinta-laatusuhde>" arviotekstin alla.
+    pieninä pilleinä** (käyttäjän toive 13.11.2026): "Luonteikas viini", juotavuus (🍷 Valmis juotavaksi / ⏳ Valmis, mutta kehittyy /
+    🗄️ Kehittyy varastoinnin myötä) ja "💶 <hinta-laatusuhde>" arviotekstin alla, Viinilehden järjestyksessä.
   - **Viinilistan järjestys** (käyttäjän toive 13.11.2026): oletuksena skannaus- eli juontipäivän mukaan, uusin ensin (kaapin pullot ostopäivän mukaan).
   - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
@@ -161,6 +162,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Viinilehden merkinnät (luonteikas, hinta-laatu) täytetty 13.11.2026 kaikille 33 viinille, joilla on Viinilehden arvio
   (López de Haron sivulla ei hinta-laatumerkintää; Tommasi Crearo viinivinkkisivulta). Cono Surin tähdet tarkistettu (5).
   Boschettin Barolo 2020: käyttäjä lisäsi linkin, Claude täytti tähdet, merkinnät ja Alko-numeron.
+  Juotavuus täytetty samoille (31 Valmis juotavaksi, 3 Valmis, mutta kehittyy) ja kaapin Faustino 2016:lle (tähdet 2016,
+  luonteikas + juotavuus vuosikerran 2017 sivulta, koska Viinilehti korvasi 2016-sivun). Muille kaapin viineille ei ole haettu.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
 
@@ -427,7 +430,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     (juontikerta `opened_on` = Vivinon skannauspäivä, kaapin pullo `purchased_on` tai pullon `created_at`); pelkät päivättömät
     juontikerrat loppuun; viini ilman pulloja = viinin `created_at`. Tasatilanteessa uusin lisätty, sitten nimi.
   - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot (lähdekortissa `.vbadges` > `.vbadge`: `source_characterful` →
-    "Luonteikas viini", `source_value` → "💶 …"), tiedot (Hinta, Alko-linkki, Ruokapari), "🗄️ Kaapissa · 2 pulloa"
+    "Luonteikas viini", `source_readiness` → `READY_ICON` + teksti, `source_value` → "💶 …"), tiedot (Hinta, Alko-linkki, Ruokapari), "🗄️ Kaapissa · 2 pulloa"
     (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kaapissa ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
     kaappiin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
     Napit `data-wact` (yksi `#wineDetail`-käsittelijä).
@@ -456,7 +459,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     Tallennuksen jälkeen `syncWineRating(viini)`: viinin `own_rating` = uusimman tähdillä arvioidun juontikerran tähdet.
   - **Viinilomake:** kentät kuten ennen + Alkon tuotenumero (`w_alko`, 3–8 numeroa); Juotu- ja Missä-kentät poistettu (→ juontihistoria).
     Arvio lähteestä -osiossa Hinta-laatusuhde (`w_src_value`, valinta: – / Löytö / Edullinen ostos / Laatu vastaa hintaa / Kallis)
-    ja ruutu Luonteikas viini (`w_src_char`). Haku (`wineHay`) löytää myös hinta-laatusuhteen ja sanan "luonteikas".
+    ja Juotavuus (`w_src_ready`), alla ruutu Luonteikas viini (`w_src_char`). Haku (`wineHay`) löytää myös hinta-laatusuhteen,
+    juotavuuden ja sanan "luonteikas".
     Viinin poisto poistaa myös pullot ja juontihistorian (FK on delete cascade; vahvistus kertoo sen).
 - Napautettavat chipit ovat vähintään 44 px korkeita (sormelle sopiva koko).
 - Käyttäjän syöte escapetaan aina `esc()`-funktiolla ennen `innerHTML`:ää. URLit `safeUrl()`-funktiolla.
@@ -488,7 +492,7 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 | `meal_plan` | id, day (date), meal (`lounas`/`paivallinen`), sort (järjestys aterian sisällä), title (reseptin nimi tallennushetkellä tai vapaa teksti), recipe_id (null = vapaa teksti; FK recipes, on delete set null), servings (vain alkuperäisellä reseptirivillä), leftover (bool, tähteet), leftover_of (alkuperäinen rivi; FK, on delete set null), created_by, created_at, updated_at (trigger `touch_updated_at`) |
 | `meal_plan_notes` | day (date, pääavain), note (1–300 merkkiä), updated_at |
 | `plan_settings` | id (aina 1, yksi rivi), portions_per_meal (numeric, oletus 2: perhe syö aterialla noin näin monta annosta) |
-| `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, price, alko_id (Alkon tuotenumero, 3–8 numeroa), source_rating (teksti, esim. "92/100"), source_name, source_url, source_characterful (bool, Viinilehden "Luonteikas viini"), source_value (Viinilehden hinta-laatusuhde: `Löytö`/`Edullinen ostos`/`Laatu vastaa hintaa`/`Kallis`, check), own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa), created_at, updated_at. (drunk_on ja occasion poistettu 11/2026 → wine_bottles.) |
+| `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, price, alko_id (Alkon tuotenumero, 3–8 numeroa), source_rating (teksti, esim. "92/100"), source_name, source_url, source_characterful (bool, Viinilehden "Luonteikas viini"), source_value (Viinilehden hinta-laatusuhde: `Löytö`/`Edullinen ostos`/`Laatu vastaa hintaa`/`Kallis`, check), source_readiness (Viinilehden juotavuus: `Valmis juotavaksi`/`Valmis, mutta kehittyy`/`Kehittyy varastoinnin myötä`, max 60 merkkiä), own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa), created_at, updated_at. (drunk_on ja occasion poistettu 11/2026 → wine_bottles.) |
 | `wine_bottles` | id, wine_id (FK wines, on delete cascade), status (`kaapissa` = pullo kaapissa / `juotu` = juontikerta), shelf (1–5) + slot (1–3) (molemmat tai ei kumpaakaan; vain kaapissa; yksilöllinen paikka kaapissa olevilla: osittainen indeksi `wine_bottles_place_uniq`), purchased_on, purchase_place, price (per pullo), opened_on (juontipäivä, voi puuttua), occasion, rating (1–5), notes, created_by, created_at, updated_at (trigger `touch_updated_at`) |
 
 Yksityinen skeema `private` (ei API:ssa):
@@ -578,8 +582,10 @@ Käyttäjä lähettää kuvan pullosta chattiin → Claude lukee etiketin ja lis
   `source_rating` = "★★★★ Harmoninen, laadultaan erinomainen", perään "(arvio vuosikerrasta 2021)", jos arvio on eri vuosikerrasta,
   ja palkinto (" · pronssi, Vuoden punaviini 2024"). `source_name` = "Viinilehti". Rypäleet ja ruokapari (omin sanoin) samasta arviosta.
   Alkon numero on Viinilehden osoitteen alussa (esim. `…/viinit/923915-…`); tarkista pullokoko (0,375 l → ei `alko_id`:tä).
-  Sivun merkinnät tähtien jälkeen: "Luonteikas viini" (vain osalla) → `source_characterful = true`; juotavuus ("Valmis juotavaksi" /
-  "Valmis, mutta kehittyy"; ei tallenneta, ei pyydetty); hinta-laatusuhde → `source_value`.
+  Sivun merkinnät tähtien jälkeen: "Luonteikas viini" (vain osalla) → `source_characterful = true`; juotavuus → `source_readiness`
+  (Viinilehden symbolit: lasi = Valmis juotavaksi, pullo kallellaan = Valmis, mutta kehittyy, pullo pystyssä = liian nuori,
+  varastoi → "Kehittyy varastoinnin myötä"); hinta-laatusuhde → `source_value`. Huom. Viinilehti voi päivittää saman osoitteen
+  uudemman vuosikerran arvioksi (esim. Faustino `…-2016/` näyttää nyt 2017): tarkista otsikon vuosikerta.
   **Käyttäjä lisää linkin sovelluksessa** (Muokkaa → Linkki arvioon) ja pyytää täydentämään: hae linkki kannasta (`source_url`).
   WebFetch ei hyväksy kannasta luettua osoitetta suoraan → hae sivu WebSearchilla (`allowed_domains: viinilehti.fi`, esim. Alkon numero
   + nimi); hakutuloksen sivuteksti sisältää tähtimerkinnät, ja tuloksen osoitteen voi sen jälkeen hakea WebFetchillä. Käyttäjän
