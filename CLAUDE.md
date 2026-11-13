@@ -169,6 +169,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Viinilehden arvio (tähdet, kuvaus omin sanoin, linkki) 32:lle, joista osa eri vuosikerrasta (merkitty `source_rating`iin);
   López de Haron vastaavuus epävarma, Cono Surin tähtiä ei saatu luettua (vain "Vuoden punaviini 2025"). Ilman arviota 9.
   6 Vivinon skannausta oli samoja viinejä kuin kaapissa: ne skannattiin ostaessa (käyttäjä: kaapin viinit juomatta), ei lisätty.
+  Niiden skannauspäivät ovat kellaripullojen ostopäiviä (käyttäjän pyyntö 13.11.2026; Sagrantinon aiempi 12.11.2026 oli lomakkeen
+  oletuspäivä). Norton Privadalla ei ostopäivää (ei Vivinossa).
   Kuvat: 37 viinillä Vivinon etikettikuva `image_url`-linkkinä (images.vivino.com), 7 ilman kuvaa (4 Vivino-viiniä + Lapponia-menun 3).
   Viinilehden merkinnät (luonteikas, hinta-laatu) täytetty 13.11.2026 kaikille 33 viinille, joilla on Viinilehden arvio
   (López de Haron sivulla ei hinta-laatumerkintää; Tommasi Crearo viinivinkkisivulta). Cono Surin tähdet tarkistettu (5).
