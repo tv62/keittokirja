@@ -166,6 +166,9 @@
   .kv dd { margin: 0; }
   .rating-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .rating-box .card { padding: 12px 14px; }
+  /* Viinilehden lisämerkinnät arviokortissa: Luonteikas viini, hinta-laatusuhde */
+  .vbadges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+  .vbadge { font-size: .8rem; padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--ink); white-space: nowrap; }
   /* Viinikellari */
   /* Viinikellarin otsikkorivi: otsikko + Kaappikartta-nappi */
   .whead { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 12px; }
@@ -759,7 +762,23 @@
       <h3>Arvio lähteestä</h3>
       <div class="row">
         <div><label for="w_src_rating">Arvio</label><input id="w_src_rating" placeholder="esim. 93/100 tai 4,2/5"></div>
-        <div><label for="w_src_name">Lähde</label><input id="w_src_name" placeholder="esim. Vivino, Alko"></div>
+        <div><label for="w_src_name">Lähde</label><input id="w_src_name" placeholder="esim. Viinilehti"></div>
+      </div>
+      <div class="row">
+        <div><label for="w_src_value">Hinta-laatusuhde</label>
+          <select id="w_src_value">
+            <option value="">–</option>
+            <option>Löytö</option>
+            <option>Edullinen ostos</option>
+            <option>Laatu vastaa hintaa</option>
+            <option>Kallis</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <label style="display:flex;align-items:center;gap:8px;color:var(--ink);min-height:44px">
+            <input type="checkbox" id="w_src_char" style="width:auto;margin:0"> Luonteikas viini
+          </label>
+        </div>
       </div>
       <label for="w_src_url">Linkki arvioon</label>
       <input id="w_src_url" type="url" placeholder="https://…">
@@ -986,7 +1005,8 @@
     return ws.every((w) => hay.includes(w));
   };
   const recipeHay = (r) => [r.title, r.description, CATS[catOf(r)], menuOf(r),...(r.ingredients || []).map(asText), ...plainTags(r)];
-  const wineHay = (w) => [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.alko_id, w.own_notes, w.description];
+  const wineHay = (w) => [w.name, w.producer, w.vintage, w.grapes, w.region, w.country, w.alko_id, w.own_notes, w.description,
+    w.source_value, w.source_characterful && "luonteikas"];
   const menuHay = (m) => [m.name, m.subtitle, m.description];
 
   // ---------- Kuvat (Supabase Storage, yksityinen bucket) ----------
@@ -2297,6 +2317,7 @@
           <div class="stars" style="font-size:1.35rem;margin-top:4px">${w.own_rating ? starsTxt(w.own_rating) : "–"}</div></div>
         <div class="card"><div class="lbl">Arvio${w.source_name ? " · " + esc(w.source_name) : ""}</div>
           <div style="font-size:1.2rem;margin-top:4px">${w.source_rating ? esc(w.source_rating) : "–"}</div>
+          ${w.source_characterful || w.source_value ? `<div class="vbadges">${w.source_characterful ? `<span class="vbadge">Luonteikas viini</span>` : ""}${w.source_value ? `<span class="vbadge" title="Hinta-laatusuhde">💶 ${esc(w.source_value)}</span>` : ""}</div>` : ""}
           ${srcUrl ? `<a href="${esc(srcUrl)}" target="_blank" rel="noopener" style="font-size:.85rem">Avaa arvio</a>` : ""}</div>
       </div>
       <dl class="kv">
@@ -2633,9 +2654,9 @@
 
   const WFIELDS = { w_name: "name", w_producer: "producer", w_vintage: "vintage", w_type: "wine_type", w_grapes: "grapes",
     w_region: "region", w_country: "country", w_price: "price", w_alko: "alko_id",
-    w_src_rating: "source_rating", w_src_name: "source_name", w_src_url: "source_url", w_own_notes: "own_notes",
+    w_src_rating: "source_rating", w_src_name: "source_name", w_src_url: "source_url", w_src_value: "source_value", w_own_notes: "own_notes",
     w_desc: "description", w_food: "food_pairing" };
-  const wineFormState = () => JSON.stringify([...Object.keys(WFIELDS).map((id) => $(id).value), wineStars, winePic.kind]);
+  const wineFormState = () => JSON.stringify([...Object.keys(WFIELDS).map((id) => $(id).value), $("w_src_char").checked, wineStars, winePic.kind]);
 
   function openWineEditor(w, fromRoute) {
     editingWineId = w ? w.id : null;
@@ -2647,6 +2668,7 @@
       if (col === "price" && v != null && v !== "") v = String(v).replace(".", ",");
       $(id).value = v ?? "";
     }
+    $("w_src_char").checked = !!w?.source_characterful;
     wineStars = w?.own_rating || 0; renderStarPick();
     winePic.open(w ? imgUrl(w, false) : null);
     $("wDelWrap").classList.toggle("hidden", !w);
@@ -2671,6 +2693,7 @@
       if (!/^[0-9]{3,8}$/.test(row.alko_id)) return msg($("wineEditMsg"), "Alkon tuotenumero on pelkkiä numeroita, esim. 905267", true);
     }
     row.own_rating = wineStars || null;
+    row.source_characterful = $("w_src_char").checked;
     const old = editingWineId ? wines.find((x) => x.id === editingWineId) : null;
     const btn = $("wineSaveBtn"), saveTxt = btn.textContent;
     btn.disabled = true;

@@ -81,7 +81,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     reseptisivulla kuvake + nimi, jotta merkitykset oppii. **Päärajaus-chipit (yläbanneri) pelkkinä emojeina** (11/2026),
     "Kaikki" tekstinä, Tagit-nappi "🏷 ▾" (valittu tagi: "🏷 🥕 ▴").
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
-  - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
+  - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä. **Arviokortissa Viinilehden merkinnät
+    pieninä pilleinä** (käyttäjän toive 13.11.2026): "Luonteikas viini" ja "💶 <hinta-laatusuhde>" arviotekstin alla.
   - **Viinilistan järjestys** (käyttäjän toive 13.11.2026): oletuksena skannaus- eli juontipäivän mukaan, uusin ensin (kaapin pullot ostopäivän mukaan).
   - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
@@ -148,8 +149,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   jäsenet näkevät osion (heillä ei ollut piilotuksia); uusi jäsen ei näe sitä oletuksena.
 - Seuraavaksi todennäköisesti: Viikkosuunnitelman ostoslista (backlog), puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut
   Claude Designista.
-- Viinikellarissa 3 viiniä menun viinilistalta (Lapponia-illallinen). Niiden juontikerrat (ilman päivää, siirretty vanhasta
-  occasion-kentästä) poistettiin sovelluksesta iPhonella 12.11.2026 klo 22.13 (lokit); rivit ovat varmuuskopiossa 12.11. (commit 1e16715). Lisäksi 7 kaapissa olevaa viiniä (1 pullo kutakin) lisätty etikettikuvista 12.11.2026:
+- Viinikellarissa 3 viiniä menun viinilistalta (Lapponia-illallinen): suunniteltuja hankintoja menua varten, ei juotu eikä ostettu.
+  Käyttäjä poisti niiden juontikerrat tarkoituksella 12.11.2026 (älä palauta). Lisäksi 7 kaapissa olevaa viiniä (1 pullo kutakin) lisätty etikettikuvista 12.11.2026:
   ostotiedot puuttuvat, Alko-numero 5:llä, kahdella ei löytynyt. Käyttäjä lisäsi kuvat neliöinä ennen pystykuvia (12.11.2026):
   koko pullo näkyy vasta, kun kuva vaihdetaan (Muokkaa → 📷 Vaihda kuva; alkuperäisiä ei ole tallessa, Claude ei voi rajata).
 - Vivinosta tuotu 13.11.2026 41 juotua viiniä ja 42 juontikertaa (skannauspäivät 2023–2026), omat tähdet 4 viinille.
@@ -157,6 +158,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   López de Haron vastaavuus epävarma, Cono Surin tähtiä ei saatu luettua (vain "Vuoden punaviini 2025"). Ilman arviota 9.
   6 Vivinon skannausta oli samoja viinejä kuin kaapissa: ne skannattiin ostaessa (käyttäjä: kaapin viinit juomatta), ei lisätty.
   Kuvat: 37 viinillä Vivinon etikettikuva `image_url`-linkkinä (images.vivino.com), 7 ilman kuvaa (4 Vivino-viiniä + Lapponia-menun 3).
+  Viinilehden merkinnät (luonteikas, hinta-laatu) täytetty 13.11.2026 kaikille 33 viinille, joilla on Viinilehden arvio
+  (López de Haron sivulla ei hinta-laatumerkintää; Tommasi Crearo viinivinkkisivulta). Cono Surin tähdet tarkistettu (5).
+  Boschettin Barolo 2020: käyttäjä lisäsi linkin, Claude täytti tähdet, merkinnät ja Alko-numeron.
 - Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
 
@@ -422,7 +426,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     **Järjestys** (käyttäjän toive 13.11.2026: "skannauspäivän mukaan"): uusin tapahtuma ensin = viinin pullojen uusin päivä
     (juontikerta `opened_on` = Vivinon skannauspäivä, kaapin pullo `purchased_on` tai pullon `created_at`); pelkät päivättömät
     juontikerrat loppuun; viini ilman pulloja = viinin `created_at`. Tasatilanteessa uusin lisätty, sitten nimi.
-  - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot, tiedot (Hinta, Alko-linkki, Ruokapari), "🗄️ Kaapissa · 2 pulloa"
+  - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot (lähdekortissa `.vbadges` > `.vbadge`: `source_characterful` →
+    "Luonteikas viini", `source_value` → "💶 …"), tiedot (Hinta, Alko-linkki, Ruokapari), "🗄️ Kaapissa · 2 pulloa"
     (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kaapissa ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
     kaappiin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
     Napit `data-wact` (yksi `#wineDetail`-käsittelijä).
@@ -450,6 +455,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     tilaisuus, tähdet, muistiinpanot. Avaus = update `status: "juotu"`, paikka null, ehto `status = kaapissa` (ei kahta avausta).
     Tallennuksen jälkeen `syncWineRating(viini)`: viinin `own_rating` = uusimman tähdillä arvioidun juontikerran tähdet.
   - **Viinilomake:** kentät kuten ennen + Alkon tuotenumero (`w_alko`, 3–8 numeroa); Juotu- ja Missä-kentät poistettu (→ juontihistoria).
+    Arvio lähteestä -osiossa Hinta-laatusuhde (`w_src_value`, valinta: – / Löytö / Edullinen ostos / Laatu vastaa hintaa / Kallis)
+    ja ruutu Luonteikas viini (`w_src_char`). Haku (`wineHay`) löytää myös hinta-laatusuhteen ja sanan "luonteikas".
     Viinin poisto poistaa myös pullot ja juontihistorian (FK on delete cascade; vahvistus kertoo sen).
 - Napautettavat chipit ovat vähintään 44 px korkeita (sormelle sopiva koko).
 - Käyttäjän syöte escapetaan aina `esc()`-funktiolla ennen `innerHTML`:ää. URLit `safeUrl()`-funktiolla.
@@ -481,7 +488,7 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 | `meal_plan` | id, day (date), meal (`lounas`/`paivallinen`), sort (järjestys aterian sisällä), title (reseptin nimi tallennushetkellä tai vapaa teksti), recipe_id (null = vapaa teksti; FK recipes, on delete set null), servings (vain alkuperäisellä reseptirivillä), leftover (bool, tähteet), leftover_of (alkuperäinen rivi; FK, on delete set null), created_by, created_at, updated_at (trigger `touch_updated_at`) |
 | `meal_plan_notes` | day (date, pääavain), note (1–300 merkkiä), updated_at |
 | `plan_settings` | id (aina 1, yksi rivi), portions_per_meal (numeric, oletus 2: perhe syö aterialla noin näin monta annosta) |
-| `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, price, alko_id (Alkon tuotenumero, 3–8 numeroa), source_rating (teksti, esim. "92/100"), source_name, source_url, own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa), created_at, updated_at. (drunk_on ja occasion poistettu 11/2026 → wine_bottles.) |
+| `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, price, alko_id (Alkon tuotenumero, 3–8 numeroa), source_rating (teksti, esim. "92/100"), source_name, source_url, source_characterful (bool, Viinilehden "Luonteikas viini"), source_value (Viinilehden hinta-laatusuhde: `Löytö`/`Edullinen ostos`/`Laatu vastaa hintaa`/`Kallis`, check), own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa), created_at, updated_at. (drunk_on ja occasion poistettu 11/2026 → wine_bottles.) |
 | `wine_bottles` | id, wine_id (FK wines, on delete cascade), status (`kaapissa` = pullo kaapissa / `juotu` = juontikerta), shelf (1–5) + slot (1–3) (molemmat tai ei kumpaakaan; vain kaapissa; yksilöllinen paikka kaapissa olevilla: osittainen indeksi `wine_bottles_place_uniq`), purchased_on, purchase_place, price (per pullo), opened_on (juontipäivä, voi puuttua), occasion, rating (1–5), notes, created_by, created_at, updated_at (trigger `touch_updated_at`) |
 
 Yksityinen skeema `private` (ei API:ssa):
@@ -571,6 +578,12 @@ Käyttäjä lähettää kuvan pullosta chattiin → Claude lukee etiketin ja lis
   `source_rating` = "★★★★ Harmoninen, laadultaan erinomainen", perään "(arvio vuosikerrasta 2021)", jos arvio on eri vuosikerrasta,
   ja palkinto (" · pronssi, Vuoden punaviini 2024"). `source_name` = "Viinilehti". Rypäleet ja ruokapari (omin sanoin) samasta arviosta.
   Alkon numero on Viinilehden osoitteen alussa (esim. `…/viinit/923915-…`); tarkista pullokoko (0,375 l → ei `alko_id`:tä).
+  Sivun merkinnät tähtien jälkeen: "Luonteikas viini" (vain osalla) → `source_characterful = true`; juotavuus ("Valmis juotavaksi" /
+  "Valmis, mutta kehittyy"; ei tallenneta, ei pyydetty); hinta-laatusuhde → `source_value`.
+  **Käyttäjä lisää linkin sovelluksessa** (Muokkaa → Linkki arvioon) ja pyytää täydentämään: hae linkki kannasta (`source_url`).
+  WebFetch ei hyväksy kannasta luettua osoitetta suoraan → hae sivu WebSearchilla (`allowed_domains: viinilehti.fi`, esim. Alkon numero
+  + nimi); hakutuloksen sivuteksti sisältää tähtimerkinnät, ja tuloksen osoitteen voi sen jälkeen hakea WebFetchillä. Käyttäjän
+  itse kirjoittamaa kuvausta ei korvata.
 - **Alko:** haku WebSearchilla `"alko.fi/en/products" <tuottaja> <nimi>` (tai viinikartta.fi, jossa "Alkon tuotenumero").
   Tuotenumero pysyy yleensä samana vuosikerrasta toiseen. Hinta = Alkon hinta (litrahinta × 0,75 + pantti 0,10 €). Jos samaa
   viiniä ei löydy, `alko_id` ja hinta tyhjiksi ja kerrotaan käyttäjälle.
