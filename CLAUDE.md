@@ -85,9 +85,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **Viinilistan järjestys** (käyttäjän toive 13.11.2026): oletuksena skannaus- eli juontipäivän mukaan, uusin ensin (kaapin pullot ostopäivän mukaan).
   - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
-    Pullomäärä listalla (🍾 2) ja rajaus Kaapissa / Juodut / kaikki (**oletus koko lista**, käyttäjän toive 13.11.2026). **Listan rajaukset tiiviisti**
+    Pullomäärä listalla (🍾 2) ja rajaus Kaapissa / Avatut / kaikki (**oletus koko lista**, käyttäjän toive 13.11.2026). **Listan rajaukset tiiviisti**
     (käyttäjä valitsi vaihtoehdon A 13.11.2026; hylätty B = kaksi valikkoa): 🗄️ Kaappikartta pienenä nappina otsikon vieressä,
-    yksi pyyhkäistävä rivi: 🍾 Kaapissa + määrä ja 🍷 Juodut (nimi näkyy vain valitussa, valitun napautus = kaikki viinit) | viinityypit
+    yksi pyyhkäistävä rivi: 🍾 Kaapissa + määrä ja 🍷 Avatut (käyttäjän nimeämä 13.11.2026, ennen Juodut; nimi näkyy vain valitussa, valitun napautus = kaikki viinit) | viinityypit
     värimerkkeinä (valitussa myös nimi, uusi napautus poistaa); **kuohuviinit ja jälkiruokaviinit samassa merkissä** (käyttäjän toive).
     Listarivillä tyypin edessä sama värimerkki (opettaa värit). **Listarivillä alue ilman sulkuosaa** (käyttäjän toive 13.11.2026:
     "Veneto (Amarone della Valpolicella)" → "Veneto"; koko alue viinin sivulla). **Oma arvio iPhonella pystyssä rivin oikeassa
@@ -410,7 +410,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   hakee viinit ja pullot taustalla, kun lista tai kaappikartta avataan.
   - **Lista** (`renderWines`): otsikkorivi `.whead` = h2 + `#cellarBtn` (`.cellarpill`, "🗄️ Kaappikartta 3/15", `#cellarSum`;
     aria-label kertoo paikat), haku, rajausrivi `#wineFilt` (`.chips.primary.scroll.wfilt`): `wineStatus` `data-wst` kaapissa / juodut
-    (= ei kaapissa), valitun napautus → `"kaikki"` (oletus `"kaikki"`, nollautuu etusivun kortista avattaessa kuten `wineType` ja haku); erotin `.fsep`; tyyppiryhmät
+    (nimi "Avatut" = ei kaapissa), valitun napautus → `"kaikki"` (oletus `"kaikki"`, nollautuu etusivun kortista avattaessa kuten `wineType` ja haku); erotin `.fsep`; tyyppiryhmät
     `data-wtype` = `WGROUPS`-avaimet (`[avain, nimi, wine_type-lista, väri?]`: punainen, valkoinen, rosé, kuohuvat = kuohuviini +
     jälkiruokaviini, muu), näkyvät vain olemassa olevat ja vain jos niitä on ≥ 2; `inGroup(w, ryhmä)`; merkki `.wdot` (`--c`, väri
     `WCOLOR`), valitussa nimi (yli 12 merkkiä → `.l2` kahdelle riville), valittu vieritetään näkyviin. `wineType` = ryhmän avain.

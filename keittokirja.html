@@ -2212,8 +2212,8 @@
   }
   function renderWines() {
     const nIn = inCellar().length, inSet = new Set(inCellar().map((b) => b.wine_id));
-    // Tila: 🍾 Kaapissa / 🍷 Juodut (valitun napautus = kaikki viinit), tyypit värimerkkeinä. Nimi näkyy vain valitussa.
-    const stat = [["kaapissa", "🍾", "Kaapissa"], ["juodut", "🍷", "Juodut"]].map(([k, ic, l]) => {
+    // Tila: 🍾 Kaapissa / 🍷 Avatut (avain "juodut"; valitun napautus = kaikki viinit), tyypit värimerkkeinä. Nimi näkyy vain valitussa.
+    const stat = [["kaapissa", "🍾", "Kaapissa"], ["juodut", "🍷", "Avatut"]].map(([k, ic, l]) => {
       const on = wineStatus === k, n = k === "kaapissa" && nIn ? nIn : 0;
       return `<button class="chip ${on ? "on" : ""}" data-wst="${k}" aria-pressed="${on}" aria-label="${l}${n ? ` (${pullot(n)})` : ""}"><span aria-hidden="true">${ic}</span>${on ? `<span>${l}</span>` : ""}${n ? `<span class="n" aria-hidden="true">${n}</span>` : ""}</button>`;
     }).join("");
