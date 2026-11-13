@@ -173,6 +173,10 @@
   .rrow .srest { color: var(--muted); }
   .rrow .vbadges { margin: 6px 0 2px; }
   .trow2 .tv { font-weight: 400; color: var(--muted); }
+  /* Uuden viinin jälkeen avautuva pullolomake: helppo ohittaa */
+  .bnew { margin-bottom: 12px; padding: 14px; }
+  .bnew .actions { margin-top: 10px; }
+  .bnew .hint { margin-top: 6px; }
   /* Viinilehden lisämerkinnät arviokortissa: Luonteikas viini, hinta-laatusuhde */
   .vbadges { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
   .vbadge { font-size: .8rem; padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--ink); white-space: nowrap; }
@@ -688,6 +692,12 @@
   <!-- Pullolomake: pulloja kaappiin / yhden pullon muokkaus -->
   <section id="bottleView" class="hidden">
     <button class="link" id="bottleCancelBtn">← Peruuta</button>
+    <div id="bNewWrap" class="card bnew hidden">
+      <div><b>✓ Viini tallennettu.</b> Lisätäänkö pulloja kellariin?</div>
+      <div class="actions"><button type="button" id="bSkipBtn">Ohita</button>
+        <button type="button" id="bElseBtn">🍷 Juotu muualla</button></div>
+      <div class="hint">Esim. ravintolassa juotu viini: lisää juontikerta ilman pulloa.</div>
+    </div>
     <form id="bottleForm" class="card">
       <h2 id="bottleTitle">Pulloja kellariin</h2>
       <div class="muted" id="bottleWine"></div>
@@ -2184,6 +2194,7 @@
   let curWineId = null;   // avoinna oleva viini
   let cellarHl = null;    // kaappikartassa korostettava viini
   let pickPlace = null;   // tyhjä paikka, jolle valitaan viini ([hylly, paikka])
+  let bottleAfterNew = null; // uuden viinin tallennuksen jälkeen avattu pullolomake (näytetään Ohita / Juotu muualla)
   let pendingPlace = null, newWinePlace = null; // "Uusi viini" tyhjästä paikasta → pullolomake samaan paikkaan
   const starsTxt = (n) => n ? "★".repeat(n) + "☆".repeat(5 - n) : "";
   const pullot = (n) => n + (n === 1 ? " pullo" : " pulloa");
@@ -2276,12 +2287,13 @@
     const ws = words($("wq").value);
     const stOk = (w) => wineStatus === "kaikki" || (wineStatus === "kaapissa" ? inSet : openSet).has(w.id);
     const shown = wines.filter((w) => stOk(w) && (!wineType || inGroup(w, wineType)) && matches(wineHay(w), ws));
-    // Järjestys: uusin ostopäivä ensin (viinin pullojen ja juontikertojen uusin ostopäivä; Vivinon skannauspäivä = ostopäivä).
-    // Ilman ostopäivää: juontikerralla juontipäivä, kellarin pullolla kellariin lisäyspäivä. Päivättömät juontikerrat loppuun;
-    // viini ilman pulloja ja juontikertoja = viinin lisäyspäivä. Tasatilanteessa uusin lisätty, sitten nimi.
+    // Järjestys: uusin tapahtuma ensin (käyttäjän päätös 13.11.2026: juontipäivän mukaan). Juontikerralla juontipäivä,
+    // sen puuttuessa ostopäivä (Vivinon skannauspäivä); kellarin pullolla ostopäivä tai kellariin lisäyspäivä.
+    // Pelkät päivättömät juontikerrat loppuun; viini ilman pulloja ja juontikertoja = viinin lisäyspäivä.
+    // Tasatilanteessa uusin lisätty, sitten nimi.
     const wd = new Map();
     for (const b of bottles) {
-      const d = b.purchased_on || (b.status === "juotu" ? b.opened_on : (b.created_at || "").slice(0, 10)) || "";
+      const d = (b.status === "juotu" ? b.opened_on || b.purchased_on : b.purchased_on || (b.created_at || "").slice(0, 10)) || "";
       if (!wd.has(b.wine_id) || d > wd.get(b.wine_id)) wd.set(b.wine_id, d);
     }
     const dOf = (w) => wd.has(w.id) ? wd.get(w.id) : (w.created_at || "").slice(0, 10);
@@ -2562,6 +2574,8 @@
     const pr = b ? b.price : w.price;
     $("b_price").value = pr != null ? String(pr).replace(".", ",") : "";
     $("bDelWrap").classList.toggle("hidden", !b);
+    $("bNewWrap").classList.toggle("hidden", !(!b && bottleAfterNew === w.id));
+    bottleAfterNew = null;
     msg($("bottleMsg"), "");
     renderBottlePlaces(); show("bottleView");
   }
@@ -2592,6 +2606,8 @@
   $("bMinus").onclick = () => { if (bState.count > 1) { bState.count--; renderBottlePlaces(); } };
   $("bPlus").onclick = () => { if (bState.count < 24) { bState.count++; renderBottlePlaces(); } };
   $("bottleCancelBtn").onclick = () => back(bState ? `#/viinit/${bState.wine.id}` : "#/viinit");
+  $("bSkipBtn").onclick = () => back(bState ? `#/viinit/${bState.wine.id}` : "#/viinit");
+  $("bElseBtn").onclick = () => { if (bState) go(`#/viinit/${bState.wine.id}/juotu/uusi`, { replace: true }); };
   $("bottleForm").onsubmit = async (e) => {
     e.preventDefault();
     const price = parsePrice($("b_price").value);
@@ -2771,7 +2787,12 @@
     markClean();
     if (editingWineId) back(`#/viinit/${data.id}`);
     else if (newWinePlace) { const pl = newWinePlace; newWinePlace = null; go(`#/viinit/${data.id}/pullot/uusi/${pl}`, { replace: true, force: true }); }
-    else go(`#/viinit/${data.id}`, { replace: true, force: true });
+    else {
+      // Uusi viini: viinin sivu korvaa lomakkeen, sen päälle "Pulloja kellariin" (Ohita / Juotu muualla → takaisin viinin sivulle)
+      go(`#/viinit/${data.id}`, { replace: true, force: true });
+      bottleAfterNew = data.id;
+      go(`#/viinit/${data.id}/pullot/uusi`, { force: true });
+    }
   };
 
   $("wDelBtn").onclick = async () => {

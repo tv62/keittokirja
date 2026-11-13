@@ -89,8 +89,12 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     💎 Edullinen ostos, ⚖️ Laatu vastaa hintaa, 💸 Kallis) tähtien alla, Viinilehden järjestyksessä.
   - **Termi on kellari, ei kaappi** (käyttäjän toive 13.11.2026): Kellarissa, Kellarikartta, pulloja kellariin; kaapin 🗄️-emoji pois
     (Kellarissa 🍾, Kellarikartta 🗺️; käyttäjä ei pidä 🗺️:sta → oma piirros backlogissa). Tietokannan status `kaapissa` ja osoitteet `#/viinit/kaappi…` ennallaan (eivät näy käyttäjälle).
-  - **Viinilistan järjestys** (käyttäjän päätös 13.11.2026, korvasi saman päivän "skannauspäivän mukaan"): ostopäivän mukaan, uusin
-    ensin. **Juontipäivä ja ostopäivä erikseen:** Vivinon skannauspäivä on ostopäivä (skannattu ostaessa), ei juontipäivä.
+  - **Viinilistan järjestys** (käyttäjän päätös 13.11.2026, lopullinen): juontipäivän mukaan, uusin ensin; jos juontipäivää ei
+    tiedetä, ostopäivä (kellarin pulloilla ostopäivä). **Juontipäivä ja ostopäivä erikseen:** Vivinon skannauspäivä on ostopäivä
+    (skannattu ostaessa), ei juontipäivä; sitä ei kopioida juontipäiväksi (järjestys on sama ilman arvattua juontipäivää).
+  - **Uuden viinin jälkeen avautuu "Pulloja kellariin"** (käyttäjän toive 13.11.2026), mutta se on helppo ohittaa: lomakkeen
+    yläpuolella "✓ Viini tallennettu. Lisätäänkö pulloja kellariin?" + Ohita (→ viinin sivu) ja 🍷 Juotu muualla (esim. ravintola
+    → Lisää juontikerta).
   - **Juontihistoria** (käyttäjän toive 13.11.2026): mukana saman viinin muiden vuosikertojen juontikerrat, vuosikerta suluissa
     päivämäärän perässä ("31.12.2025 (2021)"; kaikilla riveillä, jos joukossa on muu vuosikerta). Juontipäivä lihavoituna vain, jos
     se tiedetään (ei "Päivä ei tiedossa" -tekstiä); ostotiedot omalla harmaalla rivillä "ostettu 9.1.2026 · Alko".
@@ -443,9 +447,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     Rivi `wineItem`: pikkukuva, nimi + vuosikerta, tuottaja · `.wdot.sm` tyyppi (`.nw` samalla rivillä) · alue (`shortRegion`: sulkuosa
     pois, haku `wineHay` käyttää koko aluetta), oikealla `.wside`: 🍾 määrä ja tähdet allekkain; alle 600 px `.wside` rivinä ja
     `.wside .stars` pystyssä (`writing-mode: vertical-rl; text-orientation: upright`, 0,8rem, täydet ylhäällä).
-    **Järjestys** (käyttäjän päätös 13.11.2026: ostopäivän mukaan): viinin pullojen ja juontikertojen uusin `purchased_on`; ilman
-    ostopäivää juontikerralla `opened_on`, kellarin pullolla `created_at` (kellariin lisäys); pelkät päivättömät juontikerrat loppuun;
-    viini ilman pulloja = viinin `created_at`. Tasatilanteessa uusin lisätty, sitten nimi.
+    **Järjestys** (käyttäjän päätös 13.11.2026: juontipäivän mukaan): uusin tapahtuma ensin = viinin pullojen uusin päivä:
+    juontikerralla `opened_on || purchased_on`, kellarin pullolla `purchased_on || created_at`; pelkät päivättömät juontikerrat
+    loppuun; viini ilman pulloja = viinin `created_at`. Tasatilanteessa uusin lisätty, sitten nimi.
   - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot `.rating-box.card` > 2 × `.rrow` (grid: `.lbl` 92 px + arvo;
     `srcRatingHtml`: alun ★-merkit → `starsTxt(n)` samalla tyylillä kuin oma arvio, loput `.srest` harmaana; muu teksti sellaisenaan),
     lähderivillä `.vbadges` > `.vbadge`: `source_characterful` → "Luonteikas viini", `source_readiness` → `READY_ICON` + teksti,
@@ -474,6 +478,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   - **Tyhjä paikka** (`openWinePick`, `pickPlace`): viinin valinta korvaa valintasivun historiassa → pullolomake; "+ Uusi viini" →
     `#/uusi-viini` (korvaa) ja `pendingPlace` → `openWineEditor(null, true)` ottaa sen `newWinePlace`:ksi → tallennuksen jälkeen
     pullolomake samaan paikkaan (korvaa). Näin tallennuksen jälkeinen takaisin vie kaappikarttaan.
+  - **Uusi viini** (ei tyhjästä paikasta): tallennus → `go(viinin sivu, replace)` + `bottleAfterNew = id` + `go(…/pullot/uusi)`, jolloin
+    pullolomakkeen yläpuolella `#bNewWrap` (`.bnew`): `#bSkipBtn` Ohita = `back()` viinin sivulle, `#bElseBtn` 🍷 Juotu muualla =
+    `go(…/juotu/uusi, replace)`. Takaisin-ele kummastakin → viinin sivu → lista. Suoraan avattuna (`bottleAfterNew` tyhjä) ei ohitusriviä.
   - **Pullolomake** (`openBottleForm(viini, pullo?, paikka?)`, tila `bState`): uusille määrä −/+ (1–24) ja jokaiselle paikka
     (`<select>`: vapaat paikat + "Ei paikkaa", ehdotuksena seuraavat vapaat), ostopäivä (tänään), hinta/pullo (viinin hinta), ostopaikka
     ("Alko"). Muokkauksessa yksi paikka + "Poista pullo kellarista" (ei juontikertaa, esim. lahja). Varattu paikka (`23505`) → ilmoitus.
