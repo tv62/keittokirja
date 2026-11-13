@@ -167,10 +167,23 @@
   .rating-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .rating-box .card { padding: 12px 14px; }
   /* Viinikellari */
-  .cellarbtn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 16px; margin-bottom: 12px; }
-  .cellarbtn .e { font-size: 1.6rem; line-height: 1; }
-  .cellarbtn .s { display: block; color: var(--muted); font-size: .85rem; font-weight: 400; }
-  .cellarbtn .go { margin-left: auto; color: var(--muted); font-size: 1.5rem; line-height: 1; }
+  /* Viinikellarin otsikkorivi: otsikko + Kaappikartta-nappi */
+  .whead { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 12px; }
+  .whead h2 { margin: 0; }
+  .cellarpill { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px;
+    font-weight: 600; font-size: .92rem; white-space: nowrap; flex: none; }
+  .cellarpill .s { color: var(--muted); font-weight: 400; }
+  .wfilt { gap: 6px; }
+  .chips.primary.wfilt .chip { min-width: 44px; justify-content: center; gap: 6px; padding: 7px 11px; }
+  .wfilt .chip .n { font-weight: 600; }
+  .wfilt .chip .l2 { white-space: normal; font-size: .78rem; line-height: 1.1; max-width: 8.6em; text-align: left; }
+  .wfilt .fsep { flex: none; width: 1px; align-self: stretch; margin: 8px 2px; background: var(--line); }
+  /* Viinin tyypin värimerkki (sama väri kuin kaapin ruudun kaistassa) */
+  .wdot { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--c); flex: none;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.18); vertical-align: -2px; }
+  .wdot.sm { width: 10px; height: 10px; vertical-align: 0; margin-right: 4px; }
+  .nw { white-space: nowrap; }
+  .chip.on .wdot { box-shadow: 0 0 0 2px var(--accent-ink); }
   .item .side.wside { flex-direction: column; align-items: flex-end; gap: 4px; }
   .bcount { font-size: .85rem; padding: 3px 8px; border-radius: 999px; background: var(--chip); white-space: nowrap; flex: none; }
   .cellar { padding: 12px; display: grid; gap: 8px; max-width: 560px; }
@@ -619,15 +632,13 @@
   <!-- Viinikellari -->
   <section id="winesView" class="hidden">
     <button class="link" data-home="1">← Etusivu</button>
-    <h2 style="margin:6px 0 14px">Viinikellari</h2>
-    <button class="cellarbtn card" id="cellarBtn"><span class="e" aria-hidden="true">🗄️</span>
-      <span><b>Kaappikartta</b><span class="s" id="cellarSum"></span></span><span class="go" aria-hidden="true">›</span></button>
+    <div class="whead"><h2>Viinikellari</h2>
+      <button class="cellarpill" id="cellarBtn"><span aria-hidden="true">🗄️</span> Kaappikartta <span class="s" id="cellarSum"></span></button></div>
     <div class="search">
       <input id="wq" type="search" placeholder="Hae viiniä, tuottajaa, rypälettä…" autocomplete="off" enterkeyhint="search">
       <button class="primary edit-only" id="newWineBtn">+ Uusi</button>
     </div>
-    <div class="seg" id="wineStatus" role="group" aria-label="Näytä"></div>
-    <div class="chips primary scroll" id="wineChips"></div>
+    <div class="chips primary scroll wfilt" id="wineFilt" role="group" aria-label="Rajaa viinejä"></div>
     <div id="wineMsg" class="msg hidden"></div>
     <div class="list" id="wineList"></div>
   </section>
@@ -2123,7 +2134,11 @@
   // Kaappi: 5 hyllyä (1 = ylin) × 3 paikkaa (1 = vasen). Sama rajaus tietokannan check-ehdoissa.
   const SHELVES = 5, SLOTS = 3;
   const PLACE_RE = new RegExp(`^([1-${SHELVES}])-([1-${SLOTS}])$`);
-  let wineType = null;
+  let wineType = null; // WGROUPS-avain
+  // Listan tyyppirajaus värimerkkeinä: kuohu- ja jälkiruokaviinit yhdessä (käyttäjän toive 13.11.2026).
+  const WGROUPS = [["punainen", "Punainen", ["punainen"]], ["valkoinen", "Valkoinen", ["valkoinen"]], ["rosé", "Rosé", ["rosé"]],
+    ["kuohuvat", "Kuohuvat ja jälkiruokaviinit", ["kuohuviini", "jälkiruokaviini"], WCOLOR["jälkiruokaviini"]], ["muu", "Muu", ["muu"]]];
+  const inGroup = (w, g) => { const x = WGROUPS.find((y) => y[0] === g); return !x || x[2].includes(w.wine_type || "muu"); };
   let wineStatus = null; // "kaapissa" | "juodut" | "kaikki"; null = oletus (kaapissa, jos pulloja on)
   let editingWineId = null;
   let wineStars = 0;
@@ -2182,7 +2197,8 @@
     return `<button class="item card withpic" data-wine="${w.id}">${thumbHtml(w, w.name, true)}
       <div class="body">
         <div class="t">${esc(w.name)}${w.vintage ? ` <span class="muted" style="font-weight:400">${w.vintage}</span>` : ""}</div>
-        <div class="m">${esc([w.producer, WTYPES[w.wine_type], w.region || w.country].filter(Boolean).join(" · "))}</div>
+        <div class="m">${[w.producer && esc(w.producer), WTYPES[w.wine_type] && `<span class="nw"><span class="wdot sm" style="--c:${WCOLOR[w.wine_type] || WCOLOR.muu}" aria-hidden="true"></span>${esc(WTYPES[w.wine_type])}</span>`,
+          (w.region || w.country) && esc(w.region || w.country)].filter(Boolean).join(" · ")}</div>
       </div>
       <span class="side wside">${n ? `<span class="bcount" title="Kaapissa ${pullot(n)}" aria-label="Kaapissa ${pullot(n)}">🍾 ${n}</span>` : ""}${w.own_rating ? `<span class="stars" role="img" aria-label="Oma arvio ${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : ""}</span>
     </button>`;
@@ -2190,16 +2206,23 @@
   function renderWines() {
     const nIn = inCellar().length, inSet = new Set(inCellar().map((b) => b.wine_id));
     if (!wineStatus) wineStatus = nIn ? "kaapissa" : "kaikki";
-    $("wineStatus").innerHTML = [["kaapissa", `Kaapissa${nIn ? ` (${nIn})` : ""}`], ["juodut", "Juodut"], ["kaikki", "Kaikki"]]
-      .map(([k, l]) => `<button class="chip ${wineStatus === k ? "on" : ""}" data-wst="${k}" aria-pressed="${wineStatus === k}">${esc(l)}</button>`).join("");
-    $("cellarSum").textContent = `${takenPlaces().size} / ${SHELVES * SLOTS} paikkaa käytössä`;
-    const types = Object.keys(WTYPES).filter((k) => wines.some((w) => w.wine_type === k));
-    $("wineChips").innerHTML = types.length > 1
-      ? [["", "Kaikki tyypit"], ...types.map((k) => [k, WTYPES[k]])].map(([k, l]) =>
-          `<button class="chip ${(wineType || "") === k ? "on" : ""}" data-wtype="${esc(k)}">${esc(l)}</button>`).join("") : "";
+    // Tila: 🍾 Kaapissa / 🍷 Juodut (valitun napautus = kaikki viinit), tyypit värimerkkeinä. Nimi näkyy vain valitussa.
+    const stat = [["kaapissa", "🍾", "Kaapissa"], ["juodut", "🍷", "Juodut"]].map(([k, ic, l]) => {
+      const on = wineStatus === k, n = k === "kaapissa" && nIn ? nIn : 0;
+      return `<button class="chip ${on ? "on" : ""}" data-wst="${k}" aria-pressed="${on}" aria-label="${l}${n ? ` (${pullot(n)})` : ""}"><span aria-hidden="true">${ic}</span>${on ? `<span>${l}</span>` : ""}${n ? `<span class="n" aria-hidden="true">${n}</span>` : ""}</button>`;
+    }).join("");
+    const groups = WGROUPS.filter(([g]) => wines.some((w) => inGroup(w, g)));
+    const typ = groups.length > 1 ? groups.map(([g, l, ts, c]) => { const on = wineType === g;
+      return `<button class="chip ${on ? "on" : ""}" data-wtype="${esc(g)}" aria-pressed="${on}" title="${l}" aria-label="${l}"><span class="wdot" style="--c:${c || WCOLOR[ts[0]]}"></span>${on ? `<span${l.length > 12 ? ` class="l2"` : ""}>${l}</span>` : ""}</button>`; }).join("") : "";
+    $("wineFilt").innerHTML = stat + (typ ? `<span class="fsep" aria-hidden="true"></span>${typ}` : "");
+    const ton = $("wineFilt").querySelector("[data-wtype].on"), fc = $("wineFilt"); // valittu tyyppi näkyviin
+    const right = ton ? ton.offsetLeft - fc.offsetLeft + ton.offsetWidth + 8 : 0;
+    fc.scrollLeft = right > fc.clientWidth ? right - fc.clientWidth : 0;
+    $("cellarSum").textContent = `${takenPlaces().size}/${SHELVES * SLOTS}`;
+    $("cellarBtn").setAttribute("aria-label", `Kaappikartta, ${takenPlaces().size} / ${SHELVES * SLOTS} paikkaa käytössä`);
     const ws = words($("wq").value);
     const stOk = (w) => wineStatus === "kaikki" || (wineStatus === "kaapissa") === inSet.has(w.id);
-    const shown = wines.filter((w) => stOk(w) && (!wineType || w.wine_type === wineType) && matches(wineHay(w), ws));
+    const shown = wines.filter((w) => stOk(w) && (!wineType || inGroup(w, wineType)) && matches(wineHay(w), ws));
     msg($("wineMsg"), wines.length ? "" : "Viinikellari on vielä tyhjä. Lisää ensimmäinen viini + Uusi -napista.");
     $("wineList").innerHTML = shown.map(wineItem).join("") || (!wines.length ? ""
       : wineStatus === "kaapissa" && !nIn && !ws.length ? `<p class="muted center">Kaapissa ei ole pulloja. Lisää pullot viinin sivulta tai kaappikartasta.</p>`
@@ -2207,8 +2230,10 @@
   }
   $("wq").oninput = renderWines;
   $("wq").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("wq").blur(); } };
-  $("wineStatus").onclick = (e) => { const b = e.target.closest("[data-wst]"); if (b) { wineStatus = b.dataset.wst; renderWines(); } };
-  $("wineChips").onclick = (e) => { const b = e.target.closest("[data-wtype]"); if (b) { wineType = b.dataset.wtype || null; renderWines(); } };
+  $("wineFilt").onclick = (e) => {
+    const s = e.target.closest("[data-wst]"); if (s) { wineStatus = wineStatus === s.dataset.wst ? "kaikki" : s.dataset.wst; return renderWines(); }
+    const t = e.target.closest("[data-wtype]"); if (t) { wineType = wineType === t.dataset.wtype ? null : t.dataset.wtype; renderWines(); }
+  };
   $("wineList").onclick = (e) => { const b = e.target.closest("[data-wine]"); if (b) go(`#/viinit/${b.dataset.wine}`); };
   $("newWineBtn").onclick = () => go("#/uusi-viini");
   $("cellarBtn").onclick = () => go("#/viinit/kaappi");

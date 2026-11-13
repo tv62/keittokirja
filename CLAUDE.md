@@ -84,7 +84,11 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
   - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
-    Pullomäärä listalla (🍾 2) ja rajaus **Kaapissa / Juodut / Kaikki** (oletus Kaapissa, jos pulloja on). **🍷 Avaa pullo** kysyy
+    Pullomäärä listalla (🍾 2) ja rajaus Kaapissa / Juodut / kaikki (oletus Kaapissa, jos pulloja on). **Listan rajaukset tiiviisti**
+    (käyttäjä valitsi vaihtoehdon A 13.11.2026; hylätty B = kaksi valikkoa): 🗄️ Kaappikartta pienenä nappina otsikon vieressä,
+    yksi pyyhkäistävä rivi: 🍾 Kaapissa + määrä ja 🍷 Juodut (nimi näkyy vain valitussa, valitun napautus = kaikki viinit) | viinityypit
+    värimerkkeinä (valitussa myös nimi, uusi napautus poistaa); **kuohuviinit ja jälkiruokaviinit samassa merkissä** (käyttäjän toive).
+    Listarivillä tyypin edessä sama värimerkki (opettaa värit). **🍷 Avaa pullo** kysyy
     päivän, tilaisuuden, tähdet ja muistiinpanon → pullo siirtyy juontihistoriaan. **Kaappikartta** 5 × 3 -ruudukkona (napautus
     avaa viinin, tyhjä paikka → valitse viini → pullot samaan paikkaan). **Ruudussa pullon kuva himmeänä tekstin taustalla**
     (käyttäjä valitsi vaihtoehdon A 12.11.2026; hylätty B = kuva ruudun yläosassa ja nimi alla). **Pullon siirto raahaamalla**
@@ -395,9 +399,14 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   uusin päivä ensin, päivätön loppuun), `takenPlaces()`, `freePlaces(paitsiPullo)`, `placeTxt`, `pullot(n)`, `eur`, `parsePrice`,
   `alkoUrl(nro)` = `https://www.alko.fi/tuotteet/<nro>/`, `WCOLOR` (ruudun värikaista viinin tyypin mukaan). `refreshCellar()`
   hakee viinit ja pullot taustalla, kun lista tai kaappikartta avataan.
-  - **Lista** (`renderWines`): Kaappikartta-nappi (`#cellarBtn`, "3 / 15 paikkaa käytössä"), haku, rajaus `wineStatus`
-    (`#wineStatus`: kaapissa / juodut = ei kaapissa / kaikki; oletus kaapissa, jos pulloja on), tyyppichipit (yksi pyyhkäistävä rivi,
-    "Kaikki tyypit"). Rivi `wineItem`: pikkukuva, nimi + vuosikerta, tuottaja · tyyppi · alue, oikealla allekkain 🍾 määrä ja tähdet.
+  - **Lista** (`renderWines`): otsikkorivi `.whead` = h2 + `#cellarBtn` (`.cellarpill`, "🗄️ Kaappikartta 3/15", `#cellarSum`;
+    aria-label kertoo paikat), haku, rajausrivi `#wineFilt` (`.chips.primary.scroll.wfilt`): `wineStatus` `data-wst` kaapissa / juodut
+    (= ei kaapissa), valitun napautus → `"kaikki"` (oletus kaapissa, jos pulloja on, muuten kaikki); erotin `.fsep`; tyyppiryhmät
+    `data-wtype` = `WGROUPS`-avaimet (`[avain, nimi, wine_type-lista, väri?]`: punainen, valkoinen, rosé, kuohuvat = kuohuviini +
+    jälkiruokaviini, muu), näkyvät vain olemassa olevat ja vain jos niitä on ≥ 2; `inGroup(w, ryhmä)`; merkki `.wdot` (`--c`, väri
+    `WCOLOR`), valitussa nimi (yli 12 merkkiä → `.l2` kahdelle riville), valittu vieritetään näkyviin. `wineType` = ryhmän avain.
+    Rivi `wineItem`: pikkukuva, nimi + vuosikerta, tuottaja · `.wdot.sm` tyyppi (`.nw` samalla rivillä) · alue, oikealla allekkain
+    🍾 määrä ja tähdet.
   - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot, tiedot (Hinta, Alko-linkki, Ruokapari), "🗄️ Kaapissa · 2 pulloa"
     (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kaapissa ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
     kaappiin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).
