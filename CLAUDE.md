@@ -82,6 +82,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     "Kaikki" tekstinä, Tagit-nappi "🏷 ▾" (valittu tagi: "🏷 🥕 ▴").
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - Viineissä rinnakkain arvio lähteestä (teksti + lähde + linkki) ja oma arvio 1–5 tähteä.
+  - **Viinilistan järjestys** (käyttäjän toive 13.11.2026): oletuksena skannaus- eli juontipäivän mukaan, uusin ensin (kaapin pullot ostopäivän mukaan).
   - **Viinikellari, versio 1** (käyttäjän valinta 12.11.2026, "ryhmä 1"; muut viini-ideat backlogissa): viinikaappi **5 hyllyä ×
     3 pulloa** (hylly 1 = ylin, paikka 1 = vasen), yleensä 5–10 pulloa, ostot pääosin Alkosta (ostopaikan oletus "Alko").
     Pullomäärä listalla (🍾 2) ja rajaus Kaapissa / Juodut / kaikki (oletus Kaapissa, jos pulloja on). **Listan rajaukset tiiviisti**
@@ -412,6 +413,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     `WCOLOR`), valitussa nimi (yli 12 merkkiä → `.l2` kahdelle riville), valittu vieritetään näkyviin. `wineType` = ryhmän avain.
     Rivi `wineItem`: pikkukuva, nimi + vuosikerta, tuottaja · `.wdot.sm` tyyppi (`.nw` samalla rivillä) · alue, oikealla allekkain
     🍾 määrä ja tähdet.
+    **Järjestys** (käyttäjän toive 13.11.2026: "skannauspäivän mukaan"): uusin tapahtuma ensin = viinin pullojen uusin päivä
+    (juontikerta `opened_on` = Vivinon skannauspäivä, kaapin pullo `purchased_on` tai pullon `created_at`); pelkät päivättömät
+    juontikerrat loppuun; viini ilman pulloja = viinin `created_at`. Tasatilanteessa uusin lisätty, sitten nimi.
   - **Viinin sivu** (`openWine` → `renderWine`, `curWineId`): arviot, tiedot (Hinta, Alko-linkki, Ruokapari), "🗄️ Kaapissa · 2 pulloa"
     (rivit `bottleRow`: paikka, ostotiedot, 🍷 Avaa ja ⋯ muokkaus; "Näytä kaapissa ›" → `#/viinit/kaappi/<id>`), "+ Lisää pulloja
     kaappiin", "🍷 Juontihistoria" (`tastingRow`, muokkaajalla napautus muokkaa) ja "+ Lisää juontikerta" (ilman pulloa, esim. ravintola).

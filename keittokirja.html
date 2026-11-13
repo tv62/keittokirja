@@ -2223,6 +2223,16 @@
     const ws = words($("wq").value);
     const stOk = (w) => wineStatus === "kaikki" || (wineStatus === "kaapissa") === inSet.has(w.id);
     const shown = wines.filter((w) => stOk(w) && (!wineType || inGroup(w, wineType)) && matches(wineHay(w), ws));
+    // Järjestys: uusin tapahtuma ensin (juontipäivä = Vivinon skannauspäivä, kaapin pullon ostopäivä tai kaappiin lisäyspäivä).
+    // Pelkät päivättömät juontikerrat loppuun; viini ilman pulloja ja juontikertoja = viinin lisäyspäivä.
+    // Tasatilanteessa uusin lisätty, sitten nimi.
+    const wd = new Map();
+    for (const b of bottles) {
+      const d = (b.status === "juotu" ? b.opened_on : b.purchased_on || (b.created_at || "").slice(0, 10)) || "";
+      if (!wd.has(b.wine_id) || d > wd.get(b.wine_id)) wd.set(b.wine_id, d);
+    }
+    const dOf = (w) => wd.has(w.id) ? wd.get(w.id) : (w.created_at || "").slice(0, 10);
+    shown.sort((a, b) => dOf(b).localeCompare(dOf(a)) || (b.created_at || "").localeCompare(a.created_at || "") || a.name.localeCompare(b.name, "fi"));
     msg($("wineMsg"), wines.length ? "" : "Viinikellari on vielä tyhjä. Lisää ensimmäinen viini + Uusi -napista.");
     $("wineList").innerHTML = shown.map(wineItem).join("") || (!wines.length ? ""
       : wineStatus === "kaapissa" && !nIn && !ws.length ? `<p class="muted center">Kaapissa ei ole pulloja. Lisää pullot viinin sivulta tai kaappikartasta.</p>`
