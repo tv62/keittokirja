@@ -183,6 +183,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   6 Vivinon skannausta oli samoja viinejä kuin kaapissa: ne skannattiin ostaessa (käyttäjä: kaapin viinit juomatta), ei lisätty.
   Niiden skannauspäivät ovat kellaripullojen ostopäiviä (käyttäjän pyyntö 13.11.2026; Sagrantinon aiempi 12.11.2026 oli lomakkeen
   oletuspäivä). Norton Privadalla ei ostopäivää (ei Vivinossa).
+  Vivino voi tunnistaa viinin väärin: Altano-rosé oli oikeasti Symington Altano Organic 2022 (punainen, Viinilehti 5★),
+  korjattu 14.11.2026 käyttäjän antamasta Viinilehti-linkistä (sama rivi, juontikerta ja kuva säilyivät). Käyttäjän tieto voittaa.
   Kuvat: 37 viinillä Vivinon etikettikuva `image_url`-linkkinä (images.vivino.com), 7 ilman kuvaa (4 Vivino-viiniä + Lapponia-menun 3).
   Viinilehden merkinnät (luonteikas, hinta-laatu) täytetty 13.11.2026 kaikille 33 viinille, joilla on Viinilehden arvio
   (López de Haron sivulla ei hinta-laatumerkintää; Tommasi Crearo viinivinkkisivulta). Cono Surin tähdet tarkistettu (5).
