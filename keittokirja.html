@@ -481,6 +481,17 @@
   .shsub { font: 600 1rem Georgia, serif; padding: 12px 0 4px; border-top: 1px solid var(--line); }
   .shsum { font-size: .85rem; color: var(--muted); margin: 0 0 8px; font-variant-numeric: tabular-nums; }
   .shother { padding-bottom: 10px; }
+  /* Yhteishyvä-linkki: ainekset S-ostoslistaan Yhteishyvän reseptisivulta */
+  .shyh { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 8px 0 2px; padding: 8px 12px;
+    border: 1px solid var(--accent); border-radius: 10px; color: var(--accent); font-weight: 600; font-size: .92rem; text-decoration: none; text-align: center; }
+  .shyh.sm { display: inline-flex; margin: 0; min-height: 40px; padding: 6px 12px; font-size: .9rem; justify-content: flex-start; text-align: left; }
+  .shyh.sent { border-color: var(--line); color: var(--muted); font-weight: 400; }
+  .shyhh { font-size: .8rem; color: var(--muted); margin: 2px 0 6px; text-align: center; }
+  .shyhcard .shyhh { text-align: left; margin-top: 8px; }
+  .shyhrow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 8px; }
+  .shyhrow .shyh { min-width: 0; max-width: 100%; }
+  .shyhrow .muted { font-size: .82rem; white-space: nowrap; }
+  .shyhdone { font-size: .85rem; color: var(--muted); margin: 6px 0 4px; }
   .shoth { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0 0; font-size: .92rem; }
   .shoth .muted { font-size: .85rem; text-align: right; }
 </style>
@@ -3515,6 +3526,18 @@
     if (/[ie]$/i.test(w)) return w + (/[aou]/i.test(w) ? "a" : "ä");
     return null;
   }
+  // Yhteishyvän reseptisivulta ainekset voi lisätä S-ostoslistaan (käyttäjän toive 15.11.2026). Linkki = reseptin lähde.
+  const yhUrl = (r) => { const m = /https?:\/\/(?:www\.)?yhteishyva\.fi\/\S+/i.exec(r.source || ""); return m ? safeUrl(m[0]) : null; };
+  const yhKey = (it) => `${it.id}:yh`; // merkintä "lisätty Yhteishyvän kautta" (päivä), siivoutuu rivin mukana
+  function yhHtml(c, ci, compact) {
+    const sent = shopChecked[yhKey(c.it)];
+    const link = (cls, txt, lbl) => `<a class="${cls}" href="${esc(c.yh)}" target="_blank" rel="noopener" data-shyh="${ci}" aria-label="${esc(lbl)}">${txt}</a>`;
+    if (compact) return `<div class="shyhrow">${link("shyh sm" + (sent ? " sent" : ""), `${sent ? "✓ " : "🛒 "}${esc(c.r.title)} ↗`,
+      `Yhteishyvä: ${c.r.title}${sent ? ", lisätty" : ""}`)}<span class="muted">${esc(dayShort(c.it.day))}${c.it.servings ? " · " + servingsTxt(c.it.servings) : ""}</span></div>`;
+    if (sent) return `<div class="shyhdone">✓ Lisätty S-ostoslistaan Yhteishyvän kautta ${esc(dayShort(sent))} · ${link("", "Avaa ↗", "Avaa resepti Yhteishyvässä")}</div>`;
+    return `${link("shyh", "🛒 Lisää S-ostoslistaan Yhteishyvästä ↗", "Avaa resepti Yhteishyvässä ja lisää ainekset S-ostoslistaan")}
+      <p class="shyhh">${c.it.servings ? `Valitse siellä ${servingsTxt(c.it.servings)}. ` : ""}Ainekset merkitään tässä kerätyiksi.</p>`;
+  }
   const shopUrl = (term) => "https://www.s-kaupat.fi/hakutulokset?queryString=" + encodeURIComponent(term);
   // "50 g voita + 2 rkl oliiviöljyä" → kaksi ainesta, jos jokainen osa alkaa määrällä.
   function shopSplit(t) {
@@ -3555,7 +3578,7 @@
         lines.push({ html: scaleLine(t, f), parts, keys: parts.map((x) => x.keyId), term: shopTerm(parts[0].clean) });
       });
       while (lines.length && lines[lines.length - 1].sub) lines.pop(); // väliotsikko ilman aineksia
-      cards.push({ it, r, f, lines });
+      cards.push({ it, r, f, lines, yh: yhUrl(r) });
     }
     return { cards, others };
   }
@@ -3631,8 +3654,11 @@
     const lines = [], days = [...shop.days].sort();
     let html = "", text = [`Ostoslista ${dayShort(days[0])}${days.length > 1 ? "–" + dayShort(days[days.length - 1]) : ""}`];
     if (shopMode === "az") {
-      const groups = shopGroups(cards);
-      html = groups.length ? `<div class="card shcard"><ul class="shlines">${groups.map((g) => {
+      const groups = shopGroups(cards), yh = cards.map((c, ci) => c.yh ? yhHtml(c, ci, true) : "").join("");
+      // Yhteishyvä-linkit myös tässä, ettei samoja aineksia lisätä S-ostoslistaan kahdesti
+      if (yh) html += `<div class="card shcard shyhcard"><div class="lbl">Yhteishyvän kautta S-ostoslistaan</div>${yh}
+        <p class="shyhh">Avaa resepti, lisää ainekset siellä S-ostoslistaan, niin ne merkitään tässä kerätyiksi.</p></div>`;
+      html += groups.length ? `<div class="card shcard"><ul class="shlines">${groups.map((g) => {
         lines.push(g); return shopLineHtml(lines.length - 1, g, `<span class="shsrc">${esc(g.src)}</span>`);
       }).join("")}</ul></div>` : "";
       const rest = groups.filter((g) => !shopDone(g.keys));
@@ -3651,7 +3677,7 @@
         return `<div class="card shcard"><div class="shhead"><button type="button" class="shtitle" data-shopen="${c.it.id}">
             <span class="pt">${esc(c.r.title)}</span><span class="pm">${esc(meta)}</span></button>${
             keys.length ? `<button type="button" class="shall" data-shall="${ci}" aria-label="${all ? "Poista rastit" : "Rastita kaikki"}: ${esc(c.r.title)}">${all ? "↺ Peru" : "✓ Kaikki"}</button>` : ""}</div>
-          ${body ? `<ul class="shlines">${body}</ul>` : `<p class="muted" style="margin:6px 0 8px;font-size:.9rem">Reseptissä ei ole aineksia.</p>`}</div>`;
+          ${c.yh ? yhHtml(c, ci) : ""}${body ? `<ul class="shlines">${body}</ul>` : `<p class="muted" style="margin:6px 0 8px;font-size:.9rem">Reseptissä ei ole aineksia.</p>`}</div>`;
       }).join("");
     }
     if (others.length) html += `<div class="card shcard shother"><div class="lbl">Ei aineksia</div>${others.map((it) =>
@@ -3668,6 +3694,7 @@
     for (const k of keys) { if (on) shopChecked[k] = todayIso(); else delete shopChecked[k]; }
     saveShop(); renderShop();
   }
+  const cardKeys = (card) => card.lines.flatMap((l) => l.keys || []);
   $("shDays").onclick = (e) => {
     const b = e.target.closest("[data-shday]"); if (!b) return;
     shop.custom = true;
@@ -3682,8 +3709,18 @@
   $("shList").onclick = (e) => {
     const t = e.target;
     const c = t.closest("[data-shi]"); if (c) { const l = shopState.lines[+c.dataset.shi]; if (l) shopToggle(l.keys, !shopDone(l.keys)); return; }
+    const y = t.closest("[data-shyh]");
+    if (y) { // linkki aukeaa uuteen välilehteen (oletustoiminto), sen jälkeen reseptin ainekset merkitään kerätyiksi
+      const card = shopState.cards[+y.dataset.shyh];
+      if (card && !shopChecked[yhKey(card.it)]) setTimeout(() => shopToggle([...cardKeys(card), yhKey(card.it)], true), 0);
+      return;
+    }
     const a = t.closest("[data-shall]");
-    if (a) { const card = shopState.cards[+a.dataset.shall]; if (card) { const keys = card.lines.flatMap((l) => l.keys || []); shopToggle(keys, !shopDone(keys)); } return; }
+    if (a) { // ✓ Kaikki / ↺ Peru (peru poistaa myös Yhteishyvä-merkinnän)
+      const card = shopState.cards[+a.dataset.shall]; if (!card) return;
+      const keys = cardKeys(card), on = !shopDone(keys);
+      shopToggle(on ? keys : [...keys, yhKey(card.it)], on); return;
+    }
     const o = t.closest("[data-shopen]"); if (o) { const it = planItems.find((x) => x.id === o.dataset.shopen); if (it) openFromPlan(it); }
   };
   async function shopCopyText(text) {
@@ -3704,7 +3741,7 @@
   };
   $("shClear").onclick = () => {
     if (!confirm("Poistetaanko rastit näkyvistä aineksista?")) return;
-    shopToggle(shopState.lines.flatMap((l) => l.keys), false);
+    shopToggle([...shopState.lines.flatMap((l) => l.keys), ...shopState.cards.map((c) => yhKey(c.it))], false);
   };
   $("shBack").onclick = () => back(weekHash(mondayOf(shop.start || todayIso())));
   $("shopBtn").onclick = () => go(planWeek > mondayOf(todayIso()) ? `#/viikko/ostoslista/${planWeek}` : "#/viikko/ostoslista");

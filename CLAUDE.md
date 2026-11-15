@@ -69,6 +69,11 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     (yliviivaus, pysyy paikallaan). **Rastit vain tällä laitteella** (localStorage), ei tietokannassa. 🔍 rivin oikeassa
     reunassa avaa S-kauppojen haun tuotteelle (`s-kaupat.fi/hakutulokset?queryString=…`). 📋 Kopioi lista / Jaa… (iOS:n
     jakovalikko: Muistiinpanot, Viestit) ottaa mukaan vain rastittamattomat.
+    **Yhteishyvä-linkki** (käyttäjän toive 15.11.2026): Yhteishyvän reseptisivulta ainekset voi lisätä S-ostoslistaan. Jos reseptin
+    lähde on yhteishyva.fi-linkki, Resepteittäin-kortissa on nappi "🛒 Lisää S-ostoslistaan Yhteishyvästä ↗" (+ vihje valita siellä
+    suunniteltu annosmäärä). Napautus avaa reseptin Yhteishyvässä ja **merkitsee kaikki reseptin ainekset kerätyiksi** (kortissa
+    "✓ Lisätty S-ostoslistaan Yhteishyvän kautta su 15.11. · Avaa ↗", ↺ Peru poistaa merkinnän). Kaikki A–Ö -näkymässä samat linkit
+    omassa kortissa ylimpänä, ettei samoja aineksia lisätä kahdesti.
   - **Ruokaehdotukset** (11/2026, käyttäjän päätökset): "💡 Ehdota ruokia" täyttää viikon tyhjät päivälliset ja viikonlopun
     lounaat (tänään ja tulevat) ehdotuksilla. **Arkilounaita ei ehdoteta automaattisesti** (syödään töissä), vain 💡-napista,
     joka on jokaisessa tyhjässä ateriassa "+ Lisää" -napin vieressä. Ehdotuskortissa ✓ Hyväksy, ↻ Toinen (näyttää heti toisen)
@@ -483,6 +488,11 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     muuten osat näkyvissä "1 + 1 …"). Määrättömät osat ("suolaa") eivät muuta summaa. Järjestys `sort` (`localeCompare(…, "fi")`).
   - **🔍** `shopTerm(clean)`: ensimmäinen vaihtoehto ennen " tai " (paitsi "mauste- tai suolakurkkua"), laatusanat pois, perusmuoto;
     "lehtisellerin varsi" → "lehtiselleri", "valkosipulinkynsi" → "valkosipuli". `shopUrl(term)`, `target="_blank"`.
+  - **Yhteishyvä** `yhUrl(r)` = ensimmäinen `https://(www.)yhteishyva.fi/…`-osoite `source`-kentästä (`safeUrl`), kortissa `c.yh`.
+    `yhHtml(c, ci, compact)`: linkki `<a class="shyh" target="_blank" data-shyh="<kortin indeksi>">`; napautuksessa oletustoiminto
+    avaa linkin ja `setTimeout`-viiveellä `shopToggle([...cardKeys(card), yhKey(it)], true)`. Merkintä `yhKey(it)` = `<meal_plan.id>:yh`
+    (arvo = päivä) samassa `shopChecked`issä (siivoutuu rivin mukana). Lähetetyllä kortilla `.shyhdone`-rivi; ↺ Peru ja "Poista rastit"
+    poistavat myös merkinnän. A–Ö: `.shyhcard` + `.shyhrow` (`compact`, lähetetty `.shyh.sm.sent` "✓ Nimi ↗").
   - **Kopioi / Jaa** `shopState.text` (vain rastittamattomat; resepteittäin otsikkorivi "Nimi (su 15.11. päivällinen · 6 annosta)"):
     `navigator.clipboard.writeText` (varalla `execCommand("copy")`), `navigator.share` (nappi vain jos tuettu). "Poista rastit"
     (näkyy, kun jokin on rastitettu) kysyy vahvistuksen ja poistaa näkyvien rivien rastit.
