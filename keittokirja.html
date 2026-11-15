@@ -457,6 +457,32 @@
     font-size: .92rem; box-shadow: 0 6px 20px rgba(0,0,0,.25); pointer-events: none; }
   .toast.err { background: var(--danger); color: #fff; }
   .sugone { flex: none; width: 52px; min-height: 44px; margin: 2px 0 4px; padding: 0; border: 1px dashed var(--dash); background: transparent; font-size: 1.1rem; }
+  /* Ostoslista (rasti = kotona tai lisätty S-kauppojen listaan; .ok, koska li.done on reseptin kokkaustilan luokka) */
+  .shcard { padding: 10px 14px 6px; margin-bottom: 10px; }
+  .shhead { display: flex; align-items: center; gap: 8px; }
+  .shtitle { flex: 1; min-width: 0; border: none; background: none; padding: 4px 0; text-align: left; border-radius: 8px; }
+  .shall { flex: none; min-height: 40px; padding: 6px 10px; font-size: .85rem; color: var(--muted); border-radius: 999px; white-space: nowrap; }
+  .shlines { list-style: none; margin: 4px 0 0; padding: 0; }
+  .shline { display: flex; align-items: center; border-top: 1px solid var(--line); }
+  .shcard > .shlines:first-child > .shline:first-child { border-top: none; }
+  .shchk { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 7px 0; border: none;
+    background: none; border-radius: 0; text-align: left; line-height: 1.35; }
+  .shbox { flex: none; width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--dash); display: flex; align-items: center;
+    justify-content: center; color: var(--accent-ink); font: 700 .9rem/1 -apple-system, BlinkMacSystemFont, sans-serif; }
+  .shline.ok .shbox { background: var(--accent); border-color: var(--accent); }
+  .shline.ok .shbox::after { content: "✓"; }
+  .shtx { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .shline.ok .shtx { text-decoration: line-through; color: var(--muted); }
+  .shline.ok .shtx b.sc { color: inherit; }
+  .shsrc { display: block; font-size: .78rem; color: var(--muted); margin-top: 1px; }
+  .shq { flex: none; width: 44px; height: 44px; margin-right: -10px; display: flex; align-items: center; justify-content: center;
+    text-decoration: none; font-size: .95rem; opacity: .65; border-radius: 10px; }
+  .shline.ok .shq { opacity: .3; }
+  .shsub { font: 600 1rem Georgia, serif; padding: 12px 0 4px; border-top: 1px solid var(--line); }
+  .shsum { font-size: .85rem; color: var(--muted); margin: 0 0 8px; font-variant-numeric: tabular-nums; }
+  .shother { padding-bottom: 10px; }
+  .shoth { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0 0; font-size: .92rem; }
+  .shoth .muted { font-size: .85rem; text-align: right; }
 </style>
 </head>
 <body>
@@ -849,7 +875,7 @@
   <!-- Viikkosuunnitelma: viikkonäkymä -->
   <section id="planView" class="hidden">
     <button class="link" data-home="1">← Etusivu</button>
-    <h2 style="margin:6px 0 12px">Viikkosuunnitelma</h2>
+    <div class="whead"><h2>Viikkosuunnitelma</h2><button type="button" class="cellarpill" id="shopBtn">🛒 Ostoslista</button></div>
     <div class="weeknav">
       <button type="button" class="wbtn" id="wkPrev" aria-label="Edellinen viikko">‹</button>
       <div class="wl"><div class="wn" id="wkName"></div><div class="wd" id="wkDates"></div></div>
@@ -900,6 +926,31 @@
   <section id="planItemView" class="hidden">
     <button class="link" id="piBack">← Viikkosuunnitelma</button>
     <div class="card" id="pi"></div>
+  </section>
+
+  <!-- Viikkosuunnitelma: ostoslista (valittujen päivien ruokien ainekset) -->
+  <section id="shopView" class="hidden">
+    <button class="link" id="shBack">← Viikkosuunnitelma</button>
+    <h2 style="margin:6px 0 2px">🛒 Ostoslista</h2>
+    <p class="hint" style="margin:0 0 12px">Suunniteltujen ruokien ainekset annosmäärien mukaan. Tähteinä syötävä ruoka lasketaan vain kerran.</p>
+    <div class="lbl" style="margin:0 0 6px">Päivät</div>
+    <div class="chips primary scroll" id="shDays" role="group" aria-label="Ostoslistan päivät"></div>
+    <div id="shBody">
+      <div class="chips seg" id="shMode" role="group" aria-label="Ostoslistan järjestys">
+        <button type="button" class="chip" data-shmode="resepti">Resepteittäin</button>
+        <button type="button" class="chip" data-shmode="az">Kaikki A–Ö</button>
+      </div>
+      <p class="hint" id="shHint">Napauta aines, joka on jo kotona tai lisätty S-kauppojen listaan. 🔍 hakee tuotteen S-kaupoista.</p>
+      <div class="shsum" id="shSum"></div>
+      <div id="shList"></div>
+      <div class="actions" id="shActs">
+        <button type="button" class="primary" id="shCopy">📋 Kopioi lista</button>
+        <button type="button" id="shShare" class="hidden">Jaa…</button>
+        <button type="button" class="link" id="shClear">Poista rastit</button>
+      </div>
+      <p class="hint">Kopioi tai jaa -toiminto ottaa mukaan vain rastittamattomat ainekset. Rastit tallentuvat tälle laitteelle.</p>
+    </div>
+    <div id="shEmpty" class="msg hidden"></div>
   </section>
 
   <!-- Käyttäjien hallinta -->
@@ -1285,7 +1336,7 @@
   const VIEWS = ["loadView", "authView", "homeView", "listView", "detailView", "editView", "adminView",
                  "menusView", "menuView", "winesView", "wineView", "wineEditView",
                  "cellarView", "winePickView", "bottleView", "tastingView",
-                 "planView", "planAddView", "planPickView", "planItemView"];
+                 "planView", "planAddView", "planPickView", "planItemView", "shopView"];
   function show(view) {
     for (const v of VIEWS) $(v).classList.toggle("hidden", v !== view);
     currentView = view;
@@ -1404,10 +1455,15 @@
       }
       case "uusi-viini": if (hidden.has("viinit")) return false; openWineEditor(null, true); return true;
       case "hallinta": if (!isAdmin) return false; msg($("adminMsg"), ""); loadUsers(); return true;
-      // #/viikko, #/viikko/<maanantai>, #/viikko/lisaa/<päivä>/<ateria>[/<resepti>], #/viikko/ruoka/<id>
+      // #/viikko, #/viikko/<maanantai>, #/viikko/lisaa/<päivä>/<ateria>[/<resepti>], #/viikko/ruoka/<id>,
+      // #/viikko/ostoslista[/<alkupäivä>]
       case "viikko": {
         if (hidden.has("viikko")) return false;
         if (!b) { openPlan(mondayOf(todayIso())); return true; }
+        if (b === "ostoslista") {
+          if (c && !isIsoDay(c)) return false;
+          openShop(c && c > todayIso() ? c : todayIso()); return true;
+        }
         if (b === "lisaa") {
           if (!canEdit || !isIsoDay(c) || !MEALS[d]) return false;
           if (!e) { openPlanAdd(c, d); return true; }
@@ -3025,9 +3081,10 @@
     if (p.error) return;
     if (currentView === "homeView") renderPlanCard();
     if (currentView === "planView" && !noteEdit) renderPlan();
+    if (currentView === "shopView") renderShop();
   }
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && ["homeView", "planView"].includes(currentView)) refreshPlan(true);
+    if (document.visibilityState === "visible" && ["homeView", "planView", "shopView"].includes(currentView)) refreshPlan(true);
   });
 
   // Reseptin avaus suunnitelmasta: määrät valmiiksi suunnitellulle annosmäärälle (tähteillä alkuperäisen määrä).
@@ -3359,6 +3416,298 @@
     else leaveDeleted(weekHash(mondayOf(p.day))); // takaisin viikkoon (ohi lisäyssivun)
   }
   $("ppBack").onclick = () => back(pick ? `#/viikko/lisaa/${pick.day}/${pick.meal}` : "#/viikko");
+
+  // ----- Ostoslista (11/2026) -----
+  // Valittujen päivien suunnitellut ruoat. Tähteitä ei lasketa erikseen: alkuperäinen rivi suunnitellulla annosmäärällä riittää.
+  // Rasti = aines on jo kotona tai lisätty S-kauppojen listaan. Rastit vain tällä laitteella (localStorage kk_ostoslista),
+  // avain = suunnitelman rivi + ainesrivin teksti (rivin muuttuessa rasti poistuu).
+  const SHOP_KEY = "kk_ostoslista", SHOP_MODE_KEY = "kk_ostosjarjestys", SHOP_SPAN = 14;
+  let shopChecked = {};
+  try { shopChecked = JSON.parse(localStorage.getItem(SHOP_KEY) || "{}").c || {}; } catch {}
+  let shopMode = "resepti";
+  try { if (localStorage.getItem(SHOP_MODE_KEY) === "az") shopMode = "az"; } catch {}
+  const shop = { start: null, days: new Set(), custom: false };
+  let shopState = { lines: [], cards: [], text: "" }; // näkyvät rivit (data-shi = indeksi), kortit ja kopioitava teksti
+  const saveShop = () => { try { localStorage.setItem(SHOP_KEY, JSON.stringify({ c: shopChecked })); } catch {} };
+  function hashStr(s) { let h = 5381; for (const ch of s) h = (Math.imul(h, 33) ^ ch.codePointAt(0)) >>> 0; return h.toString(36); }
+  const htmlText = (h) => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent; };
+  const shopRank = (it) => it.day + (it.meal === "lounas" ? "0" : "1") + String(it.sort ?? 0).padStart(4, "0");
+
+  // Ainesrivin tulkinta yhdistettyä listaa varten: määrä, yksikkö ja nimi. Ainekset ovat vapaata tekstiä, joten
+  // yhdistäminen on varovaista: samat nimet (yksikkö- ja taivutusmuodot huomioiden) lasketaan yhteen, muut vierekkäin.
+  const SH_UNIT = { g: "g", kg: "g", mg: "g", dl: "dl", l: "dl", ml: "dl", cl: "dl", litra: "dl", litraa: "dl", tl: "tl", rkl: "rkl",
+    prk: "prk", purkki: "prk", purkkia: "prk", tlk: "tlk", "tölkki": "tlk", "tölkkiä": "tlk", ps: "ps", pss: "ps", pussi: "ps", pussia: "ps",
+    pkt: "pkt", paketti: "pkt", pakettia: "pkt", rs: "rs", rasia: "rs", rasiaa: "rs", kpl: "kpl", ruukku: "ruukku", ruukkua: "ruukku",
+    pallo: "pallo", palloa: "pallo", oksa: "oksa", oksaa: "oksa", nippu: "nippu", nippua: "nippu", viipale: "viipale",
+    viipaletta: "viipale", annos: "annos", annosta: "annos", pala: "pala", palaa: "pala" };
+  const SH_FACTOR = { kg: 1000, mg: 0.001, l: 10, litra: 10, litraa: 10, ml: 0.01, cl: 0.1 };
+  const SH_PART = { ruukku: "ruukkua", pallo: "palloa", oksa: "oksaa", nippu: "nippua", viipale: "viipaletta", annos: "annosta", pala: "palaa" };
+  const SH_UNIT_RE = new RegExp(`^(${Object.keys(SH_UNIT).sort((a, b) => b.length - a.length).join("|")})\\.?(?=\\s|$)\\s*`, "i");
+  const SH_QTY_RE = new RegExp(String.raw`^(?:(?:n\.|noin)\s*)?(${NUM})(?:\s*[–-]\s*(${NUM}))?(?=\s|\(|$)\s*`);
+  const SH_TAIL_RE = new RegExp(String.raw`^(.+?)\s+(?:n\.\s*|noin\s+)?(${NUM})\s*(g|kg|dl|l|ml)$`, "i");
+  const SH_FUZZY = /^(n\.|noin|reilu|reilut|vajaa|pari|muutama|ripaus|hyppysellinen|loraus|tilkka|nokare|kourallinen|hieman|vähän)$/i;
+  const SH_SIZE = /^(iso|isoa|isoja|pieni|pientä|pieniä|keskikokoinen|keskikokoista|keskikokoisia|hoikka|reilu|reilua|kokonainen|kokonaista|kokonaisia)$/i;
+  const SH_PREP = /^(rouhittua|hienonnettua|silputtua|murskattua|pilkottua|raastettua|puristettua|vastajauhettua|vastamurskattua)$/i;
+  const SH_ADJ = /^(tai|tuore|tuoretta|tuoreita|kuiva|kuivaa|kuivia|kypsiä|kypsää|kiinteitä|tasakokoisia|punainen|punaista|punaisia|vihreitä|vihreää|mustia|keltainen|kylmää|kiehuvaa|haaleaa|lämmintä|hienoa|karkeaa|juoksevaa|pehmeää|maustamaton|maustamatonta|maustamattomia|tummaa|makeaa|hapokasta|eriväristä|\S+(?:ttua|ttuja|ttyä|ttyjä))$/i;
+  const SH_TRAIL = /^(\S+(?:tuna|tynä|tuina|tyinä|oina|öinä|ineen|iseen|lyyn|luun|ssa|ssä)|hienoksi|maun|oman|mukaan|myllystä|halutessa|tarvittaessa|valinnainen|vuoan)$/i;
+  const SH_STEM = [[/kynttä$|kynnet$/, "kynsi"], [/lehteä$/, "lehti"], [/vartta$/, "varsi"], [/ientä$/, "iemi"], [/eit[aä]$/, "$&"],
+    [/tteja$/, "tti"], [/ej[aä]$/, "i"], [/noita$/, "na"], [/nöitä$/, "nä"], [/(\S{3})oita$/, "$1o"], [/(\S{3})öitä$/, "$1ö"], [/([uyoö])j[aä]$/, "$1"], [/aa$/, "a"], [/ää$/, "ä"], [/([iuyoöe])[aä]$/, "$1"], [/([aeiouyäö])t[aä]$/, "$1"]];
+  const shopStem = (w) => { for (const [re, to] of SH_STEM) if (re.test(w)) return w.replace(re, to); return w; };
+  // Nimi ilman sulkuja, pilkun jälkeistä osaa ja perään tulevia kuvauksia ("2 sipulia, kuutioina", "1 porkkana hienoksi raastettuna").
+  function shopClean(s) {
+    const seg = s.replace(/\([^)]*\)/g, " ").split(/[,;](?!\d)/); // ei desimaalipilkusta (1,5 dl)
+    let w = [];
+    for (const x of seg) { // "kiinteitä, tasakokoisia perunoita": pelkät laatusanat yhdistetään seuraavaan osaan
+      w.push(...x.split(/\s+/).filter(Boolean));
+      if (w.some((y) => !SH_ADJ.test(y) && !SH_SIZE.test(y))) break;
+    }
+    while (w.length > 1 && SH_TRAIL.test(w[w.length - 1])) w.pop();
+    return w.join(" ");
+  }
+  const shopCore = (clean) => { // nimi ilman alun laatusanoja (aakkostus, S-kauppojen haku)
+    const w = clean.toLowerCase().split(" ").filter(Boolean);
+    while (w.length > 1 && (SH_ADJ.test(w[0]) || SH_SIZE.test(w[0]) || SH_FUZZY.test(w[0]))) w.shift();
+    return w;
+  };
+  function shopParse(part) {
+    let s = part.trim(), lo = null, hi = null, unit = "", f = 1, m;
+    const opt = /^\(.*\)$/.test(s); // valinnainen "(1 sipuli)": oma rivinsä, ei lasketa yhteen
+    if (opt) s = s.slice(1, -1).trim();
+    if ((m = SH_QTY_RE.exec(s)) && parseNum(m[1]) > 0 && (m[2] == null || parseNum(m[2]) > 0)) {
+      lo = parseNum(m[1]); hi = m[2] != null ? parseNum(m[2]) : lo; s = s.slice(m[0].length);
+    } else if ((m = SH_TAIL_RE.exec(s)) && parseNum(m[2]) > 0) { // "spagettia n. 400 g"
+      lo = hi = parseNum(m[2]); s = m[3] + " " + m[1];
+    } else {
+      const w = s.split(/\s+/); // "ripaus suolaa", "pari oksaa timjamia"
+      while (w.length > 1 && SH_FUZZY.test(w[0])) w.shift();
+      s = w.join(" ");
+    }
+    if (lo != null && !SH_UNIT_RE.test(s)) { // "2 reilua rkl tomaattipyreetä"
+      const w = /^(\S+)\s+/.exec(s);
+      if (w && /^(reilua|reilu|vajaa|kukkurallinen|tasainen|iso|pieni)$/i.test(w[1]) && SH_UNIT_RE.test(s.slice(w[0].length))) s = s.slice(w[0].length);
+    }
+    if ((m = SH_UNIT_RE.exec(s))) {
+      const raw = m[1].toLowerCase(); unit = SH_UNIT[raw]; f = SH_FACTOR[raw] || 1; s = s.slice(m[0].length);
+      if (lo == null) unit = "";
+    }
+    const clean = shopClean(s) || s;
+    // Avain: laatusanat säilyvät (tuoretta / kuivattua basilikaa ovat eri tuotteita), koko ja valmistustapa eivät.
+    const core = shopCore(clean), key = clean.toLowerCase().split(" ").filter((x) => x && !SH_SIZE.test(x) && !SH_FUZZY.test(x));
+    while (key.length > 1 && (SH_PREP.test(key[0]) || key[0] === "tai")) key.shift();
+    if (key.length) key[key.length - 1] = shopStem(key[key.length - 1]);
+    const coreTxt = core.join(" ");
+    return { lo: lo == null ? null : lo * f, hi: hi == null ? null : hi * f, unit, clean, sort: coreTxt,
+      key: (opt ? "?" : "") + (key.join(" ") || coreTxt), water: /^(vettä|vesi|vedellä)(?=\s|$)/.test(coreTxt) || /keitinve(ttä|si)/.test(coreTxt) };
+  }
+  function shopTerm(clean) { // hakusana S-kaupoille: "lehtisellerin varsi" → "lehtiselleri", "2 sipulia" → "sipuli"
+    const alt = clean.split(/\s+tai\s+/); // "mauste- tai suolakurkkua" → jälkimmäinen
+    const w = shopCore(/-$/.test(alt[0]) && alt[1] ? alt[1] : alt[0]);
+    const last = w[w.length - 1] || "";
+    if (w.length > 1 && /^(varsi|vartta|oksa|oksaa|mehu|kuori|lehtiä|lehteä|raaste)$/.test(last) && /n$/.test(w[w.length - 2]))
+      return w[w.length - 2].slice(0, -1);
+    w[w.length - 1] = shopStem(last).replace(/inkynsi$/, "i");
+    return w.join(" ");
+  }
+  function shopPartitive(w) { // "sitruuna" → "sitruunaa", "chili" → "chiliä" (vain yksi sana, säännöllinen taivutus)
+    if (/\s/.test(w)) return null;
+    if (/[aou]$/i.test(w)) return w + "a";
+    if (/[äöy]$/i.test(w)) return w + "ä";
+    if (/[ie]$/i.test(w)) return w + (/[aou]/i.test(w) ? "a" : "ä");
+    return null;
+  }
+  const shopUrl = (term) => "https://www.s-kaupat.fi/hakutulokset?queryString=" + encodeURIComponent(term);
+  // "50 g voita + 2 rkl oliiviöljyä" → kaksi ainesta, jos jokainen osa alkaa määrällä.
+  function shopSplit(t) {
+    const p = t.split(/\s\+\s/);
+    return p.length > 1 && p.every((x) => /^[\d½⅓⅔¼¾⅕⅛]/.test(x.trim())) ? p : [t];
+  }
+  const shopLabel = (t) => t.replace(/^[^\d:()]{2,30}:\s+(?=\S)/, ""); // "Lisäksi: 4 pitaleipää" → "4 pitaleipää"
+
+  function shopDaysAvail() {
+    const end = addDays(shop.start, SHOP_SPAN - 1);
+    return [...new Set(planItems.filter((it) => !it.leftover && it.day >= shop.start && it.day <= end).map((it) => it.day))].sort();
+  }
+  function openShop(start) {
+    if (shop.start !== start) { shop.start = start; shop.custom = false; }
+    renderShop();
+    show("shopView");
+    refreshPlan();
+  }
+  // Kaikki valittujen päivien ainekset: kortit (resepti + rivit) ja osat (yhdistettyä listaa varten).
+  function shopModel() {
+    const rows = planItems.filter((it) => !it.leftover && shop.days.has(it.day)).sort((a, b) => shopRank(a).localeCompare(shopRank(b)));
+    const cards = [], others = [];
+    for (const it of rows) {
+      const r = recipeOf(it);
+      if (!r) { others.push(it); continue; }
+      const f = it.servings && r.servings ? it.servings / r.servings : 1, lines = [];
+      (r.ingredients || []).forEach((t) => {
+        t = String(t || "").trim(); if (!t) return;
+        if (isSub(t)) { lines.push({ sub: t.replace(/:\s*$/, "") }); return; }
+        const parts = shopSplit(shopLabel(t)).map((p, k) => ({ p: p.trim(), k, ...shopParse(p) })).filter((x) => !x.water);
+        if (!parts.length) return; // pelkkä vesi
+        for (const x of parts) {
+          x.keyId = `${it.id}:${hashStr(t + "#" + x.k)}`;
+          x.ohi = x.hi; // alkuperäinen määrä ratkaisee taivutuksen ("1 sipuli" / "2 sipulia")
+          if (x.lo != null) { x.lo *= f; x.hi *= f; }
+          x.html = scaleLine(x.p, f); x.title = r.title;
+        }
+        lines.push({ html: scaleLine(t, f), parts, keys: parts.map((x) => x.keyId), term: shopTerm(parts[0].clean) });
+      });
+      while (lines.length && lines[lines.length - 1].sub) lines.pop(); // väliotsikko ilman aineksia
+      cards.push({ it, r, f, lines });
+    }
+    return { cards, others };
+  }
+  // Yhdistetty lista: samat ainekset yhteen, aakkosjärjestys.
+  function shopQty(unit, lo, hi) {
+    let d = 1, u = unit;
+    if (unit === "g" && lo >= 1000) { d = 1000; u = "kg"; }
+    if (unit === "dl" && lo >= 10) { d = 10; u = "l"; }
+    let n = fmtNum(lo / d); const n2 = fmtNum(hi / d); if (n2 !== n) n += "–" + n2;
+    if (SH_PART[u] && hi / d > 1) u = SH_PART[u];
+    return u ? `${n} ${u}` : n;
+  }
+  function shopGroups(cards) {
+    const map = new Map();
+    for (const c of cards) for (const l of c.lines) for (const x of l.parts || []) {
+      if (!map.has(x.key)) map.set(x.key, { items: [], sort: x.sort });
+      map.get(x.key).items.push(x);
+    }
+    const out = [];
+    for (const g0 of map.values()) {
+      // Resepteittäin rastitetut osat eivät kuulu yhteismäärään (paitsi kun kaikki on rastitettu).
+      const live = g0.items.filter((x) => !shopChecked[x.keyId]), g = { items: live.length ? live : g0.items };
+      let html;
+      if (g.items.length === 1) html = g.items[0].html;
+      else {
+        const q = g.items.filter((x) => x.lo != null), units = new Map();
+        for (const x of q) { const u = units.get(x.unit) || { lo: 0, hi: 0, items: [] }; u.lo += x.lo; u.hi += x.hi; u.items.push(x); units.set(x.unit, u); }
+        let name = (q.find((x) => x.unit) || q[0] || g.items[0]).clean;
+        const parts = [];
+        for (const [unit, u] of units) {
+          if (unit) { parts.push(shopQty(unit, u.lo, u.hi)); continue; }
+          // ilman yksikköä taivutus määrän mukaan: "1 sipuli" + "2 sipulia" = "3 sipulia"
+          const nm = u.hi <= 1 ? u.items.find((x) => x.ohi <= 1)?.clean
+            : u.items.find((x) => x.ohi > 1)?.clean || shopPartitive(u.items[0].clean);
+          if (nm) { parts.push(shopQty("", u.lo, u.hi)); if (!q.some((x) => x.unit)) name = nm; }
+          else parts.push(u.items.map((x) => shopQty("", x.lo, x.hi)).join(" + "));
+        }
+        html = esc((parts.length ? parts.join(" + ") + " " : "") + name);
+      }
+      const titles = [...new Set(g.items.map((x) => x.title))];
+      out.push({ html, sort: g0.sort, keys: g0.items.map((x) => x.keyId), term: shopTerm(g.items[0].clean), src: titles.join(", ") });
+    }
+    return out.sort((a, b) => a.sort.localeCompare(b.sort, "fi") || htmlText(a.html).localeCompare(htmlText(b.html), "fi"));
+  }
+  const shopDone = (keys) => keys.length > 0 && keys.every((k) => shopChecked[k]);
+  function shopLineHtml(i, l, extra) {
+    const ok = shopDone(l.keys);
+    return `<li class="shline${ok ? " ok" : ""}"><button type="button" class="shchk" data-shi="${i}" aria-pressed="${ok}">
+      <span class="shbox" aria-hidden="true"></span><span class="shtx">${l.html}${extra || ""}</span></button>${
+      l.term ? `<a class="shq" href="${esc(shopUrl(l.term))}" target="_blank" rel="noopener" aria-label="Hae S-kaupoista: ${esc(l.term)}" title="Hae S-kaupoista: ${esc(l.term)}">🔍</a>` : ""}</li>`;
+  }
+  function renderShop() {
+    const avail = shopDaysAvail();
+    if (!shop.custom) shop.days = new Set(avail.filter((d) => d <= addDays(shop.start, 6)));
+    for (const d of [...shop.days]) if (!avail.includes(d)) shop.days.delete(d);
+    if (planItems.length) { // vanhat rastit pois (suunnitelman rivi poistettu)
+      const ids = new Set(planItems.map((x) => x.id));
+      let changed = false;
+      for (const k of Object.keys(shopChecked)) if (!ids.has(k.split(":")[0])) { delete shopChecked[k]; changed = true; }
+      if (changed) saveShop();
+    }
+    $("shDays").innerHTML = avail.map((d) => `<button type="button" class="chip ${shop.days.has(d) ? "on" : ""}" data-shday="${d}" aria-pressed="${shop.days.has(d)}">${esc(dayLabel(d))}</button>`).join("");
+    $("shDays").classList.toggle("hidden", !avail.length);
+    const { cards, others } = shopModel();
+    const empty = !avail.length ? `Seuraavalle kahdelle viikolle ei ole vielä suunniteltu ruokia. Lisää ruokia viikkosuunnitelmaan, niin niiden ainekset tulevat tähän.`
+      : !shop.days.size ? "Valitse päivät, joiden ruoat haluat ostoslistalle." : "";
+    msg($("shEmpty"), empty);
+    $("shBody").classList.toggle("hidden", !!empty);
+    if (empty) { shopState = { lines: [], cards: [], text: "" }; return; }
+    for (const b of $("shMode").querySelectorAll("[data-shmode]")) {
+      const on = b.dataset.shmode === shopMode; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on);
+    }
+    const lines = [], days = [...shop.days].sort();
+    let html = "", text = [`Ostoslista ${dayShort(days[0])}${days.length > 1 ? "–" + dayShort(days[days.length - 1]) : ""}`];
+    if (shopMode === "az") {
+      const groups = shopGroups(cards);
+      html = groups.length ? `<div class="card shcard"><ul class="shlines">${groups.map((g) => {
+        lines.push(g); return shopLineHtml(lines.length - 1, g, `<span class="shsrc">${esc(g.src)}</span>`);
+      }).join("")}</ul></div>` : "";
+      const rest = groups.filter((g) => !shopDone(g.keys));
+      if (rest.length) text.push("", ...rest.map((g) => "- " + htmlText(g.html)));
+    } else {
+      html = cards.map((c, ci) => {
+        const left = planItems.filter((x) => x.leftover && x.leftover_of === c.it.id).length;
+        const meta = [`${dayShort(c.it.day)} ${MEAL_LC[c.it.meal]}`, c.it.servings ? servingsTxt(c.it.servings) : "", left ? `riittää ${left + 1} ateriaan` : ""].filter(Boolean).join(" · ");
+        const keys = c.lines.flatMap((l) => l.keys || []), all = shopDone(keys);
+        const body = c.lines.map((l) => {
+          if (l.sub) return `<li class="shsub">${esc(l.sub)}</li>`;
+          lines.push(l); return shopLineHtml(lines.length - 1, l);
+        }).join("");
+        const rest = c.lines.filter((l) => !l.sub && !shopDone(l.keys));
+        if (rest.length) text.push("", `${c.r.title} (${meta})`, ...rest.map((l) => "- " + htmlText(l.html)));
+        return `<div class="card shcard"><div class="shhead"><button type="button" class="shtitle" data-shopen="${c.it.id}">
+            <span class="pt">${esc(c.r.title)}</span><span class="pm">${esc(meta)}</span></button>${
+            keys.length ? `<button type="button" class="shall" data-shall="${ci}" aria-label="${all ? "Poista rastit" : "Rastita kaikki"}: ${esc(c.r.title)}">${all ? "↺ Peru" : "✓ Kaikki"}</button>` : ""}</div>
+          ${body ? `<ul class="shlines">${body}</ul>` : `<p class="muted" style="margin:6px 0 8px;font-size:.9rem">Reseptissä ei ole aineksia.</p>`}</div>`;
+      }).join("");
+    }
+    if (others.length) html += `<div class="card shcard shother"><div class="lbl">Ei aineksia</div>${others.map((it) =>
+      `<div class="shoth"><span>${esc(titleOf(it))}</span><span class="muted">${esc(dayShort(it.day))} ${MEAL_LC[it.meal]}${it.recipe_id ? " · resepti ei ole näkyvissä" : ""}</span></div>`).join("")}</div>`;
+    $("shList").innerHTML = html;
+    const done = lines.filter((l) => shopDone(l.keys)).length;
+    $("shSum").textContent = lines.length ? (done ? `Jäljellä ${lines.length - done} / ${lines.length}` : `${lines.length} ${lines.length === 1 ? "aines" : "ainesta"}`) : "";
+    $("shActs").classList.toggle("hidden", !lines.length);
+    $("shShare").classList.toggle("hidden", !navigator.share);
+    $("shClear").classList.toggle("hidden", !done);
+    shopState = { lines, cards, text: text.length > 1 ? text.join("\n") : "" };
+  }
+  function shopToggle(keys, on) {
+    for (const k of keys) { if (on) shopChecked[k] = todayIso(); else delete shopChecked[k]; }
+    saveShop(); renderShop();
+  }
+  $("shDays").onclick = (e) => {
+    const b = e.target.closest("[data-shday]"); if (!b) return;
+    shop.custom = true;
+    if (shop.days.has(b.dataset.shday)) shop.days.delete(b.dataset.shday); else shop.days.add(b.dataset.shday);
+    renderShop();
+  };
+  $("shMode").onclick = (e) => {
+    const b = e.target.closest("[data-shmode]"); if (!b) return;
+    shopMode = b.dataset.shmode; try { localStorage.setItem(SHOP_MODE_KEY, shopMode); } catch {}
+    renderShop();
+  };
+  $("shList").onclick = (e) => {
+    const t = e.target;
+    const c = t.closest("[data-shi]"); if (c) { const l = shopState.lines[+c.dataset.shi]; if (l) shopToggle(l.keys, !shopDone(l.keys)); return; }
+    const a = t.closest("[data-shall]");
+    if (a) { const card = shopState.cards[+a.dataset.shall]; if (card) { const keys = card.lines.flatMap((l) => l.keys || []); shopToggle(keys, !shopDone(keys)); } return; }
+    const o = t.closest("[data-shopen]"); if (o) { const it = planItems.find((x) => x.id === o.dataset.shopen); if (it) openFromPlan(it); }
+  };
+  async function shopCopyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch {}
+    try { // varalla vanha tapa
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); const ok = document.execCommand("copy"); ta.remove(); return ok;
+    } catch { return false; }
+  }
+  $("shCopy").onclick = async () => {
+    if (!shopState.text) return toast("Kaikki ainekset on jo rastitettu.");
+    toast(await shopCopyText(shopState.text) ? "Lista kopioitu. Liitä se esim. Muistiinpanoihin tai viestiin." : "Kopiointi ei onnistunut.", false);
+  };
+  $("shShare").onclick = async () => {
+    if (!shopState.text) return toast("Kaikki ainekset on jo rastitettu.");
+    try { await navigator.share({ title: "Ostoslista", text: shopState.text }); } catch {}
+  };
+  $("shClear").onclick = () => {
+    if (!confirm("Poistetaanko rastit näkyvistä aineksista?")) return;
+    shopToggle(shopState.lines.flatMap((l) => l.keys), false);
+  };
+  $("shBack").onclick = () => back(weekHash(mondayOf(shop.start || todayIso())));
+  $("shopBtn").onclick = () => go(planWeek > mondayOf(todayIso()) ? `#/viikko/ostoslista/${planWeek}` : "#/viikko/ostoslista");
 
   // ----- Ruokaehdotukset -----
   // Ehdotukset ovat vain tämän laitteen muistissa, kunnes ne hyväksytään (✓). ✕ hylkää ja näyttää toisen.

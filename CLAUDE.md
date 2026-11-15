@@ -58,7 +58,17 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     **Siirto raahaamalla** (käyttäjän toive 11/2026): ruokaa tai ehdotusta pidetään hetki sormella ja raahataan toiselle aterialle;
     jos siellä on jo ruoka tai ehdotus, paikat vaihtuvat. Jos tähteet joutuisivat ennen ruoan valmistusta tai yli 2 päivän päähän
     valmistuksesta, kortti näkyy punaisena eikä siirtoa tehdä (ilmoitus kertoo syyn).
-    Vain muokkausoikeudella voi muokata. Ostoslista ja toiveet myöhemmin (backlog).
+    Vain muokkausoikeudella voi muokata. Toiveet myöhemmin (backlog).
+  - **🛒 Ostoslista** (15.11.2026, käyttäjän toive): perhe tekee ostokset S-kauppojen ostoslistalla (kaupassa ja välillä
+    tilaamalla). S-kauppoihin ei ole avointa rajapintaa, joten keittokirja kokoaa listan, josta S-kauppojen lista tehdään käsin.
+    Avataan viikkosuunnitelman otsikon vierestä (pilleri "🛒 Ostoslista", kaikille myös ilman muokkausoikeutta). Päivät valitaan
+    chipeistä: tarjolla tänään (tai tulevan viikon maanantai) + 13 pv ne päivät, joilla on suunniteltu ruoka; oletuksena seuraavat
+    7 päivää. **Tähteitä ei lasketa erikseen** (alkuperäinen rivi suunnitellulla annosmäärällä riittää), vesi jätetään pois.
+    Kaksi näkymää: **Resepteittäin** (kortti per ruoka, ainekset skaalattuina kuten reseptisivulla, "✓ Kaikki") ja **Kaikki A–Ö**
+    (samat ainekset yhteen laskettuina, lähdereseptit pienellä). Rasti = aines on jo kotona tai lisätty S-kauppojen listaan
+    (yliviivaus, pysyy paikallaan). **Rastit vain tällä laitteella** (localStorage), ei tietokannassa. 🔍 rivin oikeassa
+    reunassa avaa S-kauppojen haun tuotteelle (`s-kaupat.fi/hakutulokset?queryString=…`). 📋 Kopioi lista / Jaa… (iOS:n
+    jakovalikko: Muistiinpanot, Viestit) ottaa mukaan vain rastittamattomat.
   - **Ruokaehdotukset** (11/2026, käyttäjän päätökset): "💡 Ehdota ruokia" täyttää viikon tyhjät päivälliset ja viikonlopun
     lounaat (tänään ja tulevat) ehdotuksilla. **Arkilounaita ei ehdoteta automaattisesti** (syödään töissä), vain 💡-napista,
     joka on jokaisessa tyhjässä ateriassa "+ Lisää" -napin vieressä. Ehdotuskortissa ✓ Hyväksy, ↻ Toinen (näyttää heti toisen)
@@ -167,9 +177,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   tarjoiluvinkit). Lisäksi 11 arkiruokaa on merkitty myös vauvalle sopiviksi (lisätagi `vauvanruoat`, vauvaohje `baby_notes`-kentässä).
   Päärajaukset (11/2026): ⭐ Top-lista, 🥄 Soseet, 🖐️ Sormiruoat. Omat vauvan reseptit ovat omassa järjestyksessä
   ristiinmerkittyjen arkiruokien jälkeen (muokkaaja voi raahata).
-- 🗓️ Viikkosuunnitelma versio 1 julkaistu 11.11.2026 (ilman ostoslistaa), ruokaehdotukset samana päivänä. Kaikki nykyiset
+- 🗓️ Viikkosuunnitelma versio 1 julkaistu 11.11.2026, ruokaehdotukset samana päivänä, ostoslista 15.11.2026. Kaikki nykyiset
   jäsenet näkevät osion (heillä ei ollut piilotuksia); uusi jäsen ei näe sitä oletuksena.
-- Seuraavaksi todennäköisesti: Viikkosuunnitelman ostoslista (backlog), puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut
+- Seuraavaksi todennäköisesti: käyttäjän palaute ostoslistasta, puuttuvat ohjeet tyhjiin muistiinpanoihin, uudet menut
   Claude Designista.
 - Viinikellarissa 3 viiniä menun viinilistalta (Lapponia-illallinen): suunniteltuja hankintoja menua varten, ei juotu eikä ostettu.
   Käyttäjä poisti niiden juontikerrat tarkoituksella 12.11.2026 (älä palauta). Lisäksi 7 kaapissa olevaa viiniä (1 pullo kutakin) lisätty etikettikuvista 12.11.2026:
@@ -216,6 +226,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Viikkosuunnitelman testeissä kiinteä päivä: `ctx.clock.set_fixed_time("2026-11-11T10:00:00")` (menneet päivät, "Tänään").
   Raahaus testataan hiirellä (pointer-tapahtumat): `mouse.down()`, odota 450 ms, `mouse.move(…, steps=10)`, `mouse.up()`;
   korkea näkymä (esim. 390×3000), jotta koko viikko mahtuu ilman vieritystä. Ehdotuksissa on sattumaa: aja tilastotestit useasti.
+  Ostoslista: kiinteä päivä + suunnitelmassa tähteitä, oma merkintä ja resepti yli 7 päivän päässä; tulkinnan voi testata suoraan
+  `page.evaluate(… shopParse(rivi) …)` (key, sort, lo/hi, unit, water, `shopTerm`). Kopiointi: `clipboard-read` -oikeus ja
+  `navigator.clipboard.readText()`. Headless-Chromiumissa ei ole `navigator.share`ia, joten Jaa…-nappi on siellä piilossa.
 - Reitityksen testaus: `page.go_back()` = takaisin-pyyhkäisy. Huom. `page.goto(sama_url + "#/…")` on vain
   #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
@@ -241,7 +254,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 Näkymät ovat `<section>`-elementtejä, joita `show(view)` vaihtaa (lista `VIEWS`):
 `loadView`, `authView`, `homeView`, `listView`, `detailView`, `editView`, `adminView`, `menusView`, `menuView`,
 `winesView`, `wineView`, `wineEditView`, `cellarView`, `winePickView`, `bottleView`, `tastingView`,
-`planView`, `planAddView`, `planPickView`, `planItemView`.
+`planView`, `planAddView`, `planPickView`, `planItemView`, `shopView`.
 Lisää uusi näkymä `VIEWS`-listaan ja reititykseen.
 
 ### Osoitteet ja takaisin-ele (reititys)
@@ -268,6 +281,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | `#/viikko/lisaa/<päivä>/<lounas\|paivallinen>` | ruoan lisäys (vain muokkaaja) |
 | `#/viikko/lisaa/<päivä>/<ateria>/<reseptin id>` | riittää 1–3 ateriaan, annokset (vain muokkaaja) |
 | `#/viikko/ruoka/<id>` | suunnitellun ruoan muokkaus: siirto, annokset, poisto (vain muokkaaja) |
+| `#/viikko/ostoslista`, `#/viikko/ostoslista/<alkupäivä>` | ostoslista tästä päivästä / tulevan viikon maanantaista (mennyt päivä → tänään) |
 
 - **Siirtymät aina `go(hash)`-funktiolla** (pushState + `route()`), ei `show()`:lla suoraan. `go(hash, {replace:true})`
   korvaa nykyisen historiarivin (esim. uusi resepti tallennettu → lomake korvataan reseptillä).
@@ -442,6 +456,36 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     (`slotRank`) ja enintään 2 pv päässä → muuten `{ ok: false, reason }`: kohde `.meal.drop-bad` ja haamu `.dragghost.bad`
     punaisina, ilmoitus `toast()` (alhaalla, `#toast`), pudotuksessa lähdekortti välähtää punaisena (`.flashbad`), ei muutoksia.
     `applyMove`: ehdotusten avaimet (`suggPick`, kiinnitys `pinSlot`) + rivien `day/meal/sort`-päivitykset (vaihdossa sort vaihtuu).
+- **Ostoslista** (`shopView`, 15.11.2026). `#shopBtn` (`.cellarpill` viikkosuunnitelman `.whead`-otsikkorivillä) → `go(#/viikko/ostoslista[/<maanantai>])`
+  (alkupäivä = tulevan viikon maanantai, jos sitä katsotaan, muuten tänään) → `openShop(start)` → `renderShop()`; `refreshPlan()` piirtää
+  näkymän uudelleen, kun muiden muutokset tulevat. Tila `shop` = { start, days (Set), custom }: `shopDaysAvail()` = päivät start…start+13
+  (`SHOP_SPAN`), joilla on muu kuin tähderivi; ilman käyttäjän valintaa (`custom`) valittuina start…start+6. `#shDays`-chipit
+  (`data-shday`), `#shMode` (`data-shmode` resepti / az, muistetaan `localStorage`-avaimella `kk_ostosjarjestys`).
+  - **Malli** `shopModel()`: valittujen päivien rivit ilman tähteitä (`!leftover`) aikajärjestyksessä (`shopRank`); resepti → kortti
+    { it, r, f = suunnitellut annokset ÷ reseptin annokset, lines }, vapaa teksti tai näkymätön resepti → "Ei aineksia" -kortti.
+    Ainesrivi: väliotsikko (`isSub`) `{ sub }`, muuten `shopLabel` ("Lisäksi: 4 pitaleipää" → "4 pitaleipää") → `shopSplit`
+    ("50 g voita + 2 rkl oliiviöljyä" = kaksi osaa, jos jokainen alkaa määrällä) → `shopParse(osa)`; vesi (`water`: "vettä…",
+    "pastan keitinvettä") pudotetaan, pelkkä vesi → rivi pois. Rivin `html` = `scaleLine(rivi, f)`, osilla oma `html`.
+  - **Rastit** `shopChecked` (avain → päivä) `localStorage`-avaimella `kk_ostoslista` (`{ c: {…} }`). Avain = `<meal_plan.id>:<hashStr(rivin
+    alkuperäinen teksti + "#" + osan numero)>`, joten rasti katoaa, jos reseptin rivi muuttuu, ja poistettujen suunnitelmarivien rastit
+    siivotaan `renderShop()`:ssa. Näkymän rivi (`data-shi` = indeksi `shopState.lines`iin) rastittaa kaikki osansa; `data-shall` =
+    kortin kaikki; `data-shopen` = `openFromPlan` (resepti suunnitellulla annosmäärällä). Luokka `.shline.ok` (EI `done`: `li.done` on
+    kokkaustilan globaali tyyli).
+  - **Tulkinta** `shopParse` → { lo, hi (skaalattuina, g/kg/mg → g, dl/l/ml/cl → dl), unit (`SH_UNIT`: g, dl, tl, rkl, prk, tlk, ps, pkt, rs,
+    kpl, ruukku, pallo, oksa, nippu, viipale, annos, pala), clean (`shopClean`: sulut, pilkun jälkeinen osa ilman desimaalipilkkua ja perään
+    tulevat kuvaukset `SH_TRAIL` pois, esim. "hienonnettuna", "paistamiseen", "myllystä"), sort (alun laatusanat `SH_ADJ`/`SH_SIZE`/`SH_FUZZY`
+    pois), key (koko, sumea määrä ja valmistustapa `SH_PREP` pois, laatusanat säilyvät: "tuoretta" / "kuivattua basilikaa" eri riveinä;
+    viimeinen sana perusmuotoon `shopStem`: "sipulia" → "sipuli", "valkosipulinkynttä" → "valkosipulinkynsi", "perunoita" → "peruna";
+    valinnainen "(…)" saa etuliitteen `?` eikä yhdisty), water }. Määrä voi olla myös lopussa ("spagettia n. 400 g").
+  - **Kaikki A–Ö** `shopGroups(cards)`: osat ryhmitellään `key`llä; resepteittäin rastitetut osat eivät kuulu yhteismäärään. Yksi osa →
+    alkuperäinen skaalattu teksti; useampi → yksiköittäiset summat `shopQty` (≥ 1000 g → kg, ≥ 10 dl → l, sanayksiköt taivutettuina) +
+    nimi; yksiköttömillä taivutus alkuperäisen määrän mukaan (`ohi`: "1 sipuli" + "2 sipulia" = "3 sipulia", tarvittaessa `shopPartitive`;
+    muuten osat näkyvissä "1 + 1 …"). Määrättömät osat ("suolaa") eivät muuta summaa. Järjestys `sort` (`localeCompare(…, "fi")`).
+  - **🔍** `shopTerm(clean)`: ensimmäinen vaihtoehto ennen " tai " (paitsi "mauste- tai suolakurkkua"), laatusanat pois, perusmuoto;
+    "lehtisellerin varsi" → "lehtiselleri", "valkosipulinkynsi" → "valkosipuli". `shopUrl(term)`, `target="_blank"`.
+  - **Kopioi / Jaa** `shopState.text` (vain rastittamattomat; resepteittäin otsikkorivi "Nimi (su 15.11. päivällinen · 6 annosta)"):
+    `navigator.clipboard.writeText` (varalla `execCommand("copy")`), `navigator.share` (nappi vain jos tuettu). "Poista rastit"
+    (näkyy, kun jokin on rastitettu) kysyy vahvistuksen ja poistaa näkyvien rivien rastit.
 - **Menut:** menukortti- ja viinilistasivut välilehtinä, alla menun reseptit.
 - **Viinikellari** (osio `viinit`): vakiot `SHELVES` = 5, `SLOTS` = 3, `PLACE_RE` (paikka "h-p"); sama rajaus tietokannan check-ehdoissa.
   Tila `bottles` (wine_bottles), apurit `inCellar(viini?)` (status kaapissa, järjestys hylly/paikka), `tastings(viini)` (status juotu,
