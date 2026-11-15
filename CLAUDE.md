@@ -74,6 +74,11 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     suunniteltu annosmäärä). Napautus avaa reseptin Yhteishyvässä ja **merkitsee kaikki reseptin ainekset kerätyiksi** (kortissa
     "✓ Lisätty S-ostoslistaan Yhteishyvän kautta su 15.11. · Avaa ↗", ↺ Peru poistaa merkinnän). Kaikki A–Ö -näkymässä samat linkit
     omassa kortissa ylimpänä, ettei samoja aineksia lisätä kahdesti.
+    **Perusaineet** (käyttäjän toive 15.11.2026): koko perheen yhteinen lista aineksista, jotka ovat aina kotona (oletus: suola,
+    sormisuola, merisuola, mustapippuri, pippuri, öljy, oliiviöljy, rypsiöljy, sokeri, vehnäjauho). Ne näkyvät ostoslistalla valmiiksi
+    rastitettuina ja 🏠-merkillä; jos jokin on loppu, rastin voi poistaa (muistetaan laitteella). Paneeli "🏠 Perusaineet merkitty
+    valmiiksi: …" listan yläpuolella; Muokkaa (muokkaajalle; lukijalle Näytä): poisto ✕, lisäys kentästä ja "Lisää tältä listalta"
+    -ehdotukset. Vertailu tarkka (pääsana perusmuodossa), jotta esim. seesamiöljy ei mene öljystä.
   - **Ruokaehdotukset** (11/2026, käyttäjän päätökset): "💡 Ehdota ruokia" täyttää viikon tyhjät päivälliset ja viikonlopun
     lounaat (tänään ja tulevat) ehdotuksilla. **Arkilounaita ei ehdoteta automaattisesti** (syödään töissä), vain 💡-napista,
     joka on jokaisessa tyhjässä ateriassa "+ Lisää" -napin vieressä. Ehdotuskortissa ✓ Hyväksy, ↻ Toinen (näyttää heti toisen)
@@ -471,7 +476,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     Ainesrivi: väliotsikko (`isSub`) `{ sub }`, muuten `shopLabel` ("Lisäksi: 4 pitaleipää" → "4 pitaleipää") → `shopSplit`
     ("50 g voita + 2 rkl oliiviöljyä" = kaksi osaa, jos jokainen alkaa määrällä) → `shopParse(osa)`; vesi (`water`: "vettä…",
     "pastan keitinvettä") pudotetaan, pelkkä vesi → rivi pois. Rivin `html` = `scaleLine(rivi, f)`, osilla oma `html`.
-  - **Rastit** `shopChecked` (avain → päivä) `localStorage`-avaimella `kk_ostoslista` (`{ c: {…} }`). Avain = `<meal_plan.id>:<hashStr(rivin
+  - **Rastit** `shopChecked` (avain → päivä, tai `"0"` = käyttäjä poisti perusaineen oletusrastin) `localStorage`-avaimella `kk_ostoslista` (`{ c: {…} }`).
+    Rastitettu = `shopIsCk(k)`: arvo on ja ≠ `"0"`, tai arvoa ei ole ja osa on perusaine (`shopPantryKeys`). `shopToggle` tallentaa
+    perusaineelle poiston arvona `"0"` ja rastin poistamalla arvon. Kortin "↺ Peru" ja "Poista rastit" poistavat arvot = alkutila. Avain = `<meal_plan.id>:<hashStr(rivin
     alkuperäinen teksti + "#" + osan numero)>`, joten rasti katoaa, jos reseptin rivi muuttuu, ja poistettujen suunnitelmarivien rastit
     siivotaan `renderShop()`:ssa. Näkymän rivi (`data-shi` = indeksi `shopState.lines`iin) rastittaa kaikki osansa; `data-shall` =
     kortin kaikki; `data-shopen` = `openFromPlan` (resepti suunnitellulla annosmäärällä). Luokka `.shline.ok` (EI `done`: `li.done` on
@@ -497,6 +504,14 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     avaa linkin ja `setTimeout`-viiveellä `shopToggle([...cardKeys(card), yhKey(it)], true)`. Merkintä `yhKey(it)` = `<meal_plan.id>:yh`
     (arvo = päivä) samassa `shopChecked`issä (siivoutuu rivin mukana). Lähetetyllä kortilla `.shyhdone`-rivi; ↺ Peru ja "Poista rastit"
     poistavat myös merkinnän. A–Ö: `.shyhcard` + `.shyhrow` (`compact`, lähetetty `.shyh.sm.sent` "✓ Nimi ↗").
+  - **Perusaineet** `pantryList` (= `plan_settings.pantry`, ladataan `loadPlan()`:ssa). `pantryNorm(sana)` = `shopStem` + "extra-/ekstra-neitsyt"-
+    alku pois; `isPantry(clean, set)`: kaikki osat (`shopSegs`: jako " ja " / " tai " / "+", "avokado-"-tyyppiset alkuosat ohitetaan)
+    ovat listalla (`shopNoun` = osan viimeinen sana laatusanojen jälkeen). Osalla `x.pantry`, rivillä ja A–Ö-ryhmällä `pantry` (kaikki
+    osat) → 🏠 (`.shpan`, inline-block, ettei yliviivaus osu). Paneeli `#shPantry` (`renderPantry(cards)`, `shopPanOpen`): chipit
+    `data-pan-del` (indeksi), lomake `#shPanForm`/`#shPanIn` (`addPantry`: pienet kirjaimet, max 40 merkkiä, ei kaksoiskappaleita
+    perusmuodon mukaan, max 100), ehdotukset `data-pan-add` = listan osat ilman määrää tai tl/rkl, yksiosaiset, ei perusaineita,
+    ei "kuori/mehu/varsi/oksa/lehti/pala", max 12. Tallennus `savePantry` = `plan_settings.update({ pantry }).eq("id", 1)` (heti näkyviin,
+    virheessä palautus + ilmoitus).
   - **Kopioi / Jaa** `shopState.text` (vain rastittamattomat; resepteittäin otsikkorivi "Nimi (su 15.11. päivällinen · 6 annosta)"):
     `navigator.clipboard.writeText` (varalla `execCommand("copy")`), `navigator.share` (nappi vain jos tuettu). "Poista rastit"
     (näkyy, kun jokin on rastitettu) kysyy vahvistuksen ja poistaa näkyvien rivien rastit.
@@ -589,7 +604,7 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 | `menu_pages` | id, menu_id, kind (`menu`/`viinilista`/`muu`), title, html, width, height, sort |
 | `meal_plan` | id, day (date), meal (`lounas`/`paivallinen`), sort (järjestys aterian sisällä), title (reseptin nimi tallennushetkellä tai vapaa teksti), recipe_id (null = vapaa teksti; FK recipes, on delete set null), servings (vain alkuperäisellä reseptirivillä), leftover (bool, tähteet), leftover_of (alkuperäinen rivi; FK, on delete set null), created_by, created_at, updated_at (trigger `touch_updated_at`) |
 | `meal_plan_notes` | day (date, pääavain), note (1–300 merkkiä), updated_at |
-| `plan_settings` | id (aina 1, yksi rivi), portions_per_meal (numeric, oletus 2: perhe syö aterialla noin näin monta annosta) |
+| `plan_settings` | id (aina 1, yksi rivi), portions_per_meal (numeric, oletus 2: perhe syö aterialla noin näin monta annosta), pantry (text[], perusaineet perusmuodossa, ostoslistalla valmiiksi rastitettuina; check enintään 100) |
 | `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, price, alko_id (Alkon tuotenumero, 3–8 numeroa), source_rating (teksti, esim. "92/100"), source_name, source_url, source_characterful (bool, Viinilehden "Luonteikas viini"), source_value (Viinilehden hinta-laatusuhde: `Löytö`/`Edullinen ostos`/`Laatu vastaa hintaa`/`Kallis`, check), source_readiness (Viinilehden juotavuus: `Valmis juotavaksi`/`Valmis, mutta kehittyy`/`Kehittyy varastoinnin myötä`, max 60 merkkiä), own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa), created_at, updated_at. (drunk_on ja occasion poistettu 11/2026 → wine_bottles.) |
 | `wine_bottles` | id, wine_id (FK wines, on delete cascade), status (`kaapissa` = pullo kaapissa / `juotu` = juontikerta), shelf (1–5) + slot (1–3) (molemmat tai ei kumpaakaan; vain kaapissa; yksilöllinen paikka kaapissa olevilla: osittainen indeksi `wine_bottles_place_uniq`), purchased_on, purchase_place, price (per pullo), opened_on (juontipäivä, voi puuttua), occasion, rating (1–5), notes, created_by, created_at, updated_at (trigger `touch_updated_at`) |
 

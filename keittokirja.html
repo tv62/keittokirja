@@ -492,6 +492,16 @@
   .shyhrow .shyh { min-width: 0; max-width: 100%; }
   .shyhrow .muted { font-size: .82rem; white-space: nowrap; }
   .shyhdone { font-size: .85rem; color: var(--muted); margin: 6px 0 4px; }
+  /* Perusaineet: 🏠-merkki rivillä (inline-block, ettei yliviivaus osu merkkiin) ja paneeli listan yläpuolella */
+  .shpan { display: inline-block; margin-left: 6px; font-size: .8rem; }
+  .shpantry { padding: 8px 14px; margin: 0 0 10px; font-size: .9rem; }
+  .shpanrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .shpanrow > span { min-width: 0; }
+  .shpanrow .link { flex: none; min-height: 40px; }
+  .shpanchips { flex-wrap: wrap; }
+  .shpanadd { display: flex; gap: 8px; margin-top: 10px; }
+  .shpanadd input { flex: 1; min-width: 0; }
+  .shpanadd button { flex: none; }
   .shoth { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0 0; font-size: .92rem; }
   .shoth .muted { font-size: .85rem; text-align: right; }
 </style>
@@ -952,6 +962,7 @@
         <button type="button" class="chip" data-shmode="az">Kaikki A–Ö</button>
       </div>
       <p class="hint" id="shHint">Napauta aines, joka on jo kotona tai lisätty S-kauppojen listaan. 🔍 hakee tuotteen S-kaupoista.</p>
+      <div class="card shpantry" id="shPantry"></div>
       <div class="shsum" id="shSum"></div>
       <div id="shList"></div>
       <div class="actions" id="shActs">
@@ -3039,6 +3050,8 @@
   let planItems = [];
   let planNotes = new Map();   // päivä (YYYY-MM-DD) → muistiinpano
   let ppm = 2;                 // annosta per ateria (tähteiden ehdotus)
+  // Perusaineet (plan_settings.pantry): koko perheen yhteinen lista, ostoslistalla valmiiksi kerätyiksi merkittävät.
+  let pantryList = ["suola", "sormisuola", "merisuola", "mustapippuri", "pippuri", "öljy", "oliiviöljy", "rypsiöljy", "sokeri", "vehnäjauho"];
   let planLoadedAt = 0;
   let planWeek = null;         // näytettävän viikon maanantai
   const openPast = new Set();  // menneet päivät, jotka on avattu täyteen kokoon
@@ -3080,7 +3093,10 @@
     ]);
     if (!p.error) planItems = p.data || [];
     if (!n.error) planNotes = new Map((n.data || []).map((x) => [x.day, x.note]));
-    if (!s.error && s.data && s.data[0]) ppm = Number(s.data[0].portions_per_meal) || 2;
+    if (!s.error && s.data && s.data[0]) {
+      ppm = Number(s.data[0].portions_per_meal) || 2;
+      if (Array.isArray(s.data[0].pantry)) pantryList = s.data[0].pantry;
+    }
     planLoadedAt = Date.now();
     return p;
   }
@@ -3542,6 +3558,15 @@
     return `${link("shyh", "🛒 Lisää S-ostoslistaan Yhteishyvästä ↗", "Avaa resepti Yhteishyvässä ja lisää ainekset S-ostoslistaan")}
       <p class="shyhh">${c.it.servings ? `Valitse siellä ${servingsTxt(c.it.servings)}. ` : ""}Ainekset merkitään tässä kerätyiksi.</p>`;
   }
+  // Perusaine = aineksen pääsana (viimeinen sana perusmuodossa) on perusaineiden listalla. Tarkka vertailu, jotta esim.
+  // seesamiöljy ei mene öljystä. "suolaa ja mustapippuria" on perusaine vain, jos kaikki osat ovat ("avokado- tai" ohitetaan).
+  const pantryNorm = (w) => shopStem(String(w || "").toLowerCase().trim()).replace(/^(?:extra-?|ekstra-?)?neitsyt/, "");
+  const pantrySet = () => new Set(pantryList.map(pantryNorm).filter(Boolean));
+  const shopNoun = (seg) => { const w = shopCore(seg); return w.length ? pantryNorm(w[w.length - 1]) : ""; };
+  const shopSegs = (clean) => clean.toLowerCase().split(/\s+(?:ja|tai)\s+|\s*\+\s*/).map((x) => x.trim()).filter((x) => x && !/-$/.test(x));
+  const isPantry = (clean, set) => { const g = shopSegs(clean); return g.length > 0 && g.every((x) => set.has(shopNoun(x))); };
+  let shopPantryKeys = new Set(); // näkyvien perusaineosien avaimet (rasti oletuksena päällä, "0" = käyttäjä poisti)
+  let shopPanOpen = false;
   const shopUrl = (term) => "https://www.s-kaupat.fi/hakutulokset?queryString=" + encodeURIComponent(term);
   // "50 g voita + 2 rkl oliiviöljyä" → kaksi ainesta, jos jokainen osa alkaa määrällä.
   function shopSplit(t) {
@@ -3562,6 +3587,8 @@
   }
   // Kaikki valittujen päivien ainekset: kortit (resepti + rivit) ja osat (yhdistettyä listaa varten).
   function shopModel() {
+    const pset = pantrySet();
+    shopPantryKeys = new Set();
     const rows = planItems.filter((it) => !it.leftover && shop.days.has(it.day)).sort((a, b) => shopRank(a).localeCompare(shopRank(b)));
     const cards = [], others = [];
     for (const it of rows) {
@@ -3578,8 +3605,11 @@
           x.ohi = x.hi; // alkuperäinen määrä ratkaisee taivutuksen ("1 sipuli" / "2 sipulia")
           if (x.lo != null) { x.lo *= f; x.hi *= f; }
           x.html = scaleLine(x.p, f); x.title = r.title;
+          x.pantry = isPantry(x.clean, pset);
+          if (x.pantry) shopPantryKeys.add(x.keyId);
         }
-        lines.push({ html: scaleLine(t, f), parts, keys: parts.map((x) => x.keyId), term: shopTerm(parts[0].clean) });
+        lines.push({ html: scaleLine(t, f), parts, keys: parts.map((x) => x.keyId), term: shopTerm(parts[0].clean),
+          pantry: parts.every((x) => x.pantry) });
       });
       while (lines.length && lines[lines.length - 1].sub) lines.pop(); // väliotsikko ilman aineksia
       cards.push({ it, r, f, lines, yh: yhUrl(r) });
@@ -3604,7 +3634,7 @@
     const out = [];
     for (const g0 of map.values()) {
       // Resepteittäin rastitetut osat eivät kuulu yhteismäärään (paitsi kun kaikki on rastitettu).
-      const live = g0.items.filter((x) => !shopChecked[x.keyId]), g = { items: live.length ? live : g0.items };
+      const live = g0.items.filter((x) => !shopIsCk(x.keyId)), g = { items: live.length ? live : g0.items };
       let html;
       if (g.items.length === 1) html = g.items[0].html;
       else {
@@ -3623,15 +3653,17 @@
         html = esc((parts.length ? parts.join(" + ") + " " : "") + name);
       }
       const titles = [...new Set(g.items.map((x) => x.title))];
-      out.push({ html, sort: g0.sort, keys: g0.items.map((x) => x.keyId), term: shopTerm(g.items[0].clean), src: titles.join(", ") });
+      out.push({ html, sort: g0.sort, keys: g0.items.map((x) => x.keyId), term: shopTerm(g.items[0].clean), src: titles.join(", "),
+        pantry: g0.items.every((x) => x.pantry) });
     }
     return out.sort((a, b) => a.sort.localeCompare(b.sort, "fi") || htmlText(a.html).localeCompare(htmlText(b.html), "fi"));
   }
-  const shopDone = (keys) => keys.length > 0 && keys.every((k) => shopChecked[k]);
+  const shopIsCk = (k) => shopChecked[k] ? shopChecked[k] !== "0" : shopPantryKeys.has(k);
+  const shopDone = (keys) => keys.length > 0 && keys.every(shopIsCk);
   function shopLineHtml(i, l, extra) {
     const ok = shopDone(l.keys);
     return `<li class="shline${ok ? " ok" : ""}"><button type="button" class="shchk" data-shi="${i}" aria-pressed="${ok}">
-      <span class="shbox" aria-hidden="true"></span><span class="shtx">${l.html}${extra || ""}</span></button>${
+      <span class="shbox" aria-hidden="true"></span><span class="shtx">${l.html}${l.pantry ? `<span class="shpan" title="Perusaine: oletetaan kotona">🏠</span>` : ""}${extra || ""}</span></button>${
       l.term ? `<a class="shq" href="${esc(shopUrl(l.term))}" target="_blank" rel="noopener" aria-label="Hae S-kaupoista: ${esc(l.term)}" title="Hae S-kaupoista: ${esc(l.term)}">🔍</a>` : ""}</li>`;
   }
   function renderShop() {
@@ -3691,11 +3723,16 @@
     $("shSum").textContent = lines.length ? (done ? `Jäljellä ${lines.length - done} / ${lines.length}` : `${lines.length} ${lines.length === 1 ? "aines" : "ainesta"}`) : "";
     $("shActs").classList.toggle("hidden", !lines.length);
     $("shShare").classList.toggle("hidden", !navigator.share);
-    $("shClear").classList.toggle("hidden", !done);
+    $("shClear").classList.toggle("hidden", !lines.some((l) => l.keys.some((k) => k in shopChecked)) && !cards.some((c) => yhKey(c.it) in shopChecked));
+    renderPantry(cards);
     shopState = { lines, cards, text: text.length > 1 ? text.join("\n") : "" };
   }
   function shopToggle(keys, on) {
-    for (const k of keys) { if (on) shopChecked[k] = todayIso(); else delete shopChecked[k]; }
+    for (const k of keys) { // perusaineella oletus on rastitettu: poistettu rasti tallennetaan arvona "0"
+      const pan = shopPantryKeys.has(k);
+      if (on) { if (pan) delete shopChecked[k]; else shopChecked[k] = todayIso(); }
+      else if (pan) shopChecked[k] = "0"; else delete shopChecked[k];
+    }
     saveShop(); renderShop();
   }
   const cardKeys = (card) => card.lines.flatMap((l) => l.keys || []);
@@ -3720,10 +3757,12 @@
       return;
     }
     const a = t.closest("[data-shall]");
-    if (a) { // ✓ Kaikki / ↺ Peru (peru poistaa myös Yhteishyvä-merkinnän)
+    if (a) { // ✓ Kaikki / ↺ Peru (peru palauttaa alkutilan: perusaineet rastitettuina, Yhteishyvä-merkintä pois)
       const card = shopState.cards[+a.dataset.shall]; if (!card) return;
-      const keys = cardKeys(card), on = !shopDone(keys);
-      shopToggle(on ? keys : [...keys, yhKey(card.it)], on); return;
+      const keys = cardKeys(card);
+      if (!shopDone(keys)) shopToggle(keys, true);
+      else { for (const k of [...keys, yhKey(card.it)]) delete shopChecked[k]; saveShop(); renderShop(); }
+      return;
     }
     const o = t.closest("[data-shopen]"); if (o) { const it = planItems.find((x) => x.id === o.dataset.shopen); if (it) openFromPlan(it); }
   };
@@ -3744,9 +3783,54 @@
     try { await navigator.share({ title: "Ostoslista", text: shopState.text }); } catch {}
   };
   $("shClear").onclick = () => {
-    if (!confirm("Poistetaanko rastit näkyvistä aineksista?")) return;
-    shopToggle([...shopState.lines.flatMap((l) => l.keys), ...shopState.cards.map((c) => yhKey(c.it))], false);
+    if (!confirm("Poistetaanko omat rastit? Perusaineet jäävät merkityiksi.")) return;
+    for (const k of [...shopState.lines.flatMap((l) => l.keys), ...shopState.cards.map((c) => yhKey(c.it))]) delete shopChecked[k];
+    saveShop(); renderShop();
   };
+  // Perusaineet-paneeli: yhteenveto (tällä listalla merkityt) tai avattuna lista, lisäys ja ehdotukset tältä listalta.
+  function renderPantry(cards) {
+    const set = pantrySet(), parts = cards.flatMap((c) => c.lines.flatMap((l) => l.parts || []));
+    const found = new Set(parts.filter((x) => x.pantry).flatMap((x) => shopSegs(x.clean).map(shopNoun)));
+    const shown = pantryList.filter((w) => found.has(pantryNorm(w)));
+    const btn = `<button type="button" class="link" data-pan="${shopPanOpen ? "close" : "open"}">${shopPanOpen ? "Valmis" : canEdit ? "Muokkaa" : "Näytä"}</button>`;
+    let h = `<div class="shpanrow"><span>🏠 <b>Perusaineet</b> ${shown.length ? `merkitty valmiiksi: ${esc(shown.join(", "))}` : "merkitään valmiiksi kerätyiksi"}</span>${btn}</div>`;
+    if (shopPanOpen) {
+      const sugg = [...new Set(parts.filter((x) => !x.pantry && (x.lo == null || x.unit === "tl" || x.unit === "rkl") && shopSegs(x.clean).length === 1)
+        .map((x) => shopNoun(x.clean)).filter((n) => n && n.length > 2 && !set.has(n) && !/^(kuori|kuorta|mehu|varsi|vartta|oksa|oksaa|lehti|lehteä|pala|palaa)$/.test(n)))].sort((a, b) => a.localeCompare(b, "fi")).slice(0, 12);
+      h += `<p class="hint" style="margin:8px 0">Perusaineiden oletetaan olevan aina kotona, joten ne merkitään ostoslistalla valmiiksi kerätyiksi.
+        Jos jokin on loppu, poista sen rasti listalta. Lista on koko perheen yhteinen.</p>
+        <div class="chips shpanchips">${pantryList.map((w, i) => canEdit
+          ? `<button type="button" class="chip" data-pan-del="${i}" aria-label="Poista perusaine ${esc(w)}">${esc(w)} ✕</button>`
+          : `<span class="chip">${esc(w)}</span>`).join("") || `<span class="muted">Ei perusaineita.</span>`}</div>
+        ${canEdit ? `<form class="shpanadd" id="shPanForm"><input id="shPanIn" maxlength="40" placeholder="Lisää perusaine, esim. oregano" autocomplete="off">
+          <button type="submit">Lisää</button></form>
+          ${sugg.length ? `<div class="lbl" style="margin:10px 0 6px">Lisää tältä listalta</div><div class="chips shpanchips">${sugg.map((w) =>
+            `<button type="button" class="chip" data-pan-add="${esc(w)}">+ ${esc(w)}</button>`).join("")}</div>` : ""}` : ""}`;
+    }
+    $("shPantry").innerHTML = h;
+    $("shPantry").classList.toggle("open", shopPanOpen);
+  }
+  async function savePantry(list) {
+    const prev = pantryList;
+    pantryList = list; renderShop();
+    const { error } = await sb.from("plan_settings").update({ pantry: list }).eq("id", 1);
+    if (error) { pantryList = prev; renderShop(); toast("Perusaineiden tallennus ei onnistunut: " + error.message); }
+  }
+  function addPantry(word) {
+    const w = String(word || "").trim().toLowerCase().replace(/\s+/g, " ").slice(0, 40);
+    if (!w) return;
+    if (pantrySet().has(pantryNorm(w))) return toast(`"${w}" on jo perusaineissa.`);
+    if (pantryList.length >= 100) return toast("Perusaineita voi olla enintään 100.");
+    savePantry([...pantryList, w]);
+  }
+  $("shPantry").onclick = (e) => {
+    const t = e.target, b = t.closest("[data-pan]");
+    if (b) { shopPanOpen = b.dataset.pan === "open"; renderShop(); return; }
+    const d = t.closest("[data-pan-del]");
+    if (d) { const i = +d.dataset.panDel; savePantry(pantryList.filter((_, j) => j !== i)); return; }
+    const a = t.closest("[data-pan-add]"); if (a) addPantry(a.dataset.panAdd);
+  };
+  $("shPantry").onsubmit = (e) => { e.preventDefault(); const inp = $("shPanIn"); if (inp) addPantry(inp.value); };
   $("shBack").onclick = () => back(weekHash(mondayOf(shop.start || todayIso())));
   $("shopBtn").onclick = () => go(planWeek > mondayOf(todayIso()) ? `#/viikko/ostoslista/${planWeek}` : "#/viikko/ostoslista");
 
