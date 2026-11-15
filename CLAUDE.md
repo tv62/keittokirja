@@ -488,7 +488,11 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     muuten osat näkyvissä "1 + 1 …"). Määrättömät osat ("suolaa") eivät muuta summaa. Järjestys `sort` (`localeCompare(…, "fi")`).
   - **🔍** `shopTerm(clean)`: ensimmäinen vaihtoehto ennen " tai " (paitsi "mauste- tai suolakurkkua"), laatusanat pois, perusmuoto;
     "lehtisellerin varsi" → "lehtiselleri", "valkosipulinkynsi" → "valkosipuli". `shopUrl(term)`, `target="_blank"`.
-  - **Yhteishyvä** `yhUrl(r)` = ensimmäinen `https://(www.)yhteishyva.fi/…`-osoite `source`-kentästä (`safeUrl`), kortissa `c.yh`.
+  - **Yhteishyvä** `yhUrl(r)` = ensimmäinen `https://(www.)yhteishyva.fi/…`-osoite `source`-kentästä (`safeUrl`), muutettuna sovelluslinkiksi
+    `https://yhteishyva.fi/app/reseptit/<nimi>/<id>` (Yhteishyvä Ruoka -sovelluksen jakolinkkien muoto, 15.11.2026: verkkomuoto avautui
+    selaimeen, sovelluksessa on "Hanki ainekset" → S-ostoslista / S-kaupat), kortissa `c.yh`. **iOS:n rajoitus:** kotivalikkoon
+    lisätystä keittokirjasta ulkoiset linkit avautuvat sovelluksen sisäiseen selaimeen, joka ei avaa toisia sovelluksia
+    (universal link); Safarissa käytettynä napautus voi avata sovelluksen.
     `yhHtml(c, ci, compact)`: linkki `<a class="shyh" target="_blank" data-shyh="<kortin indeksi>">`; napautuksessa oletustoiminto
     avaa linkin ja `setTimeout`-viiveellä `shopToggle([...cardKeys(card), yhKey(it)], true)`. Merkintä `yhKey(it)` = `<meal_plan.id>:yh`
     (arvo = päivä) samassa `shopChecked`issä (siivoutuu rivin mukana). Lähetetyllä kortilla `.shyhdone`-rivi; ↺ Peru ja "Poista rastit"

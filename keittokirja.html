@@ -3527,7 +3527,11 @@
     return null;
   }
   // Yhteishyvän reseptisivulta ainekset voi lisätä S-ostoslistaan (käyttäjän toive 15.11.2026). Linkki = reseptin lähde.
-  const yhUrl = (r) => { const m = /https?:\/\/(?:www\.)?yhteishyva\.fi\/\S+/i.exec(r.source || ""); return m ? safeUrl(m[0]) : null; };
+  // Sovelluslinkkinä (/app/reseptit/…, Yhteishyvä Ruoka -sovelluksen jakamien linkkien muoto), jotta iOS voi avata sovelluksen.
+  const yhUrl = (r) => {
+    const m = /https?:\/\/(?:www\.)?yhteishyva\.fi\/\S+/i.exec(r.source || ""), u = m && safeUrl(m[0]);
+    return u ? u.replace(/^https:\/\/(?:www\.)?yhteishyva\.fi\/(?:app\/)?reseptit\//i, "https://yhteishyva.fi/app/reseptit/") : null;
+  };
   const yhKey = (it) => `${it.id}:yh`; // merkintä "lisätty Yhteishyvän kautta" (päivä), siivoutuu rivin mukana
   function yhHtml(c, ci, compact) {
     const sent = shopChecked[yhKey(c.it)];
