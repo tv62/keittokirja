@@ -83,7 +83,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     lounaat (tänään ja tulevat) ehdotuksilla. **Arkilounaita ei ehdoteta automaattisesti** (syödään töissä), vain 💡-napista,
     joka on jokaisessa tyhjässä ateriassa "+ Lisää" -napin vieressä. Ehdotuskortissa ✓ Hyväksy, ↻ Toinen (näyttää heti toisen)
     ja oikeassa yläkulmassa "Jätä tyhjäksi ✕" (ei ehdotusta, esim. syödään muualla; kohta jää tyhjäksi), ylhäällä
-    "✓ Hyväksy kaikki". **Perjantaina tavallista arkiruokaa; lauantai on pääherkkupäivä ja viikon työläin illallinen**
+    "✓ Hyväksy kaikki". **Reseptin voi katsoa ennen hyväksyntää** (käyttäjän toive 15.11.2026): ehdotuksen nimen tai 📖-napin
+    napautus avaa reseptin ehdotetulla annosmäärällä, ja sen yläosassa on ehdotuspalkki (päivä, ateriat, tähteet, ✓ Hyväksy,
+    ↻ Toinen = seuraava ehdotus samaan paikkaan suoraan reseptinä, "Säädä annoksia ja tähteitä ›" = Riittää-sivu).
+    **Perjantaina tavallista arkiruokaa; lauantai on pääherkkupäivä ja viikon työläin illallinen**
     (viikonloppuherkkuja vain la–su päivälliselle); lounaiksi kevyttä ja nopeaa (myös viikonloppuna; ei työlästä lounasta ja
     päivällistä samana päivänä). **Sunnuntain päivällinen ehdotetaan 3 aterialle** isona satsina, joka riittää seuraavalle viikolle
     (tähteet maanantain ja tiistain päivällisiksi). Ehdotuksen tähteet näkyvät samalla korostusvärillä kuin ehdotus.
@@ -279,6 +282,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | `#/reseptit/viikonloppuherkut`, `…/viikonloppuherkut/<ryhmä>` (esim. `menut`), `…/kaikki` | viikonloppuherkkujen valintasivu, ryhmän lista |
 | `#/resepti/<id>`, `#/resepti/<id>/muokkaa` | resepti, muokkaus |
 | `#/resepti/<id>/vauva` | resepti vauvan ruoista avattuna (näyttää `baby_notes`) |
+| `#/resepti/<id>/ehdotus/<päivä>/<ateria>` | resepti viikkosuunnitelman ehdotuksesta (ehdotuspalkki; vain muokkaajalle ja vain jos ehdotus on vielä muistissa) |
 | `#/uusi-resepti`, `#/uusi-resepti/<kategoria>` | uusi resepti |
 | `#/menut`, `#/menut/<nimi, encodeURIComponent>` | menut, yksi menu |
 | `#/viinit`, `#/viinit/<id>`, `#/viinit/<id>/muokkaa`, `#/uusi-viini` | viinikellari, viini, viinilomake |
@@ -452,8 +456,13 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     arkipäivällinen (myös pe) ≤ 45 min, la pääherkku ja työläs (≥ 90 min ×2,5, ≥ 60 ×1,6, viikonloppuherkut ×4), su iso satsi
     (≥ 6 annosta ×3, pata/keitto/uuni/linssi ×2, muut ×0,3, viikonloppuherkut ×0,3), Top ×2, pääaines (`proteinOf`: kala/poro/liha/kana/kasvis) ei samaa viereisinä päivinä (×0,15), ≥ 2 kertaa viikossa ×0,4,
     puuttuva kala tai kasvis ×1,8. ✓ = `acceptSuggestions(keys)` (alkuperäiset yhdellä insertillä, tähteet toisella),
-    ↻ Toinen = `rejectSuggestion`, Jätä tyhjäksi = `skipSuggestion`, nimen napautus = `openSuggestion` → Riittää-sivu ehdotuksen arvoilla (`pick.fromSugg`: tallennus ja
-    Peruuta palaavat yhden askeleen). `suggPinned` = raahaamalla paikalleen siirretyt ehdotukset: tähteet eivät vie paikkaa
+    ↻ Toinen = `rejectSuggestion`, Jätä tyhjäksi = `skipSuggestion`, nimen tai 📖-napin (`.sgview`) napautus = `openSuggestion(key, replace?)` →
+    `#/resepti/<id>/ehdotus/<päivä>/<ateria>` (`suggUrl`; asettaa `cookState(r).servings` = ehdotuksen annokset). Reitti asettaa
+    `detailSugg` (paikka-avain; vain `canEdit`), `renderDetail` näyttää `suggBoxHtml(r)` (`.sugg.dsugg`) vain, jos `curSugg(r)` = muistissa oleva
+    ehdotus samalle reseptille (uudelleenlatauksen jälkeen ei palkkia). Napit `data-dsug` → `detailSuggAct`: `ok` = `acceptSuggestions([key])`
+    + ilmoitus + `back(viikko)` (virheessä ilmoitus, sivu jää); `no` = `rejectSuggestion` + uusi ehdotus samaan paikkaan avataan korvaten
+    historiarivin (takaisin-ele → viikko), ilman uutta → ilmoitus + viikko; `adj` = `adjustSuggestion` → Riittää-sivu ehdotuksen arvoilla
+    (`pick.fromSugg`, `go(…, {replace:true})`, joten tallennus ja Peruuta palaavat yhden askeleen viikkoon). `suggPinned` = raahaamalla paikalleen siirretyt ehdotukset: tähteet eivät vie paikkaa
     (`busy`) eikä niitä siirretä (`carry` ohittaa); poistuu, kun paikka suunnitellaan, tyhjennetään tai ehdotukset piilotetaan.
   - **Siirto raahaamalla** (vain muokkaajalle; vihje `#dragHint`): raahattavat `[data-drag]` = suunniteltu ruoka `p:<id>` (`.pi`)
     ja ehdotus `s:<paikka>` (`.sugg`), kohteet `.meal[data-slot="päivä|ateria"]` (tiivistetyt menneet päivät eivät ole kohteita).

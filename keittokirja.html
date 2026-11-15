@@ -438,6 +438,10 @@
   .sugg .pm + .pm { margin-top: 0; }
   .sgbtns { display: flex; gap: 8px; margin-top: 6px; }
   .sgbtns button { flex: 1; min-height: 44px; text-align: center; }
+  .sgbtns .sgview { flex: none; width: 48px; padding: 0; font-size: 1.05rem; }
+  .dsugg { margin: 10px 0 12px; }
+  .dsugg > .pm { margin-top: 4px; }
+  .dsadj { display: block; margin: 8px auto 0; min-height: 40px; font-size: .9rem; }
   .addrow { display: flex; gap: 8px; }
   .addrow .addslot { flex: 1; }
   /* Siirto raahaamalla (pitkä painallus) */
@@ -1439,6 +1443,8 @@
         openCategory(b || null, c || null); return true;
       case "resepti": {
         const r = recipes.find((x) => x.id === b); if (!r) return false;
+        // #/resepti/<id>/ehdotus/<päivä>/<ateria>: viikkosuunnitelman ehdotus (Hyväksy / Toinen reseptin sivulla)
+        detailSugg = c === "ehdotus" && canEdit && isIsoDay(d) && Object.hasOwn(MEALS, e) ? d + "|" + e : null;
         c === "muokkaa" ? openEditor(r) : openRecipe(r, c === "vauva" && !hidden.has("vauvanruoat")); return true;
       }
       case "uusi-resepti": openEditor(null, CATS[b] && !hidden.has(b) ? b : null); return true;
@@ -2066,6 +2072,7 @@
   // ---------- Resepti ----------
   let detailId = null;
   let detailBaby = false; // avattu vauvan ruoista (#/resepti/<id>/vauva) → vauvaohje näkyy
+  let detailSugg = null;   // avattu viikkosuunnitelman ehdotuksesta (paikka "päivä|ateria") → ehdotuspalkki
   function openRecipe(r, baby) {
     detailId = r.id;
     detailBaby = !!baby && (r.tags || []).includes("vauvanruoat");
@@ -2107,6 +2114,7 @@
         ${plainTags(r).length ? `<span>${esc(plainTags(r).sort((a, b) => tagRank(a) - tagRank(b)).map((t) => TAG_ICON[t] ? tagLabel(t) : "🏷 " + t).join(", "))}</span>` : ""}
       </div>
       ${detailBaby && r.baby_notes ? `<div class="babybox"><strong>🍼 Vauvalle</strong><div class="notes">${esc(r.baby_notes)}</div></div>` : ""}
+      ${suggBoxHtml(r)}
       <div class="cookbar">
         ${r.servings ? `<div class="stepper" role="group" aria-label="Annosmäärä">
           <button type="button" data-act="less" aria-label="Vähemmän annoksia" ${st.servings <= 1 ? "disabled" : ""}>−</button>
@@ -2160,6 +2168,8 @@
       if (!wakeLock) lockScreen(); // esim. jos lukitus vapautui sovellusta vaihdettaessa
       return;
     }
+    const sb2 = e.target.closest("[data-dsug]");
+    if (sb2) return detailSuggAct(sb2.dataset.dsug, sb2);
     const b = e.target.closest("[data-act]"); if (!b) return;
     switch (b.dataset.act) {
       case "less": st.servings = Math.max(1, st.servings - 1); renderDetail(r); break;
@@ -3995,7 +4005,7 @@
     const star = (r.tags || []).includes("top") ? " ⭐" : "", dis = suggBusy ? "disabled" : "";
     return `<div class="sugg" data-drag="s:${s.key}"><div class="sgh"><span>💡 Ehdotus</span><button type="button" class="sgskip" data-sskip="${s.key}" ${dis}>Jätä tyhjäksi ✕</button></div>
       <div class="pi"><button type="button" class="pbody" data-sopen="${s.key}">${thumb}<span class="ptxt"><span class="pt">${esc(r.title)}${star}</span><span class="pm">${meta}</span>${left}</span></button></div>
-      <div class="sgbtns"><button type="button" class="primary" data-sok="${s.key}" ${dis}>✓ Hyväksy</button><button type="button" data-sno="${s.key}" ${dis}>↻ Toinen</button></div></div>`;
+      <div class="sgbtns"><button type="button" class="primary" data-sok="${s.key}" ${dis}>✓ Hyväksy</button><button type="button" data-sno="${s.key}" ${dis}>↻ Toinen</button><button type="button" class="sgview" data-sopen="${s.key}" aria-label="Katso resepti: ${esc(r.title)}" title="Katso resepti">📖</button></div></div>`;
   }
   function renderSugBar() {
     const show = canEdit && addDays(planWeek, 6) >= todayIso();
@@ -4022,11 +4032,49 @@
     suggSkip.add(key); suggPick.delete(key); suggAsked.delete(key); suggPinned.delete(key);
     renderPlan();
   }
-  // Nimen napautus: Riittää-sivu valmiiksi ehdotuksen arvoilla (ateriat, annokset, tähteiden paikat).
-  function openSuggestion(key) {
+  // Nimen tai 📖:n napautus: resepti ehdotetulla annosmäärällä, ylhäällä ehdotuspalkki (✓ Hyväksy / ↻ Toinen / Säädä).
+  // Ehdotukset ovat vain muistissa, joten sivun uudelleenlatauksen jälkeen palkkia ei näytetä.
+  const suggUrl = (s) => `#/resepti/${s.rid}/ehdotus/${s.day}/${s.meal}`;
+  function openSuggestion(key, replace) {
+    const s = sugg.get(key); if (!s) return;
+    const r = recipes.find((x) => x.id === s.rid);
+    if (r && r.servings && s.servings) cookState(r).servings = s.servings;
+    go(suggUrl(s), { replace: !!replace });
+    if (replace) window.scrollTo(0, 0);
+  }
+  // Säädä: Riittää-sivu valmiiksi ehdotuksen arvoilla (ateriat, annokset, tähteiden paikat). Korvaa reseptisivun historiassa,
+  // joten tallennus ja Peruuta palaavat yhden askeleen viikkoon.
+  function adjustSuggestion(key) {
     const s = sugg.get(key); if (!s) return;
     pick = { day: s.day, meal: s.meal, rid: s.rid, meals: s.meals, servings: s.servings, slots: s.slots.map((x) => ({ ...x })), fromSugg: key };
-    go(`#/viikko/lisaa/${s.day}/${s.meal}/${s.rid}`);
+    go(`#/viikko/lisaa/${s.day}/${s.meal}/${s.rid}`, { replace: true });
+  }
+  const curSugg = (r) => { const s = detailSugg && sugg.get(detailSugg); return s && r && s.rid === r.id ? s : null; };
+  function suggBoxHtml(r) {
+    const s = curSugg(r); if (!s) return "";
+    const info = [`${dayShort(s.day)} ${MEAL_LC[s.meal]}`, s.meals > 1 ? `riittää ${s.meals} ateriaan` : "", r.servings && s.servings ? servingsTxt(s.servings) : ""].filter(Boolean).join(" · ");
+    const left = s.slots.length ? `<div class="pm">🔁 tähteet: ${esc(s.slots.map(slotLabel).join(", "))}</div>` : "";
+    const dis = suggBusy ? "disabled" : "";
+    return `<div class="sugg dsugg"><div class="sgh"><span>💡 Ehdotus viikkosuunnitelmaan</span></div>
+      <div class="pm">${esc(info)}</div>${left}
+      <div class="sgbtns"><button type="button" class="primary" data-dsug="ok" ${dis}>✓ Hyväksy</button><button type="button" data-dsug="no" ${dis}>↻ Toinen</button></div>
+      <button type="button" class="link dsadj" data-dsug="adj">Säädä annoksia ja tähteitä ›</button></div>`;
+  }
+  async function detailSuggAct(act, btn) {
+    const key = detailSugg, s = sugg.get(key); if (!s) return;
+    const week = weekHash(mondayOf(s.day));
+    if (act === "adj") return adjustSuggestion(key);
+    if (act === "ok") {
+      btn.disabled = true;
+      await acceptSuggestions([key]);
+      if (sugg.get(key)?.rid === s.rid) { btn.disabled = false; return toast("Tallennus epäonnistui. Yritä uudelleen."); }
+      toast(`${recipes.find((x) => x.id === s.rid)?.title || "Ruoka"} lisätty: ${dayShort(s.day)} ${MEAL_LC[s.meal]}.`);
+      return back(week);
+    }
+    // ↻ Toinen: uusi ehdotus samaan paikkaan ja sen resepti tilalle (takaisin-ele vie edelleen viikkoon)
+    rejectSuggestion(key);
+    if (sugg.get(key)) openSuggestion(key, true);
+    else { toast("Ei enempää ehdotuksia tähän ateriaan."); back(week); }
   }
   async function acceptSuggestions(keys, btn) {
     const list = keys.map((k) => sugg.get(k)).filter(Boolean);
