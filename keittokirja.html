@@ -977,7 +977,7 @@
         <button type="button" id="shShare" class="hidden">Jaa…</button>
         <button type="button" class="link" id="shClear">Poista rastit</button>
       </div>
-      <p class="hint">Kopioi tai jaa -toiminto ottaa mukaan vain rastittamattomat ainekset. Rastit tallentuvat tälle laitteelle.</p>
+      <p class="hint">Kopioi tai jaa -toiminto ottaa mukaan vain rastittamattomat ainekset. Rastit näkyvät koko perheelle.</p>
     </div>
     <div id="shEmpty" class="msg hidden"></div>
   </section>
@@ -1620,6 +1620,7 @@
     await signImages([...recipes, ...wines]);
     isAdmin = a.data === true;
     ready = true;
+    if (!hidden.has("viikko")) migrateLocalChecks();
     msg($("homeMsg"), allHidden() ? "Tervetuloa! Sinulle ei ole vielä avattu keittokirjan osioita. Pyydä ylläpitäjää avaamaan ne."
       : recipes.length || Object.keys(CATS).every((c) => hidden.has(c)) ? "" : "Ei reseptejä vielä. Jos tunnuksesi on uusi, pyydä että sähköpostisi lisätään perheen listalle.");
     route();
@@ -3099,13 +3100,16 @@
   const origOf = (it) => it.leftover && it.leftover_of ? planItems.find((x) => x.id === it.leftover_of) || null : null;
 
   async function loadPlan() {
-    const [p, n, s] = await Promise.all([
+    const t0 = Date.now();
+    const [p, n, s, c] = await Promise.all([
       sb.from("meal_plan").select("*").order("day").order("sort"),
       sb.from("meal_plan_notes").select("*"),
       sb.from("plan_settings").select("*"),
+      loadShopChecks(),
     ]);
     if (!p.error) planItems = p.data || [];
     if (!n.error) planNotes = new Map((n.data || []).map((x) => [x.day, x.note]));
+    if (!c.error) setShopChecks(c.data, t0);
     if (!s.error && s.data && s.data[0]) {
       ppm = Number(s.data[0].portions_per_meal) || 2;
       if (Array.isArray(s.data[0].pantry)) pantryList = s.data[0].pantry;
@@ -3115,17 +3119,23 @@
   }
   // Muiden tekemät muutokset näkyvät: haetaan uudelleen, kun etusivu tai viikko avataan (enintään 15 s välein)
   // ja aina kun sovellus palaa näkyviin.
+  // Ostoslista haetaan lisäksi 10 s välein, kun se on auki (muiden rastit näkyvät kaupassa). Ei piirretä, jos mikään ei muuttunut.
+  const planSig = () => JSON.stringify([planItems, [...planNotes], ppm, pantryList, shopChecked]);
   async function refreshPlan(force) {
     if (!ready || hidden.has("viikko") || (!force && Date.now() - planLoadedAt < 15000)) return;
+    const before = planSig();
     const p = await loadPlan();
-    if (p.error) return;
+    if (p.error || planSig() === before) return;
     if (currentView === "homeView") renderPlanCard();
     if (currentView === "planView" && !noteEdit) renderPlan();
-    if (currentView === "shopView") renderShop();
+    if (currentView === "shopView" && document.activeElement?.id !== "shPanIn") renderShop();
   }
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && ["homeView", "planView", "shopView"].includes(currentView)) refreshPlan(true);
   });
+  setInterval(() => {
+    if (currentView === "shopView" && document.visibilityState === "visible") refreshPlan(true);
+  }, 10000);
 
   // Reseptin avaus suunnitelmasta: määrät valmiiksi suunnitellulle annosmäärälle (tähteillä alkuperäisen määrä).
   function openFromPlan(it) {
@@ -3459,16 +3469,72 @@
 
   // ----- Ostoslista (11/2026) -----
   // Valittujen päivien suunnitellut ruoat. Tähteitä ei lasketa erikseen: alkuperäinen rivi suunnitellulla annosmäärällä riittää.
-  // Rasti = aines on jo kotona tai lisätty S-kauppojen listaan. Rastit vain tällä laitteella (localStorage kk_ostoslista),
-  // avain = suunnitelman rivi + ainesrivin teksti (rivin muuttuessa rasti poistuu).
+  // Rasti = aines on jo kotona tai lisätty S-kauppojen listaan. Rastit ovat koko perheen yhteisiä (taulu shop_checks, 17.11.2026;
+  // ennen vain laitteen localStoragessa kk_ostoslista). Avain = suunnitelman rivi + ainesrivin teksti (rivin muuttuessa rasti poistuu).
   const SHOP_KEY = "kk_ostoslista", SHOP_MODE_KEY = "kk_ostosjarjestys", SHOP_SPAN = 14;
-  let shopChecked = {};
-  try { shopChecked = JSON.parse(localStorage.getItem(SHOP_KEY) || "{}").c || {}; } catch {}
+  let shopChecked = {};       // avain → rastituspäivä tai "0" (perusaineen oletusrasti poistettu); ladataan loadPlan()-funktiossa
+  const shopPend = new Map(); // avain → { v, n, done } tallennus kesken tai juuri valmis: uudelleenhaku ei ylikirjoita sitä
+  let shopQueue = Promise.resolve(), shopSeq = 0;
   let shopMode = "resepti";
   try { if (localStorage.getItem(SHOP_MODE_KEY) === "az") shopMode = "az"; } catch {}
   const shop = { start: null, days: new Set(), custom: false };
   let shopState = { lines: [], cards: [], text: "" }; // näkyvät rivit (data-shi = indeksi), kortit ja kopioitava teksti
-  const saveShop = () => { try { localStorage.setItem(SHOP_KEY, JSON.stringify({ c: shopChecked })); } catch {} };
+  // Haetut rastit + omat keskeneräiset muutokset. Valmis muutos jätetään pois vasta, kun haku on alkanut sen jälkeen.
+  function setShopChecks(rows, t0) {
+    shopChecked = {};
+    for (const x of rows || []) shopChecked[x.key] = x.val;
+    for (const [k, p] of shopPend) {
+      if (p.done && p.done < t0) { shopPend.delete(k); continue; }
+      if (p.v == null) delete shopChecked[k]; else shopChecked[k] = p.v;
+    }
+  }
+  // Vain tämän päivän ja tulevien suunnitelmarivien rastit (vanhat jäävät tauluun, mutta niitä ei tarvita).
+  async function loadShopChecks() {
+    let c = await sb.from("shop_checks").select("key,val,meal_plan!inner(day)").gte("meal_plan.day", todayIso()).order("key");
+    if (c.error) c = await sb.from("shop_checks").select("key,val").order("key");
+    return c;
+  }
+  // Muutokset [[avain, arvo | null]]: näkyviin heti, tallennus jonossa (järjestys säilyy). Virheessä ilmoitus ja tila kannasta.
+  function shopSet(changes) {
+    if (!changes.length) return;
+    const n = ++shopSeq;
+    for (const [k, v] of changes) {
+      if (v == null) delete shopChecked[k]; else shopChecked[k] = v;
+      shopPend.set(k, { v, n, done: 0 });
+    }
+    renderShop();
+    shopQueue = shopQueue.then(async () => {
+      const ups = changes.filter(([, v]) => v != null).map(([key, val]) => ({ key, plan_id: key.split(":")[0], val }));
+      const dels = changes.filter(([, v]) => v == null).map(([k]) => k);
+      let err = null;
+      try {
+        if (ups.length) err = (await sb.from("shop_checks").upsert(ups, { onConflict: "key" })).error;
+        if (!err && dels.length) err = (await sb.from("shop_checks").delete().in("key", dels)).error;
+      } catch (e) { err = e; }
+      const mine = changes.filter(([k]) => shopPend.get(k)?.n === n);
+      if (err) {
+        for (const [k] of mine) shopPend.delete(k);
+        toast("Rastia ei saatu tallennettua. Tarkista verkkoyhteys ja yritä uudelleen.", true);
+        refreshPlan(true);
+      } else { const t = Date.now(); for (const [k] of mine) shopPend.get(k).done = t; }
+    });
+  }
+  // Ennen 17.11.2026 tehdyt laitteen omat rastit siirretään kerran yhteisiksi (ei korvaa muiden jo tekemiä rasteja).
+  async function migrateLocalChecks() {
+    let old = null;
+    try { old = JSON.parse(localStorage.getItem(SHOP_KEY) || "null"); } catch {}
+    if (!old) return;
+    const ids = new Set(planItems.map((x) => x.id)), re = /^[0-9a-f-]{36}:[a-z0-9]{1,16}$/;
+    const rows = Object.entries(old.c || {}).filter(([k, v]) => re.test(k) && ids.has(k.split(":")[0]) && (v === "0" || /^\d{4}-\d{2}-\d{2}$/.test(v)))
+      .map(([key, val]) => ({ key, plan_id: key.split(":")[0], val }));
+    if (rows.length) {
+      const { error } = await sb.from("shop_checks").upsert(rows, { onConflict: "key", ignoreDuplicates: true });
+      if (error) return; // yritetään seuraavalla kerralla
+      for (const x of rows) if (!(x.key in shopChecked)) shopChecked[x.key] = x.val;
+      if (currentView === "shopView") renderShop();
+    }
+    try { localStorage.removeItem(SHOP_KEY); } catch {}
+  }
   function hashStr(s) { let h = 5381; for (const ch of s) h = (Math.imul(h, 33) ^ ch.codePointAt(0)) >>> 0; return h.toString(36); }
   const htmlText = (h) => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent; };
   const shopRank = (it) => it.day + (it.meal === "lounas" ? "0" : "1") + String(it.sort ?? 0).padStart(4, "0");
@@ -3683,12 +3749,6 @@
     const avail = shopDaysAvail();
     if (!shop.custom) shop.days = new Set(avail.filter((d) => d <= addDays(shop.start, 6)));
     for (const d of [...shop.days]) if (!avail.includes(d)) shop.days.delete(d);
-    if (planItems.length) { // vanhat rastit pois (suunnitelman rivi poistettu)
-      const ids = new Set(planItems.map((x) => x.id));
-      let changed = false;
-      for (const k of Object.keys(shopChecked)) if (!ids.has(k.split(":")[0])) { delete shopChecked[k]; changed = true; }
-      if (changed) saveShop();
-    }
     $("shDays").innerHTML = avail.map((d) => `<button type="button" class="chip ${shop.days.has(d) ? "on" : ""}" data-shday="${d}" aria-pressed="${shop.days.has(d)}">${esc(dayLabel(d))}</button>`).join("");
     $("shDays").classList.toggle("hidden", !avail.length);
     const { cards, others } = shopModel();
@@ -3742,13 +3802,13 @@
     shopState = { lines, cards, text: text.length > 1 ? text.join("\n") : "" };
   }
   function shopToggle(keys, on) {
-    for (const k of keys) { // perusaineella oletus on rastitettu: poistettu rasti tallennetaan arvona "0"
+    shopSet(keys.map((k) => { // perusaineella oletus on rastitettu: poistettu rasti tallennetaan arvona "0"
       const pan = shopPantryKeys.has(k);
-      if (on) { if (pan) delete shopChecked[k]; else shopChecked[k] = todayIso(); }
-      else if (pan) shopChecked[k] = "0"; else delete shopChecked[k];
-    }
-    saveShop(); renderShop();
+      return [k, on ? (pan ? null : todayIso()) : (pan ? "0" : null)];
+    }).filter(([k, v]) => (shopChecked[k] ?? null) !== v));
   }
+  // Alkutila (perusaineet rastitettuina, Yhteishyvä-merkintä pois): poistetaan tallennetut arvot.
+  const shopReset = (keys) => shopSet([...new Set(keys)].filter((k) => k in shopChecked).map((k) => [k, null]));
   const cardKeys = (card) => card.lines.flatMap((l) => l.keys || []);
   $("shDays").onclick = (e) => {
     const b = e.target.closest("[data-shday]"); if (!b) return;
@@ -3775,7 +3835,7 @@
       const card = shopState.cards[+a.dataset.shall]; if (!card) return;
       const keys = cardKeys(card);
       if (!shopDone(keys)) shopToggle(keys, true);
-      else { for (const k of [...keys, yhKey(card.it)]) delete shopChecked[k]; saveShop(); renderShop(); }
+      else shopReset([...keys, yhKey(card.it)]);
       return;
     }
     const o = t.closest("[data-shopen]"); if (o) { const it = planItems.find((x) => x.id === o.dataset.shopen); if (it) openFromPlan(it); }
@@ -3797,9 +3857,8 @@
     try { await navigator.share({ title: "Ostoslista", text: shopState.text }); } catch {}
   };
   $("shClear").onclick = () => {
-    if (!confirm("Poistetaanko omat rastit? Perusaineet jäävät merkityiksi.")) return;
-    for (const k of [...shopState.lines.flatMap((l) => l.keys), ...shopState.cards.map((c) => yhKey(c.it))]) delete shopChecked[k];
-    saveShop(); renderShop();
+    if (!confirm("Poistetaanko listan rastit koko perheeltä? Perusaineet jäävät merkityiksi.")) return;
+    shopReset([...shopState.lines.flatMap((l) => l.keys), ...shopState.cards.map((c) => yhKey(c.it))]);
   };
   // Perusaineet-paneeli: yhteenveto (tällä listalla merkityt) tai avattuna lista, lisäys ja ehdotukset tältä listalta.
   function renderPantry(cards) {

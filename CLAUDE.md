@@ -67,7 +67,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     Kaksi näkymää: **Resepteittäin** (kortti per ruoka, ainekset skaalattuina kuten reseptisivulla, "✓ Kaikki") ja **Kaikki A–Ö**
     (samat ainekset yhteen laskettuina, lähdereseptit pienellä). Rasti = aines on jo kotona tai lisätty S-kauppojen listaan
     (yliviivaus). **Kaikki A–Ö -näkymässä rastitetut siirtyvät listan loppuun** väliotsikon "✓ Rastitetut · N" alle (käyttäjän
-    toive 16.11.2026, toteutettu 17.11.2026; rastin poisto palauttaa rivin aakkosjärjestykseen ylös); Resepteittäin rivit pysyvät paikallaan. **Rastit vain tällä laitteella** (localStorage), ei tietokannassa. 🔍 rivin oikeassa
+    toive 16.11.2026, toteutettu 17.11.2026; rastin poisto palauttaa rivin aakkosjärjestykseen ylös); Resepteittäin rivit pysyvät paikallaan. **Rastit ovat koko perheen yhteisiä** (käyttäjän päätös 17.11.2026, ettei samaa osteta
+    kahdesti; ennen vain laitteella): tietokannassa (`shop_checks`), näkyvät kaikilla laitteilla ja päivittyvät auki olevalle listalle
+    10 s välein. **Rastia saa muuttaa jokainen, joka näkee viikkosuunnitelman, myös ilman muokkausoikeutta** (lista on kaupassa
+    kaikkien käytössä). "Poista rastit" poistaa ne koko perheeltä. 🔍 rivin oikeassa
     reunassa avaa S-kauppojen haun tuotteelle (`s-kaupat.fi/hakutulokset?queryString=…`). 📋 Kopioi lista / Jaa… (iOS:n
     jakovalikko: Muistiinpanot, Viestit) ottaa mukaan vain rastittamattomat.
     **Yhteishyvä-linkki** (käyttäjän toive 15.11.2026): Yhteishyvän reseptisivulta ainekset voi lisätä S-ostoslistaan. Jos reseptin
@@ -243,6 +246,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   Ostoslista: kiinteä päivä + suunnitelmassa tähteitä, oma merkintä ja resepti yli 7 päivän päässä; tulkinnan voi testata suoraan
   `page.evaluate(… shopParse(rivi) …)` (key, sort, lo/hi, unit, water, `shopTerm`). Kopiointi: `clipboard-read` -oikeus ja
   `navigator.clipboard.readText()`. Headless-Chromiumissa ei ole `navigator.share`ia, joten Jaa…-nappi on siellä piilossa.
+  Jaetut rastit: kaksi selainkontekstia ("laitetta") ja stubin `from("shop_checks")` → `fetch("https://testi.local/__db")`, jonka
+  Python-puolen `ctx.route` hoitaa yhteisellä sanakirjalla (select + `meal_plan.day`-suodatin, upsert `ignoreDuplicates`, delete in;
+  virhelippu tallennusvirheen testiin). Kello `ctx.clock.install(…)` ja `page.clock.run_for(10500)` = 10 s päivitys.
 - Reitityksen testaus: `page.go_back()` = takaisin-pyyhkäisy. Huom. `page.goto(sama_url + "#/…")` on vain
   #-osan vaihto (ei uudelleenlatausta). Oikeaan uudelleenlataukseen `goto("about:blank")` ensin tai `reload()`.
   Vahvistusikkunat (`confirm`) käsitellään `page.on("dialog", …)`.
@@ -486,11 +492,21 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     Ainesrivi: väliotsikko (`isSub`) `{ sub }`, muuten `shopLabel` ("Lisäksi: 4 pitaleipää" → "4 pitaleipää") → `shopSplit`
     ("50 g voita + 2 rkl oliiviöljyä" = kaksi osaa, jos jokainen alkaa määrällä) → `shopParse(osa)`; vesi (`water`: "vettä…",
     "pastan keitinvettä") pudotetaan, pelkkä vesi → rivi pois. Rivin `html` = `scaleLine(rivi, f)`, osilla oma `html`.
-  - **Rastit** `shopChecked` (avain → päivä, tai `"0"` = käyttäjä poisti perusaineen oletusrastin) `localStorage`-avaimella `kk_ostoslista` (`{ c: {…} }`).
+  - **Rastit** `shopChecked` (avain → päivä, tai `"0"` = käyttäjä poisti perusaineen oletusrastin) = taulu `shop_checks` (17.11.2026).
+    `loadPlan()` hakee ne (`loadShopChecks()`: vain tämän päivän ja tulevien suunnitelmarivien, `meal_plan!inner(day)` + `gte("meal_plan.day")`;
+    virheessä varalla kaikki) → `setShopChecks(rows, t0)`. Kaikki muutokset `shopSet([[avain, arvo | null]])`: heti näkyviin
+    (`renderShop`), tallennus jonossa `shopQueue` (järjestys säilyy nopeissa napautuksissa): upsert (`onConflict: "key"`) ja `delete().in("key")`.
+    `shopPend` (avain → { v, n, done }) estää uudelleenhakua palauttamasta vanhaa arvoa: kesken oleva tai haun alkamisen jälkeen
+    valmistunut muutos pidetään päällä. Virheessä ilmoitus + `refreshPlan(true)` (tila kannasta). Avoin lista haetaan 10 s välein
+    (`setInterval`, vain `shopView` näkyvissä); `refreshPlan` ei piirrä, jos `planSig()` (suunnitelma, muistiinpanot, ppm, perusaineet,
+    rastit) ei muuttunut, eikä piirrä ostoslistaa, kun perusaineen lisäyskenttä `#shPanIn` on aktiivinen.
+    **Siirto:** `migrateLocalChecks()` (`loadAll()`:n lopussa) vie laitteen vanhat `kk_ostoslista`-rastit kerran tauluun (`ignoreDuplicates`,
+    ei korvaa muiden rasteja; vain olemassa olevien suunnitelmarivien) ja poistaa avaimen.
     Rastitettu = `shopIsCk(k)`: arvo on ja ≠ `"0"`, tai arvoa ei ole ja osa on perusaine (`shopPantryKeys`). `shopToggle` tallentaa
-    perusaineelle poiston arvona `"0"` ja rastin poistamalla arvon. Kortin "↺ Peru" ja "Poista rastit" poistavat arvot = alkutila. Avain = `<meal_plan.id>:<hashStr(rivin
-    alkuperäinen teksti + "#" + osan numero)>`, joten rasti katoaa, jos reseptin rivi muuttuu, ja poistettujen suunnitelmarivien rastit
-    siivotaan `renderShop()`:ssa. Näkymän rivi (`data-shi` = indeksi `shopState.lines`iin) rastittaa kaikki osansa; `data-shall` =
+    perusaineelle poiston arvona `"0"` ja rastin poistamalla arvon (muuttumattomat ohitetaan). Kortin "↺ Peru" ja "Poista rastit"
+    (`shopReset`) poistavat arvot = alkutila. Avain = `<meal_plan.id>:<hashStr(rivin
+    alkuperäinen teksti + "#" + osan numero)>`, joten rasti katoaa, jos reseptin rivi muuttuu; poistetun suunnitelmarivin rastit
+    poistuvat kannasta (FK on delete cascade). Näkymän rivi (`data-shi` = indeksi `shopState.lines`iin) rastittaa kaikki osansa; `data-shall` =
     kortin kaikki; `data-shopen` = `openFromPlan` (resepti suunnitellulla annosmäärällä). Luokka `.shline.ok` (EI `done`: `li.done` on
     kokkaustilan globaali tyyli).
   - **Tulkinta** `shopParse` → { lo, hi (skaalattuina, g/kg/mg → g, dl/l/ml/cl → dl), unit (`SH_UNIT`: g, dl, tl, rkl, prk, tlk, ps, pkt, rs,
@@ -526,7 +542,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     virheessä palautus + ilmoitus).
   - **Kopioi / Jaa** `shopState.text` (vain rastittamattomat; resepteittäin otsikkorivi "Nimi (su 15.11. päivällinen · 6 annosta)"):
     `navigator.clipboard.writeText` (varalla `execCommand("copy")`), `navigator.share` (nappi vain jos tuettu). "Poista rastit"
-    (näkyy, kun jokin on rastitettu) kysyy vahvistuksen ja poistaa näkyvien rivien rastit.
+    (näkyy, kun jokin on rastitettu) kysyy vahvistuksen ja poistaa näkyvien rivien rastit koko perheeltä.
 - **Menut:** menukortti- ja viinilistasivut välilehtinä, alla menun reseptit.
 - **Viinikellari** (osio `viinit`): vakiot `SHELVES` = 5, `SLOTS` = 3, `PLACE_RE` (paikka "h-p"); sama rajaus tietokannan check-ehdoissa.
   Tila `bottles` (wine_bottles), apurit `inCellar(viini?)` (status kaapissa, järjestys hylly/paikka), `tastings(viini)` (status juotu,
@@ -595,9 +611,10 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 Kaikissa julkisissa tauluissa on RLS. Säännöt `to authenticated`:
 - **select** ehdolla `(select private.is_family())` – kaikki perheen jäsenet näkevät. Poikkeukset (osioiden näkyvyys):
   `wines`, `wine_bottles` = `can_see('viinit')`; `menus`, `menu_pages` = `can_see('menut')`; `recipes` = is_family ja (ei kategoriatagia TAI
-  `tags && my_visible_cats()` TAI menu:-tagi ja `can_see('menut')`); `meal_plan`, `meal_plan_notes`, `plan_settings` = `can_see('viikko')`.
+  `tags && my_visible_cats()` TAI menu:-tagi ja `can_see('menut')`); `meal_plan`, `meal_plan_notes`, `plan_settings`, `shop_checks` = `can_see('viikko')`.
   Storage: `viinit/`-kuvat vain `can_see('viinit')`.
 - **insert/update/delete** ehdolla `(select private.can_edit())` – vain muokkausoikeus tai admin.
+  **Poikkeus:** `shop_checks` (ostoslistan rastit) kirjoitus myös ehdolla `can_see('viikko')`, eli lukijakin saa rastittaa (käyttäjän päätös 17.11.2026).
 
 **Uudelle taululle samat neljä policya (lukeminen is_family, kirjoitus can_edit) + `revoke all ... from anon`.**
 Jos taulu kuuluu johonkin osioon, lukusäännöksi `can_see('<osio>')`. Uusi osio: lisää se check-rajoitteeseen ja `SECTIONS`-listaan.
@@ -617,6 +634,7 @@ Ilmaistasossa 1 Gt tilaa ja 5 Gt siirtoa kuukaudessa riittävät tuhansille kuvi
 | `meal_plan` | id, day (date), meal (`lounas`/`paivallinen`), sort (järjestys aterian sisällä), title (reseptin nimi tallennushetkellä tai vapaa teksti), recipe_id (null = vapaa teksti; FK recipes, on delete set null), servings (vain alkuperäisellä reseptirivillä), leftover (bool, tähteet), leftover_of (alkuperäinen rivi; FK, on delete set null), created_by, created_at, updated_at (trigger `touch_updated_at`) |
 | `meal_plan_notes` | day (date, pääavain), note (1–300 merkkiä), updated_at |
 | `plan_settings` | id (aina 1, yksi rivi), portions_per_meal (numeric, oletus 2: perhe syö aterialla noin näin monta annosta), pantry (text[], perusaineet perusmuodossa, ostoslistalla valmiiksi rastitettuina; check enintään 100) |
+| `shop_checks` | key (pääavain `<meal_plan.id>:<rivin tunniste>` tai `…:yh`; check: muoto ja alku = plan_id), plan_id (FK meal_plan, on delete cascade, indeksi), val (rastituspäivä `YYYY-MM-DD` tai `0` = perusaineen oletusrasti poistettu; check), updated_at (trigger `touch_updated_at`) |
 | `wines` | id, name, producer, vintage, wine_type (`punainen`/`valkoinen`/`rosé`/`kuohuviini`/`jälkiruokaviini`/`muu`), grapes, region, country, price, alko_id (Alkon tuotenumero, 3–8 numeroa), source_rating (teksti, esim. "92/100"), source_name, source_url, source_characterful (bool, Viinilehden "Luonteikas viini"), source_value (Viinilehden hinta-laatusuhde: `Löytö`/`Edullinen ostos`/`Laatu vastaa hintaa`/`Kallis`, check), source_readiness (Viinilehden juotavuus: `Valmis juotavaksi`/`Valmis, mutta kehittyy`/`Kehittyy varastoinnin myötä`, max 60 merkkiä), own_rating (1–5), own_notes, description, food_pairing, image_path (esim. `viinit/<uuid>.jpg`), image_url (vanha, ei lomakkeessa), created_at, updated_at. (drunk_on ja occasion poistettu 11/2026 → wine_bottles.) |
 | `wine_bottles` | id, wine_id (FK wines, on delete cascade), status (`kaapissa` = pullo kaapissa / `juotu` = juontikerta), shelf (1–5) + slot (1–3) (molemmat tai ei kumpaakaan; vain kaapissa; yksilöllinen paikka kaapissa olevilla: osittainen indeksi `wine_bottles_place_uniq`), purchased_on, purchase_place, price (per pullo), opened_on (juontipäivä, voi puuttua), occasion, rating (1–5), notes, created_by, created_at, updated_at (trigger `touch_updated_at`) |
 
@@ -775,8 +793,8 @@ Supabase ei varmuuskopioi ilmaistason projektia, ja tietokannan varmuuskopio ei 
 - **Automaattinen:** yksityinen repo `tv62/keittokirja-varmuuskopio` (EI julkinen, sisältää perheen datan).
   GitHub Actions (`.github/workflows/varmuuskopio.yml`) ajaa `varmuuskopioi.py`:n sunnuntaisin 01.37 UTC, käsin
   (Actions → Varmuuskopio → Run workflow) ja aina kun ohjelma tai workflow muuttuu.
-  - Hakee REST-rajapinnasta taulut `recipes`, `wines`, `wine_bottles`, `menus`, `menu_pages`, `meal_plan`, `meal_plan_notes`, `plan_settings`
-    (→ `data/<taulu>.json`; `TABLES` = taulu → järjestyssarake, meal_plan_notes järjestetään `day`-sarakkeella), RPC:llä
+  - Hakee REST-rajapinnasta taulut `recipes`, `wines`, `wine_bottles`, `menus`, `menu_pages`, `meal_plan`, `meal_plan_notes`, `plan_settings`, `shop_checks`
+    (→ `data/<taulu>.json`; `TABLES` = taulu → järjestyssarake, meal_plan_notes järjestetään `day`-sarakkeella, shop_checks `key`-sarakkeella), RPC:llä
     `backup_family_members()` (→ `data/family_members.json`) ja bucketin `recipe-images` kuvat (→ `kuvat/`, vain uudet;
     poistetut poistetaan, historia säilyttää). Lisäksi `viimeisin.txt`, jolloin jokainen ajo on oma committinsa.
   - Avain: repon salaisuus `SUPABASE_SECRET_KEY` (Supabasen salainen avain nimeltä "varmuuskopio", `sb_secret_…`).
