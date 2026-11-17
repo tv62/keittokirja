@@ -66,7 +66,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     7 päivää. **Tähteitä ei lasketa erikseen** (alkuperäinen rivi suunnitellulla annosmäärällä riittää), vesi jätetään pois.
     Kaksi näkymää: **Resepteittäin** (kortti per ruoka, ainekset skaalattuina kuten reseptisivulla, "✓ Kaikki") ja **Kaikki A–Ö**
     (samat ainekset yhteen laskettuina, lähdereseptit pienellä). Rasti = aines on jo kotona tai lisätty S-kauppojen listaan
-    (yliviivaus, pysyy paikallaan). **Rastit vain tällä laitteella** (localStorage), ei tietokannassa. 🔍 rivin oikeassa
+    (yliviivaus). **Kaikki A–Ö -näkymässä rastitetut siirtyvät listan loppuun** väliotsikon "✓ Rastitetut · N" alle (käyttäjän
+    toive 16.11.2026, toteutettu 17.11.2026; rastin poisto palauttaa rivin aakkosjärjestykseen ylös); Resepteittäin rivit pysyvät paikallaan. **Rastit vain tällä laitteella** (localStorage), ei tietokannassa. 🔍 rivin oikeassa
     reunassa avaa S-kauppojen haun tuotteelle (`s-kaupat.fi/hakutulokset?queryString=…`). 📋 Kopioi lista / Jaa… (iOS:n
     jakovalikko: Muistiinpanot, Viestit) ottaa mukaan vain rastittamattomat.
     **Yhteishyvä-linkki** (käyttäjän toive 15.11.2026): Yhteishyvän reseptisivulta ainekset voi lisätä S-ostoslistaan. Jos reseptin
@@ -502,6 +503,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     alkuperäinen skaalattu teksti; useampi → yksiköittäiset summat `shopQty` (≥ 1000 g → kg, ≥ 10 dl → l, sanayksiköt taivutettuina) +
     nimi; yksiköttömillä taivutus alkuperäisen määrän mukaan (`ohi`: "1 sipuli" + "2 sipulia" = "3 sipulia", tarvittaessa `shopPartitive`;
     muuten osat näkyvissä "1 + 1 …"). Määrättömät osat ("suolaa") eivät muuta summaa. Järjestys `sort` (`localeCompare(…, "fi")`).
+    `renderShop()` jakaa ryhmät rastittamattomiin (`rest`) ja rastitettuihin (`got`, `shopDone`): ensin `rest`, sitten väliotsikko
+    `<li class="shsub shgot">` (pieni harmaa `.lbl`-tyyli; `.first`, jos kaikki on rastitettu) ja `got`. Molemmat aakkosjärjestyksessä.
   - **🔍** `shopTerm(clean)`: ensimmäinen vaihtoehto ennen " tai " (paitsi "mauste- tai suolakurkkua"), laatusanat pois, perusmuoto;
     "lehtisellerin varsi" → "lehtiselleri", "valkosipulinkynsi" → "valkosipuli". `shopUrl(term)`, `target="_blank"`.
   - **Yhteishyvä** `yhUrl(r)` = ensimmäinen `https://(www.)yhteishyva.fi/…`-osoite `source`-kentästä (`safeUrl`), muutettuna sovelluslinkiksi

@@ -483,6 +483,9 @@
     text-decoration: none; font-size: .95rem; opacity: .65; border-radius: 10px; }
   .shline.ok .shq { opacity: .3; }
   .shsub { font: 600 1rem Georgia, serif; padding: 12px 0 4px; border-top: 1px solid var(--line); }
+  .shsub.shgot { font: 600 .75rem/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .08em; padding: 16px 0 6px; }
+  .shsub.shgot.first { border-top: none; padding-top: 6px; }
   .shsum { font-size: .85rem; color: var(--muted); margin: 0 0 8px; font-variant-numeric: tabular-nums; }
   .shother { padding-bottom: 10px; }
   /* Yhteishyvä-linkki: ainekset S-ostoslistaan Yhteishyvän reseptisivulta */
@@ -3704,10 +3707,11 @@
       // Yhteishyvä-linkit myös tässä, ettei samoja aineksia lisätä S-ostoslistaan kahdesti
       if (yh) html += `<div class="card shcard shyhcard"><div class="lbl">Yhteishyvän kautta S-ostoslistaan</div>${yh}
         <p class="shyhh">Avaa resepti, lisää ainekset siellä S-ostoslistaan, niin ne merkitään tässä kerätyiksi.</p></div>`;
-      html += groups.length ? `<div class="card shcard"><ul class="shlines">${groups.map((g) => {
-        lines.push(g); return shopLineHtml(lines.length - 1, g, `<span class="shsrc">${esc(g.src)}</span>`);
-      }).join("")}</ul></div>` : "";
-      const rest = groups.filter((g) => !shopDone(g.keys));
+      // Rastitetut listan loppuun oman väliotsikon alle (käyttäjän toive 16.11.2026; vain A–Ö, resepteittäin rivit pysyvät paikallaan)
+      const rest = groups.filter((g) => !shopDone(g.keys)), got = groups.filter((g) => shopDone(g.keys));
+      const row = (g) => { lines.push(g); return shopLineHtml(lines.length - 1, g, `<span class="shsrc">${esc(g.src)}</span>`); };
+      html += groups.length ? `<div class="card shcard"><ul class="shlines">${rest.map(row).join("")}${
+        got.length ? `<li class="shsub shgot${rest.length ? "" : " first"}">✓ Rastitetut · ${got.length}</li>${got.map(row).join("")}` : ""}</ul></div>` : "";
       if (rest.length) text.push("", ...rest.map((g) => "- " + htmlText(g.html)));
     } else {
       html = cards.map((c, ci) => {
