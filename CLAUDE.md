@@ -56,8 +56,13 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     automaattisesti. **Perjantain päivällinen on tavallinen arkipäivällinen**: sille voi tulla tähteitä (käyttäjän päätös 11/2026,
     esim. torstain lounaan tähteet → pe päivällinen); jos se on tyhjä, sille ehdotetaan tavallista arkiruokaa.
     **Siirto raahaamalla** (käyttäjän toive 11/2026): ruokaa tai ehdotusta pidetään hetki sormella ja raahataan toiselle aterialle;
-    jos siellä on jo ruoka tai ehdotus, paikat vaihtuvat. Jos tähteet joutuisivat ennen ruoan valmistusta tai yli 2 päivän päähän
-    valmistuksesta, kortti näkyy punaisena eikä siirtoa tehdä (ilmoitus kertoo syyn).
+    jos siellä on jo ruoka tai ehdotus, paikat vaihtuvat. **Tähteet seuraavat siirrettyä ruokaa** (käyttäjän päätös 18.11.2026, myös
+    muokkaussivun Päivä/Ateria-siirrossa): tähde pysyy paikallaan, jos se on yhä valmistusta seuraavana päivänä tai myöhemmin ja
+    enintään 2 pv päässä; muuten se siirtyy seuraavaan vapaaseen kotiateriaan (samat säännöt kuin lisätessä: arkena päivällinen,
+    viikonloppuna myös lounas, ei la/su päivällistä) 2 pv sisällä. **Jos vapaata ei ole, tähde menee lähimpään sopivaan ateriaan,
+    vaikka siinä olisi jo ruokaa** (käyttäjän valinta; korjataan raahaamalla). Ilmoitus kertoo, minne tähteet siirtyivät (raahatessa
+    jo ennen pudotusta, muokkaussivulla ennen tallennusta). Vain itse raahattu tähde estetään (punainen kortti + ilmoitus), jos se
+    joutuisi ennen ruoan valmistusta tai yli 2 päivän päähän.
     Vain muokkausoikeudella voi muokata. Toiveet myöhemmin (backlog).
   - **🛒 Ostoslista** (15.11.2026, käyttäjän toive): perhe tekee ostokset S-kauppojen ostoslistalla (kaupassa ja välillä
     tilaamalla). S-kauppoihin ei ole avointa rajapintaa, joten keittokirja kokoaa listan, josta S-kauppojen lista tehdään käsin.
@@ -439,7 +444,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     (`isHomeMeal`: päivällinen tai la/su lounas) eikä oma päivällinen (`isOwnDinner`: la/su päivällinen); ilman `maxDay`:ta
     varalla seuraavat päivälliset (valitut säilyvät, kun ateriamäärää muutetaan); jokaisen paikan voi vaihtaa valinnasta (myös arkilounaaksi)
     (5 viikkoa eteenpäin, varatut merkitty). "noin [2] annosta" -valinta tallentaa `plan_settings.portions_per_meal`.
-  - **Muokkaus** (`openPlanItem`, `renderPlanItem`, tila `piState`): päivä + ateria (siirto, uusi `sort` kohdeaterian loppuun),
+  - **Muokkaus** (`openPlanItem`, `renderPlanItem`, tila `piState`): päivä + ateria (siirto, uusi `sort` kohdeaterian loppuun; alkuperäisen
+    ruoan tähteet `piFollow(it)` = `followLeftovers`, esikatselu `#piFollow` valintaa muutettaessa `showPiFollow()`, tallennus `saveMoves`;
+    tähteen omaa siirtoa ei rajoiteta),
     annokset (vain alkuperäinen reseptirivi), vapaan tekstin nimi, 📖 Avaa resepti, Poista. Poisto kysyy erikseen, poistetaanko
     myös tähteet; jos ei, tähteet jäävät (FK `leftover_of` → null).
   - Näytettävä nimi on reseptin nykyinen nimi (`titleOf`), `meal_plan.title` on varalla (vapaa teksti, poistettu tai piilotettu resepti).
@@ -478,10 +485,16 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     jälkeinen klikkaus ohitetaan (`dragJustEnded`). `planMove(src, kohde, kohteenRuoka)` = kuivaharjoitus: ruoka → tyhjä
     (ehdotus siirtyy lähtöpaikalle, jos kohteessa oli ehdotus) / ruoka ↔ ruoka (sormen alla oleva tai ensimmäinen) /
     ehdotus ↔ koko ateria (kaikki kohteen ruoat lähtöpaikalle) / ehdotus ↔ ehdotus / ehdotus → tyhjä (vanha paikka `suggSkip`).
-    Tarkistus kaikille siirtyville riveille: tähteet (`leftover_of`-parit, uusilla paikoilla) oltava valmistuksen jälkeen
-    (`slotRank`) ja enintään 2 pv päässä → muuten `{ ok: false, reason }`: kohde `.meal.drop-bad` ja haamu `.dragghost.bad`
-    punaisina, ilmoitus `toast()` (alhaalla, `#toast`), pudotuksessa lähdekortti välähtää punaisena (`.flashbad`), ei muutoksia.
-    `applyMove`: ehdotusten avaimet (`suggPick`, kiinnitys `pinSlot`) + rivien `day/meal/sort`-päivitykset (vaihdossa sort vaihtuu).
+    **Tähteet** `followLeftovers(moves, fixed, sk)` (18.11.2026): tarkistaa siirtyneiden ruokien tähteet ja siirtyneet tähderivit
+    (paitsi `fixed` = itse raahattu tähde ja menneet). Kelpaa = `pos(tähde).day > pos(ruoka).day` ja ≤ +2 pv → pysyy. Muut (järjestys:
+    ruoan uusi paikka, tähteen vanha paikka) → ehdokkaat `slotsAfter` 2 pv sisällä, ei samana päivänä, `leftoverOk`; ensin paikka ilman
+    ruokaa ja ehdotusta (`sk` = ehdotusten paikat siirron jälkeen), sitten ilman ruokaa, lopuksi vähiten täytetty (`stacked`, varalla
+    seuraavan päivän päivällinen). Varaukset lasketaan siirron jälkeisillä paikoilla; sort = paikan suurin + 1. Täydentää `moves`-mapin
+    ja palauttaa `[{ id, title, day, meal, stacked }]` → `followMsg(f, done)` ("🔁 Tähteet siirtyvät / siirrettiin: …", varatussa
+    "(samassa ateriassa on jo ruokaa)"). `planMove` palauttaa `follow`; raahatessa ilmoitus `toast(…, false, 0)`, pudotuksen jälkeen 6 s.
+    Itse raahattu tähde: valmistuksen jälkeen (`slotRank`) ja enintään 2 pv → muuten `{ ok: false, reason }`: kohde `.meal.drop-bad` ja
+    haamu `.dragghost.bad` punaisina, ilmoitus `toast()` (alhaalla, `#toast`), pudotuksessa lähdekortti välähtää punaisena (`.flashbad`).
+    `applyMove`: ehdotusten avaimet (`suggPick`, kiinnitys `pinSlot`) + rivien `day/meal/sort`-päivitykset `saveMoves(list)` (vaihdossa sort vaihtuu).
 - **Ostoslista** (`shopView`, 15.11.2026). `#shopBtn` (`.cellarpill` viikkosuunnitelman `.whead`-otsikkorivillä) → `go(#/viikko/ostoslista[/<maanantai>])`
   (alkupäivä = tulevan viikon maanantai, jos sitä katsotaan, muuten tänään) → `openShop(start)` → `renderShop()`; `refreshPlan()` piirtää
   näkymän uudelleen, kun muiden muutokset tulevat. Tila `shop` = { start, days (Set), custom }: `shopDaysAvail()` = päivät start…start+13

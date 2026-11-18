@@ -4164,9 +4164,53 @@
   }
 
   // ----- Siirto raahaamalla (pitkä painallus): ruoat ja ehdotukset -----
-  // Pudotus ateriaan siirtää; jos siinä on jo ruoka tai ehdotus, paikat vaihtuvat. Siirto estetään (punainen kortti + ilmoitus),
-  // jos tähteet joutuisivat ennen ruoan valmistusta tai yli 2 päivän päähän valmistuksesta.
+  // Pudotus ateriaan siirtää; jos siinä on jo ruoka tai ehdotus, paikat vaihtuvat. Siirretyn ruoan tähteet seuraavat ruokaa
+  // (followLeftovers). Vain itse raahattu tähde estetään (punainen kortti + ilmoitus), jos se joutuisi ennen ruoan valmistusta
+  // tai yli 2 päivän päähän valmistuksesta.
   const slotRank = (d, m) => d + (m === "lounas" ? "0" : "1");
+  // Tähteet seuraavat valmistettua ruokaa (käyttäjän päätös 18.11.2026). Siirron jälkeen tähde pysyy paikallaan, jos se on yhä
+  // valmistusta seuraavana päivänä tai myöhemmin ja enintään 2 pv päässä. Muuten se siirtyy seuraavaan vapaaseen kotiateriaan
+  // (leftoverOk) 2 pv sisällä, ensisijaisesti ateriaan, jossa ei ole ruokaa eikä ehdotusta. Jos vapaata ei ole, lähimpään sopivaan
+  // ateriaan, vaikka siinä olisi jo ruokaa (käyttäjä korjaa raahaamalla). Menneitä tähteitä ei siirretä.
+  // moves: Map id → { day, meal, sort } (täydennetään tähteiden siirroilla), fixed = itse raahattu tähde, sk = ehdotusten paikat.
+  // Palauttaa siirretyt tähteet [{ id, title, day, meal, stacked }].
+  function followLeftovers(moves, fixed, sk) {
+    const pos = (it) => moves.get(it.id) || it, today = todayIso();
+    const check = new Map();
+    for (const id of [...moves.keys()]) {
+      const it = planItems.find((x) => x.id === id); if (!it) continue;
+      if (it.leftover) { if (origOf(it)) check.set(it.id, it); }
+      else for (const l of planItems.filter((x) => x.leftover_of === it.id)) check.set(l.id, l);
+    }
+    const fits = (l) => { const po = pos(origOf(l)), pl = pos(l); return pl.day > po.day && pl.day <= addDays(po.day, 2); };
+    const bad = [...check.values()].filter((l) => l.id !== fixed && l.day >= today && !fits(l)).sort((a, b) =>
+      slotRank(pos(origOf(a)).day, pos(origOf(a)).meal).localeCompare(slotRank(pos(origOf(b)).day, pos(origOf(b)).meal)) ||
+      slotRank(a.day, a.meal).localeCompare(slotRank(b.day, b.meal)));
+    if (!bad.length) return [];
+    const badIds = new Set(bad.map((l) => l.id)), occ = new Map(), maxSort = new Map();
+    for (const x of planItems) {
+      if (badIds.has(x.id)) continue;
+      const p = pos(x), k = p.day + "|" + p.meal;
+      occ.set(k, (occ.get(k) || 0) + 1); maxSort.set(k, Math.max(maxSort.get(k) ?? -1, p.sort ?? 0));
+    }
+    const out = [];
+    for (const l of bad) {
+      const po = pos(origOf(l)), maxDay = addDays(po.day, 2), cand = [];
+      for (const [d, m] of slotsAfter(po.day, po.meal)) { if (d > maxDay) break; if (d !== po.day && leftoverOk(d, m)) cand.push(d + "|" + m); }
+      let k = cand.find((c) => !occ.get(c) && !sk.has(c)) || cand.find((c) => !occ.get(c)), stacked = false;
+      if (!k) { stacked = true; k = cand.slice().sort((a, b) => (occ.get(a) || 0) - (occ.get(b) || 0))[0] || addDays(po.day, 1) + "|paivallinen"; }
+      const [d, m] = k.split("|"), sort = (maxSort.get(k) ?? -1) + 1;
+      moves.set(l.id, { day: d, meal: m, sort });
+      occ.set(k, (occ.get(k) || 0) + 1); maxSort.set(k, sort);
+      out.push({ id: l.id, title: titleOf(l), day: d, meal: m, stacked });
+    }
+    return out;
+  }
+  function followMsg(f, done) {
+    const one = new Set(f.map((x) => x.title)).size === 1;
+    const list = f.map((x) => `${one ? "" : x.title + " "}${slotLabel(x)}${x.stacked ? " (samassa ateriassa on jo ruokaa)" : ""}`).join(", ");
+    return `🔁 Tähteet ${done ? "siirrettiin" : "siirtyvät"}: ${list}`;
+  }
   let toastTimer = null;
   function toast(text, isErr, ms) {
     const t = $("toast");
@@ -4198,16 +4242,15 @@
     else if (sugg.get(tKey)) suggOps = { type: "swap", a: srcKey, b: tKey };
     else suggOps = { type: "move", from: srcKey, to: tKey, leave: true };          // vanha paikka jää tyhjäksi
     const pos = (it) => moves.get(it.id) || it;
-    for (const id of moves.keys()) {
-      const it = planItems.find((x) => x.id === id);
-      const pairs = it.leftover ? (origOf(it) ? [[origOf(it), it]] : []) : planItems.filter((x) => x.leftover_of === it.id).map((l) => [it, l]);
-      for (const [o, l] of pairs) {
-        const po = pos(o), pl = pos(l);
-        if (slotRank(pl.day, pl.meal) <= slotRank(po.day, po.meal)) return { ok: false, reason: "tähteet olisivat ennen ruoan valmistusta" };
-        if (pl.day > addDays(po.day, 2)) return { ok: false, reason: "tähteet olisivat yli 2 päivän päässä valmistuksesta" };
-      }
+    if (X && X.leftover && origOf(X)) { // itse raahattu tähde: paikan valitsi käyttäjä, joten sitä ei siirretä automaattisesti
+      const po = pos(origOf(X)), pl = pos(X);
+      if (slotRank(pl.day, pl.meal) <= slotRank(po.day, po.meal)) return { ok: false, reason: "tähteet olisivat ennen ruoan valmistusta" };
+      if (pl.day > addDays(po.day, 2)) return { ok: false, reason: "tähteet olisivat yli 2 päivän päässä valmistuksesta" };
     }
-    return { ok: true, moves: [...moves].map(([id, p]) => ({ id, ...p })), suggOps };
+    const sk = new Set(sugg.keys()); // ehdotusten paikat siirron jälkeen
+    if (suggOps && suggOps.type === "move") { sk.delete(suggOps.from); sk.add(suggOps.to); }
+    const follow = followLeftovers(moves, X && X.leftover ? X.id : null, sk);
+    return { ok: true, moves: [...moves].map(([id, p]) => ({ id, ...p })), suggOps, follow };
   }
   const pinSlot = (k) => { suggPinned.add(k); suggAsked.add(k); suggSkip.delete(k); };
   async function applyMove(m) {
@@ -4220,13 +4263,17 @@
       if (rid) { suggPick.set(o.to, rid); pinSlot(o.to); }
     }
     if (m.moves.length) {
-      const res = await Promise.all(m.moves.map((mv) =>
-        sb.from("meal_plan").update({ day: mv.day, meal: mv.meal, sort: mv.sort }).eq("id", mv.id).select().single()));
-      const bad = res.find((r) => r.error);
-      if (bad) { toast("Siirto epäonnistui: " + bad.error.message, true); await loadPlan(); }
-      else for (const r of res) planItems[planItems.findIndex((x) => x.id === r.data.id)] = r.data;
+      const err = await saveMoves(m.moves);
+      if (err) { toast("Siirto epäonnistui: " + err.message, true); await loadPlan(); }
+      else if (m.follow && m.follow.length) toast(followMsg(m.follow, true), false, 6000);
     }
     renderPlan();
+  }
+  async function saveMoves(list) { // [{ id, day, meal, sort }] → virhe tai null
+    const res = await Promise.all(list.map((mv) =>
+      sb.from("meal_plan").update({ day: mv.day, meal: mv.meal, sort: mv.sort }).eq("id", mv.id).select().single()));
+    for (const r of res) if (!r.error && r.data) planItems[planItems.findIndex((x) => x.id === r.data.id)] = r.data;
+    return (res.find((r) => r.error) || {}).error || null;
   }
   let drag = null, dragJustEnded = false;
   const DRAG_DELAY = 350;
@@ -4270,7 +4317,8 @@
     if (!m) { toast(""); return; }
     meal.classList.add(m.ok ? "drop-ok" : "drop-bad");
     drag.hl = meal; drag.target = m;
-    if (m.ok) toast(""); else toast("Ei voi siirtää: " + m.reason + ".", true, 0);
+    if (!m.ok) toast("Ei voi siirtää: " + m.reason + ".", true, 0);
+    else toast(m.follow && m.follow.length ? followMsg(m.follow) : "", false, 0);
   }
   function endDrag(cancelled) {
     const d = drag; drag = null;
@@ -4336,13 +4384,26 @@
           <span class="val" id="piServ" aria-live="polite">${servingsTxt(piState.servings)}</span>
           <button type="button" data-act="more" aria-label="Enemmän annoksia">+</button>
         </div>` : ""}
+      <p class="hint hidden" id="piFollow"></p>
       <div class="actions"><button type="button" class="primary" data-act="save">Tallenna</button><button type="button" data-act="cancel">Peruuta</button></div>
       <div id="piMsg" class="msg err hidden"></div>
       <div class="danger-zone"><button type="button" class="danger" data-act="del">Poista suunnitelmasta</button></div>`;
   }
+  // Muokkaussivun siirto: alkuperäisen ruoan tähteet seuraavat samoin kuin raahatessa (tähteen omaa siirtoa ei rajoiteta).
+  function piFollow(it) {
+    if (it.leftover || (piState.day === it.day && piState.meal === it.meal)) return { moves: new Map(), follow: [] };
+    const sort = nextSort(piState.day, piState.meal), moves = new Map([[it.id, { day: piState.day, meal: piState.meal, sort }]]);
+    return { moves, follow: followLeftovers(moves, null, new Set(sugg.keys())) };
+  }
+  function showPiFollow() {
+    const it = piState && planItems.find((x) => x.id === piState.id), el = $("piFollow"); if (!it || !el) return;
+    const f = piFollow(it).follow;
+    el.textContent = f.length ? followMsg(f) : ""; el.classList.toggle("hidden", !f.length);
+  }
   $("pi").onchange = (e) => {
     if (e.target.id === "piDay") piState.day = e.target.value;
     if (e.target.id === "piMeal") piState.meal = e.target.value;
+    showPiFollow();
   };
   $("pi").oninput = (e) => { if (e.target.id === "piTitle") piState.title = e.target.value; };
   $("pi").onclick = async (e) => {
@@ -4360,12 +4421,18 @@
         const upd = { day: piState.day, meal: piState.meal };
         if (!it.recipe_id) { const t = piState.title.trim(); if (!t) return msg($("piMsg"), "Kirjoita merkintä.", true); upd.title = t; }
         if (!it.leftover && recipeOf(it)?.servings) upd.servings = piState.servings;
-        if (upd.day !== it.day || upd.meal !== it.meal) upd.sort = nextSort(upd.day, upd.meal);
+        const { moves, follow } = piFollow(it);
+        if (upd.day !== it.day || upd.meal !== it.meal) upd.sort = moves.get(it.id)?.sort ?? nextSort(upd.day, upd.meal);
         b.disabled = true;
         const { data, error } = await sb.from("meal_plan").update(upd).eq("id", it.id).select().single();
-        b.disabled = false;
-        if (error) return msg($("piMsg"), "Tallennus epäonnistui: " + error.message, true);
+        if (error) { b.disabled = false; return msg($("piMsg"), "Tallennus epäonnistui: " + error.message, true); }
         planItems[planItems.findIndex((x) => x.id === it.id)] = data;
+        if (follow.length) {
+          const err = await saveMoves(follow.map((x) => ({ id: x.id, ...moves.get(x.id) })));
+          if (err) { b.disabled = false; await loadPlan(); return msg($("piMsg"), "Ruoka siirrettiin, mutta tähteiden siirto epäonnistui: " + err.message, true); }
+          toast(followMsg(follow, true), false, 6000);
+        }
+        b.disabled = false;
         return back(fallback);
       }
       case "del": {
