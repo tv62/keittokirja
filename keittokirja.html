@@ -89,7 +89,7 @@
     min-height: 44px; display: inline-flex; align-items: center;
   }
   .chip.on { background: var(--accent); color: var(--accent-ink); }
-  .list { display: grid; gap: 10px; }
+  .list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .item { display: block; text-align: left; width: 100%; padding: 14px 16px; border-radius: 14px; }
   .item .t { font-weight: 600; font-size: 1.05rem; }
   .item .m { color: var(--muted); font-size: .88rem; margin-top: 2px; }
@@ -378,7 +378,7 @@
   .wl { flex: 1; text-align: center; }
   .wn { font-family: Georgia, serif; font-size: 1.15rem; font-weight: 600; }
   .wd { font-size: .85rem; color: var(--muted); }
-  .days { display: grid; gap: 10px; }
+  .days { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; } /* minmax: pitkä tiivistetty päivä ei levennä sivua */
   .day { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px 8px; }
   .day.now { border: 2px solid var(--accent); }
   .day.compact { padding: 0; opacity: .6; }
@@ -576,8 +576,8 @@
   /* Ohjetekstit: näkyvät muutaman kerran, ✕ piilottaa heti, ⓘ otsikon vieressä tuo takaisin */
   .hintoff { display: none !important; }
   .hintx { border: none; background: none; color: var(--muted); padding: 0 4px; min-width: 32px; min-height: 28px; font-size: .85rem; vertical-align: baseline; }
-  .hinti { border: none; background: none; color: var(--muted); font: 400 1rem/1 -apple-system, BlinkMacSystemFont, sans-serif;
-    min-width: 40px; min-height: 40px; padding: 0; vertical-align: middle; }
+  .hintback { text-align: center; margin: 16px 0 0; }
+  .hintback .hinti { font-size: .88rem; min-height: 40px; }
 </style>
 </head>
 <body>
@@ -1489,8 +1489,9 @@
   $("hBack").onclick = () => hdrBackSrc && hdrBackSrc.click();
 
   // ----- Ohjetekstit (22.11.2026) -----
-  // [data-hint]-ohje näkyy HINT_MAX kertaa (näkymän avauksia), ✕ piilottaa heti. Otsikon ⓘ tuo näkymän ohjeet takaisin.
-  const HINT_KEY = "kk_vihjeet", HINT_MAX = 5;
+  // [data-hint]-ohje näkyy HINT_MAX kertaa (sovelluksen avauksia: lasketaan kerran sivun latausta kohden), ✕ piilottaa heti.
+  // Näkymän alareunan "ⓘ Näytä ohjeet" tuo näkymän ohjeet takaisin (ei otsikkoon: sotki otsikkorivin napit).
+  const HINT_KEY = "kk_ohjeet", HINT_MAX = 5, hintSeen = new Set();
   let hintState = {};
   try { hintState = JSON.parse(localStorage.getItem(HINT_KEY) || "{}") || {}; } catch {}
   const hintOff = (k) => hintState[k] === "x" || (hintState[k] || 0) >= HINT_MAX;
@@ -1504,14 +1505,13 @@
     let anyOff = false;
     for (const el of els) {
       const k = el.dataset.hint, off = hintOff(k);
-      if (!noCount && !off) hintState[k] = (hintState[k] || 0) + 1;
+      if (!noCount && !off && !hintSeen.has(k)) { hintState[k] = (hintState[k] || 0) + 1; hintSeen.add(k); }
       el.classList.toggle("hintoff", off);
       anyOff = anyOff || off;
     }
     if (!noCount) saveHints();
-    const h2 = sec.querySelector("h2"); if (!h2) return;
-    let i = h2.querySelector(".hinti");
-    if (!i) { h2.insertAdjacentHTML("beforeend", ` <button type="button" class="hinti" data-hinti="${view}" aria-label="Näytä ohjeet" title="Näytä ohjeet">ⓘ</button>`); i = h2.querySelector(".hinti"); }
+    let i = sec.querySelector(":scope > .hintback");
+    if (!i) { sec.insertAdjacentHTML("beforeend", `<p class="hintback"><button type="button" class="link hinti" data-hinti="${view}">ⓘ Näytä ohjeet</button></p>`); i = sec.querySelector(":scope > .hintback"); }
     i.classList.toggle("hidden", !anyOff);
   }
   document.addEventListener("click", (e) => {

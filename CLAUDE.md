@@ -186,8 +186,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     reseptille, ilmoitus "🗓️ Lisätty: Su 29.11. lounas".
   - **Lomakkeissa Tallenna-palkki alareunassa** (22.11.2026): resepti- ja viinilomakkeen Tallenna + Peruuta pysyvät näytön
     alareunassa (`position: sticky`). Pitkät tekstikentät kasvavat tekstin mittaisiksi. Lomakkeen virheviesti myös ilmoituksena.
-  - **Ohjetekstit näkyvät 5 kertaa** (22.11.2026): raahausohjeet (viikko, kellarikartta) ja ostoslistan kolme ohjetta. ✕ piilottaa
-    heti, otsikon ⓘ tuo näkymän ohjeet takaisin. Laitekohtainen (`localStorage`).
+  - **Ohjetekstit näkyvät 5 kertaa** (22.11.2026): raahausohjeet (viikko, kellarikartta) ja ostoslistan kolme ohjetta; kerta =
+    sovelluksen avaus (ei jokainen näkymän avaus). ✕ piilottaa heti, näkymän alareunan "ⓘ Näytä ohjeet" tuo ne takaisin
+    (**ei otsikkorivillä**: käyttäjän palaute 22.11.2026, ⓘ sotki Ostoslista-napin paikan). Laitekohtainen (`localStorage`).
   - **iPadilla listat sarakkeisiin** (22.11.2026): reseptilistat, viinit, menut ja ruoan lisäyksen lista ≥ 760 px kahdessa,
     vaakatasossa ≥ 1100 px kolmessa sarakkeessa (järjestäessä ja menuittain yksi sarake).
   - **Ohjeen vaiheet isoilla numeroilla** (käyttäjä valitsi vaihtoehdon B "iso numero" 11/2026; hylätyt: A täytetty pallo,
@@ -445,9 +446,10 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   (ainekset, ohje, muistiinpanot, vauvaohje, viinin muistiinpanot ja kuvaus, juontikerran muistiinpanot), `grow(el)` input-tapahtumassa
   ja `growAll(näkymä)` lomakkeen avauksen jälkeen.
 - **Ohjetekstit** `[data-hint="<avain>"]` (`viikko-raahaus`, `kellari-raahaus`, `ostos-alku`, `ostos-rasti`, `ostos-kopio`): käynnistyksessä
-  perään ✕ (`data-hintx`). `applyHints(view)` (`show()`:ssa) laskee näkymän avaukset `localStorage`-avaimeen `kk_vihjeet`
-  ({ avain: määrä | "x" }); ≥ `HINT_MAX` (5) tai "x" → `.hintoff`. Näkymän `h2`:een lisätään ⓘ (`.hinti`, `data-hinti`), kun jokin ohje
-  on piilossa; se nollaa näkymän laskurit. Testeissä tyhjennä `kk_vihjeet` tai huomioi laskuri.
+  perään ✕ (`data-hintx`). `applyHints(view)` (`show()`:ssa) laskee näytöt `localStorage`-avaimeen `kk_ohjeet`
+  ({ avain: määrä | "x" }; kukin ohje kerran sivun latausta kohden, `hintSeen`); ≥ `HINT_MAX` (5) tai "x" → `.hintoff`. Näkymän loppuun
+  lisätään `<p class="hintback">` + "ⓘ Näytä ohjeet" (`.hinti`, `data-hinti`), näkyvissä kun jokin ohje on piilossa; nollaa näkymän
+  laskurit. Testeissä aseta `kk_ohjeet` init-skriptillä tai lataa sivu uudelleen (laskuri kasvaa vain latauksittain).
 - **Tallentamattomat muutokset:** resepti- ja viinilomake ottavat avattaessa tilannekuvan (`editSnap`, `wineSnap`).
   Peruuta, takaisin-pyyhkäisy ja muut siirtymät kysyvät "Hylätäänkö tallentamattomat muutokset?", jos lomaketta on muutettu.
 - **Piilotetut osiot:** `hidden` (Set) = RPC `my_hidden_sections()` `loadAll()`:ssa (adminilla tyhjä). `applyHidden()` piilottaa
@@ -670,6 +672,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     juotavuuden ja sanan "luonteikas".
     Viinin poisto poistaa myös pullot ja juontihistorian (FK on delete cascade; vahvistus kertoo sen).
 - Napautettavat chipit ovat vähintään 44 px korkeita (sormelle sopiva koko).
+- **Gridit `minmax(0, 1fr)`** (`.list`, `.days`): ilman sitä `white-space: nowrap` -teksti (esim. tiivistetyn menneen päivän
+  ruokalista `.dsum`) levensi sarakkeen ja koko sivun yli näytön (korjattu 22.11.2026, näkyi sunnuntaisin). Uudessa gridissä samoin.
 - Käyttäjän syöte escapetaan aina `esc()`-funktiolla ennen `innerHTML`:ää. URLit `safeUrl()`-funktiolla.
 
 ## Tietokanta (Supabase)
