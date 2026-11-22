@@ -44,7 +44,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - **Käyttöliittymäpäätökset, joita ei muuteta kysymättä:**
   - Etusivulla ylimpänä **🗓️ Viikkosuunnitelma** (käyttäjän päätös 11/2026, leveä kortti, jossa tämän päivän lounas ja päivällinen),
     sitten viisi korttia: 🥘 Arkiruoka, 🥂 Viikonloppuherkut, 📜 Menut, 🍷 Viinikellari (käyttäjän nimeämä 11/2026) ja niiden alla oma osio
-    🍼 Vauvan ruoat (luokka `wide`: iPadilla molempien sarakkeiden levyinen).
+    🍼 Vauvan ruoat (luokka `wide`: iPadilla molempien sarakkeiden levyinen). **Puhelimessakin kahdessa sarakkeessa**
+    (käyttäjän hyväksymä 22.11.2026: emoji kortin yläosassa, nimi ja määrä alla; Vauvan ruoat leveänä rivinä), jotta kaikki osiot
+    näkyvät ilman vieritystä. "Viikonloppu&shy;herkut" saa tavuviivan kapealla näytöllä.
+    Viikkosuunnitelman kortissa **klo 18 jälkeen myös huominen** (22.11.2026, `CARD_TOMORROW_HOUR`).
   - **Viikkosuunnitelma** (11/2026, ulkoasu hyväksytty Claude Design -luonnoksesta "Viikkosuunnitelma – luonnos"): viikko ma–su,
     joka päivä lounas ja päivällinen (myös arkena). Menneet päivät harmaina ja tiivistettynä (vain päivä + ruokien nimet),
     napautus avaa täyteen kokoon (käyttäjän toive). Tähteet: reseptiä lisätessä "Riittää 1 / 2 / 3 ateriaan", ehdotus =
@@ -63,15 +66,20 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     vaikka siinä olisi jo ruokaa** (käyttäjän valinta; korjataan raahaamalla). Ilmoitus kertoo, minne tähteet siirtyivät (raahatessa
     jo ennen pudotusta, muokkaussivulla ennen tallennusta). Vain itse raahattu tähde estetään (punainen kortti + ilmoitus), jos se
     joutuisi ennen ruoan valmistusta tai yli 2 päivän päähän.
+    **Arkipäivän (ma–pe) tyhjä lounas yhtenä rivinä** (käyttäjän hyväksymä 22.11.2026): otsikkorivillä 💡 ja +, ei katkoviivalaatikkoa.
+    Viikonlopun tyhjät ateriat ja arkipäivälliset kuten ennen. **iPadilla viikko sarakkeisiin** (22.11.2026): ≥ 760 px kaksi saraketta,
+    vaakatasossa ≥ 1100 px kolme (sivun leveys 1160 px).
     Vain muokkausoikeudella voi muokata. Toiveet myöhemmin (backlog).
   - **🛒 Ostoslista** (15.11.2026, käyttäjän toive): perhe tekee ostokset S-kauppojen ostoslistalla (kaupassa ja välillä
     tilaamalla). S-kauppoihin ei ole avointa rajapintaa, joten keittokirja kokoaa listan, josta S-kauppojen lista tehdään käsin.
     Avataan viikkosuunnitelman otsikon vierestä (pilleri "🛒 Ostoslista", kaikille myös ilman muokkausoikeutta). Päivät valitaan
     chipeistä: tarjolla tänään (tai tulevan viikon maanantai) + 13 pv ne päivät, joilla on suunniteltu ruoka; oletuksena seuraavat
     7 päivää. **Tähteitä ei lasketa erikseen** (alkuperäinen rivi suunnitellulla annosmäärällä riittää), vesi jätetään pois.
-    Kaksi näkymää: **Resepteittäin** (kortti per ruoka, ainekset skaalattuina kuten reseptisivulla, "✓ Kaikki") ja **Kaikki A–Ö**
-    (samat ainekset yhteen laskettuina, lähdereseptit pienellä). Rasti = aines on jo kotona tai lisätty S-kauppojen listaan
-    (yliviivaus). **Kaikki A–Ö -näkymässä rastitetut siirtyvät listan loppuun** väliotsikon "✓ Rastitetut · N" alle (käyttäjän
+    Kaksi näkymää: **Resepteittäin** (kortti per ruoka, ainekset skaalattuina kuten reseptisivulla, "✓ Kaikki") ja **Osastoittain**
+    (ennen "Kaikki A–Ö"; samat ainekset yhteen laskettuina, lähdereseptit pienellä; **ryhmitelty kaupan osastoihin** 22.11.2026:
+    🥦 Hedelmät, vihannekset ja yrtit · 🥩 Liha, kana ja kala · 🧀 Maito, juusto ja munat · 🍝 Pasta, riisi, jauhot ja leipä ·
+    🥫 Säilykkeet ja kastikkeet · 🧂 Mausteet, öljyt ja etikat · 🛒 Muut; osaston sisällä aakkosjärjestys; kopioitu lista samoin). Rasti = aines on jo kotona tai lisätty S-kauppojen listaan
+    (yliviivaus). **Osastoittain-näkymässä rastitetut siirtyvät listan loppuun** väliotsikon "✓ Rastitetut · N" alle (käyttäjän
     toive 16.11.2026, toteutettu 17.11.2026; rastin poisto palauttaa rivin aakkosjärjestykseen ylös); Resepteittäin rivit pysyvät paikallaan. **Rastit ovat koko perheen yhteisiä** (käyttäjän päätös 17.11.2026, ettei samaa osteta
     kahdesti; ennen vain laitteella): tietokannassa (`shop_checks`), näkyvät kaikilla laitteilla ja päivittyvät auki olevalle listalle
     10 s välein. **Rastia saa muuttaa jokainen, joka näkee viikkosuunnitelman, myös ilman muokkausoikeutta** (lista on kaupassa
@@ -81,7 +89,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     **Yhteishyvä-linkki** (käyttäjän toive 15.11.2026): Yhteishyvän reseptisivulta ainekset voi lisätä S-ostoslistaan. Jos reseptin
     lähde on yhteishyva.fi-linkki, Resepteittäin-kortissa on nappi "🛒 Lisää S-ostoslistaan Yhteishyvästä ↗" (+ vihje valita siellä
     suunniteltu annosmäärä). Napautus avaa reseptin Yhteishyvässä ja **merkitsee kaikki reseptin ainekset kerätyiksi** (kortissa
-    "✓ Lisätty S-ostoslistaan Yhteishyvän kautta su 15.11. · Avaa ↗", ↺ Peru poistaa merkinnän). Kaikki A–Ö -näkymässä samat linkit
+    "✓ Lisätty S-ostoslistaan Yhteishyvän kautta su 15.11. · Avaa ↗", ↺ Peru poistaa merkinnän). Osastoittain-näkymässä samat linkit
     omassa kortissa ylimpänä, ettei samoja aineksia lisätä kahdesti.
     **Perusaineet** (käyttäjän toive 15.11.2026): koko perheen yhteinen lista aineksista, jotka ovat aina kotona (oletus: suola,
     sormisuola, merisuola, mustapippuri, pippuri, öljy, oliiviöljy, rypsiöljy, sokeri, vehnäjauho). Ne näkyvät ostoslistalla valmiiksi
@@ -116,6 +124,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     aina ylöspäin pyöristäen (käyttäjän päätös; 60 → "1 h", 65 → "1,5 h", 160 → "3 h") listarivillä ja reseptisivulla (`fmtTime(m)`). Lomakkeessa aika syötetään minuutteina.
   - **Lisäyspäivä** (11/2026): reseptisivulla "📅 Lisätty 18.1.2023", lomakkeessa kenttä Lisäyspäivä (uudelle tänään),
     listarivillä päivä rivin oikeassa laidassa (11/2026, ennen ⭐:ä) vain päivälajittelussa (oletuksena siis näkyy).
+    **Listarivillä lyhyt muoto** (käyttäjän hyväksymä 22.11.2026): tänä vuonna "19.11.", aiemmin pelkkä vuosi "2023"
+    (`fiShort`; koko päivä `aria-label`- ja `title`-tekstissä). Reseptisivulla koko päivä kuten ennen.
   - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
   - **Tagit listarivillä pelkkinä kuvakkeina** (käyttäjän toive 11/2026, esim. 🐔 = kana). Tagit-valinnassa, lomakkeessa ja
     reseptisivulla kuvake + nimi, jotta merkitykset oppii. **Päärajaus-chipit (yläbanneri) pelkkinä emojeina** (11/2026),
@@ -157,15 +167,29 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     pudotettu pullo vaihtaa paikkaa. Myös "Ilman paikkaa" -listan viinin voi raahata kellariin. Ostotiedot pullokohtaisesti (päivä, paikka, hinta) ja
     Alkon tuotenumero + linkki viinille. Viinin oma arvio = uusimman tähdillä arvioidun juontikerran tähdet.
   - Reseptikuvat aina neliöitä, **viinikuvat pystykuvia 2:3** (käyttäjän toive 11/2026: koko pullo mahtuu kuvaan), kaikki
-    värillisiä. Viinin sivulla kuva omassa muodossaan (enintään 300×450, vanhat neliökuvat neliöinä). Listalla pikkukuva rivin vasemmassa laidassa (ilman kuvaa nimen
-    alkukirjain). Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
+    värillisiä. Viinin sivulla kuva omassa muodossaan (enintään 300×450, vanhat neliökuvat neliöinä). Listalla pikkukuva rivin vasemmassa laidassa.
+    **Reseptillä ilman kuvaa pääraaka-aineen emoji värillisellä taustalla** (käyttäjän hyväksymä 22.11.2026, ennen nimen alkukirjain;
+    lähes kaikilla resepteillä ei ole kuvaa): listoissa, viikkosuunnitelmassa ja ehdotuksissa. Viineillä ja omilla merkinnöillä
+    alkukirjain kuten ennen. Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
     vaakatasossa pienenä (210 px) otsikon oikealla puolella.
     (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
   - **Yläpalkki** (käyttäjän toive 11/2026): adminilla yläpalkissa vain ⚙️ (Hallinta, 44 px), **Kirjaudu ulos on Hallinta-sivun
     ylärivillä**. Muilla jäsenillä (ei Hallinta-sivua) Kirjaudu ulos yläpalkissa. Palkki yhden rivin korkuinen, yläpuolella 10 px väli
     (käyttäjän toive 11/2026: iOS 26 Safarin yläreunan sumennus osui otsikkoon; sumennuksen korkeutta sivu ei voi säätää).
+    **Alasivuilla takaisin-linkki yläpalkissa** (käyttäjän hyväksymä 22.11.2026): vasemmalla näkymän oma "← …"-linkki, oikealla pieni
+    pata-logo (etusivulle) ja ⚙️. Etusivulla iso otsikko kuten ennen. Hallinta-sivu ennallaan (oma ylärivi).
   - **Reseptisivu iPadilla vaakatasossa** (11/2026): ainekset vasemmalla ja ohje + muistiinpanot oikealla rinnakkain; ainekset
     pysyvät näkyvissä, kun ohjetta vieritetään. Pystyasennossa ja puhelimessa allekkain kuten ennen.
+  - **🗓️ Viikkoon reseptisivulta** (käyttäjän hyväksymä 22.11.2026): kokkausnapin vieressä (muokkaajalle, kun viikkosuunnitelma
+    näkyy). Avaa valinnan: päivä (tänään + 13 pv, "Tänään"/"Huomenna"/"ke 25.11.") ja ateria + tieto, onko ateria vapaa. Oletus =
+    ensimmäinen vapaa päivällinen (klo 18 jälkeen huomisesta alkaen). "Jatka ›" → Riittää-sivu; tallennus ja Peruuta palaavat
+    reseptille, ilmoitus "🗓️ Lisätty: Su 29.11. lounas".
+  - **Lomakkeissa Tallenna-palkki alareunassa** (22.11.2026): resepti- ja viinilomakkeen Tallenna + Peruuta pysyvät näytön
+    alareunassa (`position: sticky`). Pitkät tekstikentät kasvavat tekstin mittaisiksi. Lomakkeen virheviesti myös ilmoituksena.
+  - **Ohjetekstit näkyvät 5 kertaa** (22.11.2026): raahausohjeet (viikko, kellarikartta) ja ostoslistan kolme ohjetta. ✕ piilottaa
+    heti, otsikon ⓘ tuo näkymän ohjeet takaisin. Laitekohtainen (`localStorage`).
+  - **iPadilla listat sarakkeisiin** (22.11.2026): reseptilistat, viinit, menut ja ruoan lisäyksen lista ≥ 760 px kahdessa,
+    vaakatasossa ≥ 1100 px kolmessa sarakkeessa (järjestäessä ja menuittain yksi sarake).
   - **Ohjeen vaiheet isoilla numeroilla** (käyttäjä valitsi vaihtoehdon B "iso numero" 11/2026; hylätyt: A täytetty pallo,
     C rengas): iso Georgia-numero korostusvärillä ilman palloa, kokkaustilassa tehdyn vaiheen numeron tilalla ✓.
   - **Ainesten väliotsikot otsikkoina** (11/2026): "Kastike:" näytetään lihavoituna Georgia-otsikkona ilman luettelomerkkiä ja
@@ -227,7 +251,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   5★, Valmis juotavaksi, Laatu vastaa hintaa; Vivino tunnisti pullon Caparsino Riservaksi, ei varmistettu), Gattinara 2021
   (arvio 2015: 4★, Luonteikas, Kallis; juotavuutta ei merkitty, koska 2015:n juotavuus ei koske nuorta 2021:tä). Ei Viinilehden
   arviota: L'Oratoire des Papes 2023 (punainen; vain Blanc arvioitu), Scacciadiavoli Sagrantino 2018 (ei myöskään Alkossa).
-- Top-lista on vielä tyhjä (käyttäjä valitsee suosikit).
+- Top-listalla 11 reseptiä (tilanne 22.11.2026).
 - "Tonnikalapasta liedellä": alkuperäisessä luki "noin 50 kapriksia". Mahdollisesti 50 g, käyttäjä ei ole vahvistanut.
 
 ## Työnkulku uudessa keskustelussa
@@ -309,6 +333,11 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 | `#/viikko/ruoka/<id>` | suunnitellun ruoan muokkaus: siirto, annokset, poisto (vain muokkaaja) |
 | `#/viikko/ostoslista`, `#/viikko/ostoslista/<alkupäivä>` | ostoslista tästä päivästä / tulevan viikon maanantaista (mennyt päivä → tänään) |
 
+- **`show(view)`** asettaa myös `body.v-detail` (resepti), `body.v-wide` (listView, winesView, planAddView, menusView: `.list.cols`
+  sarakkeisiin ≥ 760 px) ja `body.v-plan` (`.days` sarakkeisiin), kutsuu `applyHints(view)` ja `syncHeaderBack()`.
+- **Yläpalkin takaisin-linkki** `syncHeaderBack()` (myös `route()`:n lopussa): näkymän ensimmäinen näkyvä suora lapsi
+  `button.link`, jonka teksti alkaa "←", saa luokan `.inhdr` (piiloon) ja sen teksti näkyy `#hBack`-napissa (napautus = alkuperäisen
+  `click()`), `body.sub` → `h1 .ttl` piiloon ja logo pieneksi oikealle. Ei lähdettä (etusivu, Hallinta, kirjautuminen) → iso otsikko.
 - **Siirtymät aina `go(hash)`-funktiolla** (pushState + `route()`), ei `show()`:lla suoraan. `go(hash, {replace:true})`
   korvaa nykyisen historiarivin (esim. uusi resepti tallennettu → lomake korvataan reseptillä).
 - **Takaisin-napit `back(fallback)`:** `history.back()`, jos sovelluksen sisällä on edellinen sivu (`history.state.d > 0`),
@@ -352,7 +381,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   + ≡-kahva (`.grip`, `touch-action:none`), napautus ei avaa reseptiä. Raahaus pointer-tapahtumilla (sormi ja hiiri),
   automaattivieritys reunoilla. `saveOrder(ids)`: näkyvät reseptit jakavat keskenään nykyiset `sort_order`-numeronsa uudessa
   järjestyksessä (muiden listojen suhteellinen järjestys säilyy) → RPC `set_recipe_order(p_ids, p_pos)`; virheessä palautus.
-- **Reseptirivi** (`recipeItem`): oikeassa laidassa (`.side`) menumerkki, lisäyspäivä `.rdate` (vain uusin/vanhin-lajittelussa)
+- **Reseptirivi** (`recipeItem`): oikeassa laidassa (`.side`) menumerkki, lisäyspäivä `.rdate` (vain uusin/vanhin-lajittelussa, `fiShort`)
   ja ⭐ (top). Metarivillä aika · tagit
   kuvakkeina `tagIcons(r)`: järjestys `TAG_ICON`-vakion mukaan (pääaines → ruokalaji → tapa), sama kuvake yhdistetään
   (esim. 🥔 = peruna + lisuke), nimi `aria-label`/`title`-attribuutissa, kuvakkeeton tagi tekstinä perässä.
@@ -374,12 +403,19 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   - **Annosmäärä:** −/+ -napit (vain jos `servings` on annettu). `scaleLine()` kertoo ainesrivin kaikki luvut
     (`1/2`, `½`, `1,5`, `2–3`, sulkeissa olevat `(400 g)`), mutta ei prosentteja eikä asteita. Kerrotut luvut
     korostetaan. Väliotsikoita (rivi päättyy `:`) ei muuteta. Ohjeen tekstin määriä ei muuteta, ja sivu kertoo sen.
+  - **🗓️ Viikkoon** (`.cookbtns`-ryhmässä kokkausnapin vieressä, `canPlanHere()` = muokkaaja ja osio `viikko` näkyy): tila `detailPlan`
+    = { day, meal } (nollautuu, kun avataan toinen resepti), `defaultPlanSlot()`, `detailPlanHtml()` (`.dplan`: `#dpDays`-chipit
+    `data-dpday`, valittu keskitetään; ateria `data-dpmeal`; `.dpnow`). `data-act="dpgo"` asettaa `pickOrigin = "päivä|ateria|resepti"`
+    ja `go(#/viikko/lisaa/…/<resepti>)`; `openPick` merkitsee `pick.fromDetail`. Riittää-sivun tallennus → `toast` + `back(resepti)`,
+    Peruuta → `back(resepti)` (ei `leaveDeleted`).
   - **Kokkaustila:** "🍳 Aloita kokkaus" pitää näytön päällä (Screen Wake Lock API, haetaan uudelleen kun sovellus
     palaa näkyviin) ja aineksen tai vaiheen voi napauttaa tehdyksi (yliviivaus). Ensimmäinen tekemätön vaihe korostetaan.
   - Annosmäärä ja kokkaustilan rastit säilyvät muistissa (`cook`-Map) reseptikohtaisesti, kunnes sivu ladataan
     uudelleen, kokkaus lopetetaan tai resepti tallennetaan.
-- **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi, tall)` (listan pikkukuva `.thumb` 60 px tai
-  alkukirjain `.thumb.ph`, rivillä luokka `.item.withpic`; viineillä `tall` → `.thumb.tall` 44×66) ja
+- **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi, tall)` (listan pikkukuva `.thumb` 60 px; ilman kuvaa
+  reseptillä `emoPh(r, "thumb ph")` = `.emo`-paikkakuva: `mainIcon(r)` = ensimmäinen `MAIN_ORDER`-tagi → `TAG_ICON`-emoji + `MAIN_BG`-väri
+  (`--bgc`, tummassa tilassa `color-mix` 22 % kortin väriin), muuten 🍽️; viinillä alkukirjain `.thumb.ph`; rivillä luokka `.item.withpic`;
+  viineillä `tall` → `.thumb.tall` 44×66; viikkosuunnitelman `.pth` samalla `emoPh(r, "pth")`) ja
   `bigPic(item, alt, "rimg-top"|"rimg-end")` (viineillä `"tall rimg-…"` → `.rimg.tall`: kuva omassa muodossaan). Iso kuva
   renderöidään kahteen kohtaan, ja CSS näyttää alle 600 px leveällä sivun lopussa (ennen nappeja), muuten ylhäällä
   (max 440 px; reseptisivulla vaakatasossa ≥ 960 px otsikon oikealla, 210 px). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
@@ -403,6 +439,15 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   sitten muut käytössä olevat tagit aakkosjärjestyksessä. Uuden tagin voi kirjoittaa (pilkulla useita) ja lisätä
   "Lisää"-napilla tai Enterillä. Ruudut ⭐ Top-listalla (`f_top`) ja 🍼 Näytä myös vauvan ruoissa (`f_baby`); kun jälkimmäinen on valittu,
   näkyy kenttä 🍼 Vauvaohje (`f_babynotes` → `baby_notes`, tallennetaan vain ristiinmerkitylle, muuten null). Kirjoitettu mutta lisäämätön tagi tallentuu myös. Metatageja ei voi lisätä käsin.
+- **Lomakkeiden Tallenna-palkki** `.actions.savebar` (sticky bottom, Tallenna + Peruuta `data-cancel="<näkymän peruutusnappi>"`
+  → yleinen click-käsittelijä kutsuu sen `click()`) resepti- ja viinilomakkeessa; virheviesti (`editMsg`, `wineEditMsg`) palkin
+  yläpuolella, ja `msg()` näyttää lomakkeen virheet myös `toast`-ilmoituksena. **Kasvavat tekstikentät:** `textarea.grow`
+  (ainekset, ohje, muistiinpanot, vauvaohje, viinin muistiinpanot ja kuvaus, juontikerran muistiinpanot), `grow(el)` input-tapahtumassa
+  ja `growAll(näkymä)` lomakkeen avauksen jälkeen.
+- **Ohjetekstit** `[data-hint="<avain>"]` (`viikko-raahaus`, `kellari-raahaus`, `ostos-alku`, `ostos-rasti`, `ostos-kopio`): käynnistyksessä
+  perään ✕ (`data-hintx`). `applyHints(view)` (`show()`:ssa) laskee näkymän avaukset `localStorage`-avaimeen `kk_vihjeet`
+  ({ avain: määrä | "x" }); ≥ `HINT_MAX` (5) tai "x" → `.hintoff`. Näkymän `h2`:een lisätään ⓘ (`.hinti`, `data-hinti`), kun jokin ohje
+  on piilossa; se nollaa näkymän laskurit. Testeissä tyhjennä `kk_vihjeet` tai huomioi laskuri.
 - **Tallentamattomat muutokset:** resepti- ja viinilomake ottavat avattaessa tilannekuvan (`editSnap`, `wineSnap`).
   Peruuta, takaisin-pyyhkäisy ja muut siirtymät kysyvät "Hylätäänkö tallentamattomat muutokset?", jos lomaketta on muutettu.
 - **Piilotetut osiot:** `hidden` (Set) = RPC `my_hidden_sections()` `loadAll()`:ssa (adminilla tyhjä). `applyHidden()` piilottaa
@@ -428,13 +473,17 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   `ppm` (annosta per ateria), `planWeek` (näytettävän viikon maanantai), `openPast` (avatut menneet päivät), `noteEdit`.
   Päivät ovat paikallisia `YYYY-MM-DD`-merkkijonoja: apurit `isoOf`, `dateOf`, `addDays`, `mondayOf`, `isoWeek` (ISO-viikko),
   `dayShort` ("ke 11.11."), `dayLabel` ("Ke 11.11."), `weekRange`, `weekHash` (tämä viikko → `#/viikko`). `MEALS` = lounas/päivällinen.
-  - **Etusivun kortti** `#wkCard` (`renderPlanCard`): viikko + tämän päivän ateriat; ruoan napautus avaa reseptin.
+  - **Etusivun kortti** `#wkCard` (`renderPlanCard` → `planCardDay(päivä, otsikko, tyhjäteksti)`): viikko + tämän päivän ateriat,
+    klo `CARD_TOMORROW_HOUR` (18) jälkeen myös huominen (`.wknext`; piirretään uudelleen, kun sovellus palaa näkyviin etusivulla);
+    ruoan napautus avaa reseptin.
   - **Viikkonäkymä** (`renderPlan`, `dayHtml`, `planItemHtml`): päiväkortit, tänään korostettu (`.day.now`). Menneet päivät
     `.day.compact` (päivä + ruokien nimet), napautus (`data-expand`) avaa, "Pienennä" (`data-collapse`) sulkee. Ruoka-rivi:
     pikkukuva tai alkukirjain (vapaa teksti: katkoviivareunus), nimi, metarivi (aika · tagikuvakkeet · annokset, tähteillä
     "🔁 tähteet ti päivällisestä"). Rivin napautus `openFromPlan(it)` asettaa reseptin annosmäärän (`cookState(r).servings`,
     tähteillä alkuperäisen rivin `servings`) ja avaa reseptin; vapaa teksti avaa muokkauksen. Muokkaajalle `+` (lisää aterialle),
     `⋯` (muokkaus), tyhjässä ateriassa "+ Lisää lounas" ja päivän otsikossa 📝 (muistiinpano, `upsert`/`delete` meal_plan_notes).
+    Arkipäivän tyhjä lounas (ei ehdotusta, ei ehdotuksen tähteitä, ei "Ei enempää ehdotuksia") = `.meal.mlite`: otsikkorivillä
+    `.mlbtns` = 💡 (`.sone`, `data-sone`, vain tänään ja tulevat) ja + (`data-add`); `data-slot` säilyy, joten se on raahauskohde.
     Lukijalle ei nappeja, tyhjä ateria "–".
   - **Lisäys** (`openPlanAdd`, `renderPlanAdd`): ✏️ Oma merkintä (vapaa teksti) tai resepti: haku (kaikista näkyvistä
     resepteistä), kategoriachipit (näkyvät kategoriat), ryhmächipit (`GRID`-ryhmät / vauvalla `PRIMARY`), järjestys (sama `sortMode`).
@@ -528,12 +577,16 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     pois), key (koko, sumea määrä ja valmistustapa `SH_PREP` pois, laatusanat säilyvät: "tuoretta" / "kuivattua basilikaa" eri riveinä;
     viimeinen sana perusmuotoon `shopStem`: "sipulia" → "sipuli", "valkosipulinkynttä" → "valkosipulinkynsi", "perunoita" → "peruna";
     valinnainen "(…)" saa etuliitteen `?` eikä yhdisty), water }. Määrä voi olla myös lopussa ("spagettia n. 400 g").
-  - **Kaikki A–Ö** `shopGroups(cards)`: osat ryhmitellään `key`llä; resepteittäin rastitetut osat eivät kuulu yhteismäärään. Yksi osa →
+  - **Osastoittain** (`shopMode` = `"az"`, vanha nimi Kaikki A–Ö) `shopGroups(cards)`: osat ryhmitellään `key`llä; resepteittäin rastitetut osat eivät kuulu yhteismäärään. Yksi osa →
     alkuperäinen skaalattu teksti; useampi → yksiköittäiset summat `shopQty` (≥ 1000 g → kg, ≥ 10 dl → l, sanayksiköt taivutettuina) +
     nimi; yksiköttömillä taivutus alkuperäisen määrän mukaan (`ohi`: "1 sipuli" + "2 sipulia" = "3 sipulia", tarvittaessa `shopPartitive`;
     muuten osat näkyvissä "1 + 1 …"). Määrättömät osat ("suolaa") eivät muuta summaa. Järjestys `sort` (`localeCompare(…, "fi")`).
     `renderShop()` jakaa ryhmät rastittamattomiin (`rest`) ja rastitettuihin (`got`, `shopDone`): ensin `rest`, sitten väliotsikko
     `<li class="shsub shgot">` (pieni harmaa `.lbl`-tyyli; `.first`, jos kaikki on rastitettu) ja `got`. Molemmat aakkosjärjestyksessä.
+    **Osastot** (22.11.2026): ryhmän `aisle` = `shopAisle(clean)`: `AISLE_RULES` (järjestys spice → can → dairy → meat → dry → veg,
+    ensimmäinen osuva regex pienaakkosiin, esim. "tomaattimurska" → can ennen veg, "kananmuna" → dairy ennen meat, "aurinkokuivattu"
+    ei mausteisiin), muuten other. `rest` jaetaan `AISLES`-järjestyksessä otsikoiden `<li class="shsub shaisle">` alle (ensimmäinen
+    ilman ylärajaa). Kopioitu teksti: osaston nimi ilman emojia + ":" ja rivit. Uusi aines väärässä osastossa → lisää sana sääntöön.
   - **🔍** `shopTerm(clean)`: ensimmäinen vaihtoehto ennen " tai " (paitsi "mauste- tai suolakurkkua"), laatusanat pois, perusmuoto;
     "lehtisellerin varsi" → "lehtiselleri", "valkosipulinkynsi" → "valkosipuli". `shopUrl(term)`, `target="_blank"`.
   - **Yhteishyvä** `yhUrl(r)` = ensimmäinen `https://(www.)yhteishyva.fi/…`-osoite `source`-kentästä (`safeUrl`), muutettuna sovelluslinkiksi
@@ -544,10 +597,10 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     `yhHtml(c, ci, compact)`: linkki `<a class="shyh" target="_blank" data-shyh="<kortin indeksi>">`; napautuksessa oletustoiminto
     avaa linkin ja `setTimeout`-viiveellä `shopToggle([...cardKeys(card), yhKey(it)], true)`. Merkintä `yhKey(it)` = `<meal_plan.id>:yh`
     (arvo = päivä) samassa `shopChecked`issä (siivoutuu rivin mukana). Lähetetyllä kortilla `.shyhdone`-rivi; ↺ Peru ja "Poista rastit"
-    poistavat myös merkinnän. A–Ö: `.shyhcard` + `.shyhrow` (`compact`, lähetetty `.shyh.sm.sent` "✓ Nimi ↗").
+    poistavat myös merkinnän. Osastoittain: `.shyhcard` + `.shyhrow` (`compact`, lähetetty `.shyh.sm.sent` "✓ Nimi ↗").
   - **Perusaineet** `pantryList` (= `plan_settings.pantry`, ladataan `loadPlan()`:ssa). `pantryNorm(sana)` = `shopStem` + "extra-/ekstra-neitsyt"-
     alku pois; `isPantry(clean, set)`: kaikki osat (`shopSegs`: jako " ja " / " tai " / "+", "avokado-"-tyyppiset alkuosat ohitetaan)
-    ovat listalla (`shopNoun` = osan viimeinen sana laatusanojen jälkeen). Osalla `x.pantry`, rivillä ja A–Ö-ryhmällä `pantry` (kaikki
+    ovat listalla (`shopNoun` = osan viimeinen sana laatusanojen jälkeen). Osalla `x.pantry`, rivillä ja Osastoittain-ryhmällä `pantry` (kaikki
     osat) → 🏠 (`.shpan`, inline-block, ettei yliviivaus osu). Paneeli `#shPantry` (`renderPantry(cards)`, `shopPanOpen`): chipit
     `data-pan-del` (indeksi), lomake `#shPanForm`/`#shPanIn` (`addPantry`: pienet kirjaimet, max 40 merkkiä, ei kaksoiskappaleita
     perusmuodon mukaan, max 100), ehdotukset `data-pan-add` = listan osat ilman määrää tai tl/rkl, yksiosaiset, ei perusaineita,
@@ -592,7 +645,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     **Huom. CSS-luokat ovat globaaleja:** `.slot` on Riittää-sivun rivi ja `.stepper` annosmäärän −/+ (pullomäärä käyttää samaa,
     arvo `.val.num`). Tarkista uutta luokkaa lisätessä, ettei nimi ole jo käytössä (`grep -n "\.nimi" keittokirja.html`).
     Korostus: viinin ruudut `.hl`, muut `.dim`. Alla "Ilman paikkaa" -viinit. Ruutu `cellarTile(w, b, cls)`; kaikilla ruuduilla
-    `data-at="h-p"`, ohje `#cellarHint` (muokkaajalle raahausohje).
+    `data-at="h-p"`, ohje `#cellarHint` ("Hylly 1 on ylin…") ja muokkaajalle raahausohje `#cellarDragHint` (`data-hint`, näkyy, jos kellarissa on pulloja).
   - **Siirto raahaamalla** (vain muokkaaja): raahattavat `[data-drag="<pullon id>"]` = täydet ruudut ja "Ilman paikkaa" -rivit
     (viinin ensimmäinen paikaton pullo). Oma tila `cdrag` (viikkosuunnitelman `drag` erikseen; yhteinen `dragJustEnded` estää
     pudotuksen jälkeisen klikkauksen), pitkä painallus 350 ms, liike > 10 px ennen sitä = vieritys, haamu `.cslot.dragghost`

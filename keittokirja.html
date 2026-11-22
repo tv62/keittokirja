@@ -511,12 +511,80 @@
   .shpanadd button { flex: none; }
   .shoth { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0 0; font-size: .92rem; }
   .shoth .muted { font-size: .85rem; text-align: right; }
+  /* Ostoslista kaupan osastoittain (11/2026): osaston otsikko, ensimmäinen ilman ylärajaa */
+  .shlines > .shaisle:first-child { border-top: none; padding-top: 4px; }
+
+  /* ===== Käytettävyysparannukset 22.11.2026 ===== */
+  /* Paikkakuva ilman kuvaa: pääraaka-aineen emoji värillisellä taustalla (ennen nimen alkukirjain) */
+  .thumb.ph.emo, .pth.emo { font: 1.85rem/1 -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+    background: var(--bgc, var(--chip)); }
+  .pth.emo { font-size: 1.4rem; }
+  @media (prefers-color-scheme: dark) { .thumb.ph.emo, .pth.emo { background: color-mix(in srgb, var(--bgc, var(--chip)) 22%, var(--card)); } }
+  /* Puhelimessa etusivun kortit kahteen sarakkeeseen: kaikki osiot näkyvät ilman vieritystä */
+  @media (max-width: 599px) {
+    .home { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .home .wide { grid-column: 1 / -1; }
+    .home .cat { flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px 14px 14px; font-size: min(1.12rem, 4.4vw);
+      overflow-wrap: anywhere; }
+    .home .cat .e { font-size: 2rem; }
+    .home .cat.wide { flex-direction: row; align-items: center; gap: 14px; padding: 14px 16px; }
+    .wkhead { padding: 16px 18px 12px; }
+  }
+  .wknext { margin-top: 14px; }
+  .trow .tt { overflow-wrap: break-word; }
+  @media (max-width: 359px) { /* hyvin kapea puhelin */
+    .wkhead { font-size: 1.15rem; gap: 12px; } .wkhead .e { font-size: 2rem; } .trow .tm { width: 72px; }
+  }
+  /* Arkipäivän tyhjä lounas yhtenä rivinä (+ ja 💡) */
+  .meal.mlite .mh { min-height: 40px; }
+  .mlbtns { display: flex; align-items: center; margin-right: -10px; }
+  .mlbtns .plus { margin-right: 0; }
+  .mlbtns .sone { width: 44px; height: 40px; padding: 0; border: none; background: none; font-size: 1rem; }
+  /* Leveä näyttö (iPad, puhelin vaakatasossa): viikko ja listat sarakkeisiin */
+  @media (min-width: 760px) {
+    .v-wide .list.cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .v-plan .days { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  }
+  @media (min-width: 960px) and (orientation: landscape) { .v-wide .wrap, .v-plan .wrap { max-width: 1160px; } }
+  @media (min-width: 1100px) and (orientation: landscape) {
+    .v-wide .list.cols, .v-plan .days { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  /* Reseptisivu: Lisää viikkoon -valinta */
+  .cookbtns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .dplan { margin: 12px 0 0; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
+  .dplan .lbl { margin: 0 0 6px; }
+  .dplan .chips { margin-bottom: 8px; }
+  .dplan .chips.scroll { margin-right: 0; padding-right: 0; }
+  .dplan .seg { margin: 0 0 8px; }
+  .dplan .dpnow { font-size: .88rem; color: var(--muted); margin: 2px 0 0; }
+  .dplan .actions { margin-top: 10px; }
+  /* Lomakkeen Tallenna-palkki pysyy näytön alareunassa */
+  .savebar { position: sticky; bottom: 0; z-index: 5; margin: 20px -18px 0; padding: 10px 18px calc(10px + env(safe-area-inset-bottom));
+    background: var(--card); border-top: 1px solid var(--line); }
+  textarea.grow { overflow-y: hidden; }
+  /* Alasivuilla takaisin-linkki yläpalkissa ja pata-logo pienenä etusivunappina */
+  #hBack { display: none; flex: 1; min-width: 0; min-height: 44px; margin-left: -6px; text-align: left; font-size: 1rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  body.sub #hBack { display: block; }
+  body.sub header { margin-bottom: 4px; }
+  body.sub header h1 { order: 2; }
+  body.sub header .hbtns { flex: none; order: 3; }
+  body.sub header h1 .ttl { display: none; }
+  body.sub header h1 button { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+  body.sub header h1 .logo { height: 26px; margin: 0; vertical-align: 0; }
+  .inhdr { display: none !important; }
+  /* Ohjetekstit: näkyvät muutaman kerran, ✕ piilottaa heti, ⓘ otsikon vieressä tuo takaisin */
+  .hintoff { display: none !important; }
+  .hintx { border: none; background: none; color: var(--muted); padding: 0 4px; min-width: 32px; min-height: 28px; font-size: .85rem; vertical-align: baseline; }
+  .hinti { border: none; background: none; color: var(--muted); font: 400 1rem/1 -apple-system, BlinkMacSystemFont, sans-serif;
+    min-width: 40px; min-height: 40px; padding: 0; vertical-align: middle; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1><button id="titleBtn" type="button" aria-label="Keittokirja – etusivulle"><img class="logo" src="pata.svg" alt="" width="58" height="32">Keittokirja</button></h1>
+    <button id="hBack" class="link" type="button"></button>
+    <h1><button id="titleBtn" type="button" aria-label="Keittokirja – etusivulle"><img class="logo" src="pata.svg" alt="" width="58" height="32"><span class="ttl">Keittokirja</span></button></h1>
     <div class="hbtns">
       <button id="adminBtn" class="link gear hidden" aria-label="Hallinta" title="Hallinta">⚙️</button>
       <button id="logoutBtn" class="link hidden">Kirjaudu ulos</button>
@@ -562,7 +630,7 @@
           <span class="e">🥘</span><span>Arkiruoka<span class="s" id="cnt_arkiruoka"></span></span>
         </button>
         <button class="cat card" data-cat="viikonloppuherkut">
-          <span class="e">🥂</span><span>Viikonloppuherkut<span class="s" id="cnt_viikonloppuherkut"></span></span>
+          <span class="e">🥂</span><span>Viikonloppu&shy;herkut<span class="s" id="cnt_viikonloppuherkut"></span></span>
         </button>
         <button class="cat card" data-nav="menus">
           <span class="e">📜</span><span>Menut<span class="s" id="cnt_menus"></span></span>
@@ -641,7 +709,7 @@
       </label>
       <div id="f_babynoteswrap">
         <label for="f_babynotes">🍼 Vauvaohje <span class="muted">(näkyy vain, kun resepti avataan vauvan ruoista)</span></label>
-        <textarea id="f_babynotes" rows="2" placeholder="esim. Ota vauvan annos sivuun ennen suolaa ja liemikuutiota."></textarea>
+        <textarea class="grow" id="f_babynotes" rows="2" placeholder="esim. Ota vauvan annos sivuun ennen suolaa ja liemikuutiota."></textarea>
       </div>
       <label for="f_description">Lyhyt kuvaus</label>
       <input id="f_description">
@@ -650,9 +718,9 @@
         <div><label for="f_prep">Aika (min)</label><input id="f_prep" type="number" min="0" inputmode="numeric"></div>
       </div>
       <label for="f_ingredients">Ainekset (yksi per rivi)</label>
-      <textarea id="f_ingredients" placeholder="2 dl kermaa&#10;1 sipuli"></textarea>
+      <textarea class="grow" id="f_ingredients" placeholder="2 dl kermaa&#10;1 sipuli"></textarea>
       <label for="f_instructions">Ohje (yksi vaihe per rivi)</label>
-      <textarea id="f_instructions" placeholder="Kuullota sipuli voissa.&#10;Lisää kerma ja keitä hiljalleen."></textarea>
+      <textarea class="grow" id="f_instructions" placeholder="Kuullota sipuli voissa.&#10;Lisää kerma ja keitä hiljalleen."></textarea>
       <label>Tagit <span style="font-size:.85rem">(napauta valitaksesi)</span></label>
       <div class="chips tagpick" id="f_tagpick" role="group" aria-label="Tagit"></div>
       <div class="search" style="margin:0">
@@ -681,11 +749,12 @@
         <input type="file" id="f_file" accept="image/*" class="vh" tabindex="-1">
       </div>
       <label for="f_notes">Muistiinpanot</label>
-      <textarea id="f_notes" style="min-height:80px"></textarea>
-      <div class="actions">
-        <button class="primary" type="submit" id="saveBtn">Tallenna</button>
-      </div>
+      <textarea class="grow" id="f_notes" style="min-height:80px"></textarea>
       <div id="editMsg" class="msg err hidden"></div>
+      <div class="actions savebar">
+        <button class="primary" type="submit" id="saveBtn">Tallenna</button>
+        <button type="button" data-cancel="cancelBtn">Peruuta</button>
+      </div>
       <div id="delWrap" class="danger-zone hidden">
         <button type="button" class="danger" id="delBtn">Poista resepti</button>
       </div>
@@ -696,7 +765,7 @@
   <section id="menusView" class="hidden">
     <button class="link" data-home="1">← Etusivu</button>
     <h2 style="margin:6px 0 14px">Menut</h2>
-    <div class="list" id="menusList"></div>
+    <div class="list cols" id="menusList"></div>
   </section>
 
   <!-- Yksi menu -->
@@ -720,7 +789,7 @@
     </div>
     <div class="chips primary scroll wfilt" id="wineFilt" role="group" aria-label="Rajaa viinejä"></div>
     <div id="wineMsg" class="msg hidden"></div>
-    <div class="list" id="wineList"></div>
+    <div class="list cols" id="wineList"></div>
   </section>
 
   <!-- Yksi viini -->
@@ -736,6 +805,7 @@
     <p class="muted" id="cellarInfo" style="margin:0 0 12px"></p>
     <div class="cellar card" id="cellarGrid"></div>
     <p class="hint" id="cellarHint">Hylly 1 on ylin, paikka 1 vasemmalla.</p>
+    <p class="hint hidden" id="cellarDragHint" data-hint="kellari-raahaus">Siirrä pulloa pitämällä sitä hetki sormella ja raahaamalla. Varattuun paikkaan pudotettu pullo vaihtaa paikkaa.</p>
     <div id="cellarLoose"></div>
   </section>
 
@@ -796,7 +866,7 @@
       <label>Tähdet</label>
       <div class="starpick" id="t_stars" role="group" aria-label="Arvio, 1–5 tähteä"></div>
       <label for="t_notes">Muistiinpanot</label>
-      <textarea id="t_notes" maxlength="2000" style="min-height:90px" placeholder="Miltä maistui, sopiko ruoalle…"></textarea>
+      <textarea class="grow" id="t_notes" maxlength="2000" style="min-height:90px" placeholder="Miltä maistui, sopiko ruoalle…"></textarea>
       <div id="tastingMsg" class="msg hidden"></div>
       <div class="actions"><button type="submit" class="primary" id="tastingSaveBtn">Tallenna</button></div>
       <div id="tDelWrap" class="actions hidden" style="margin-top:28px">
@@ -870,9 +940,9 @@
       <h3>Oma arvio</h3>
       <div class="starpick" id="w_stars" role="group" aria-label="Oma arvio, 1–5 tähteä"></div>
       <label for="w_own_notes">Omat muistiinpanot</label>
-      <textarea id="w_own_notes" style="min-height:90px" placeholder="Miltä maistui, sopiko ruoalle, ostaisinko uudelleen…"></textarea>
+      <textarea class="grow" id="w_own_notes" style="min-height:90px" placeholder="Miltä maistui, sopiko ruoalle, ostaisinko uudelleen…"></textarea>
       <label for="w_desc">Kuvaus (tuoksu, maku)</label>
-      <textarea id="w_desc" style="min-height:90px"></textarea>
+      <textarea class="grow" id="w_desc" style="min-height:90px"></textarea>
       <label for="w_food">Ruokapari</label>
       <input id="w_food">
       <label>Kuva</label>
@@ -892,8 +962,9 @@
         </div>
         <input type="file" id="w_file" accept="image/*" class="vh" tabindex="-1">
       </div>
-      <div class="actions"><button class="primary" type="submit" id="wineSaveBtn">Tallenna</button></div>
       <div id="wineEditMsg" class="msg err hidden"></div>
+      <div class="actions savebar"><button class="primary" type="submit" id="wineSaveBtn">Tallenna</button>
+        <button type="button" data-cancel="wineCancelBtn">Peruuta</button></div>
       <div id="wDelWrap" class="danger-zone hidden">
         <button type="button" class="danger" id="wDelBtn">Poista viini</button>
       </div>
@@ -911,7 +982,7 @@
     </div>
     <div class="center hidden" id="wkThisWrap" style="margin:-6px 0 8px"><button type="button" class="link" id="wkThis">↩ Tähän viikkoon</button></div>
     <div class="sugbar hidden" id="sugBar"></div>
-    <p class="hint center edit-only" id="dragHint" style="margin:-6px 0 10px">Siirrä ruokaa tai ehdotusta: pidä sormea sen päällä hetki ja raahaa toiselle aterialle.</p>
+    <p class="hint center edit-only" id="dragHint" data-hint="viikko-raahaus" style="margin:-6px 0 10px">Siirrä ruokaa tai ehdotusta: pidä sormea sen päällä hetki ja raahaa toiselle aterialle.</p>
     <div id="planMsg" class="msg hidden"></div>
     <div class="days" id="days"></div>
   </section>
@@ -941,7 +1012,7 @@
       </label>
     </div>
     <div id="paMsg" class="msg hidden"></div>
-    <div class="list" id="paList"></div>
+    <div class="list cols" id="paList"></div>
   </section>
 
   <!-- Viikkosuunnitelma: valitun reseptin ateriat (riittää usealle aterialle) -->
@@ -960,15 +1031,15 @@
   <section id="shopView" class="hidden">
     <button class="link" id="shBack">← Viikkosuunnitelma</button>
     <h2 style="margin:6px 0 2px">🛒 Ostoslista</h2>
-    <p class="hint" style="margin:0 0 12px">Suunniteltujen ruokien ainekset annosmäärien mukaan. Tähteinä syötävä ruoka lasketaan vain kerran.</p>
+    <p class="hint" data-hint="ostos-alku" style="margin:0 0 12px">Suunniteltujen ruokien ainekset annosmäärien mukaan. Tähteinä syötävä ruoka lasketaan vain kerran.</p>
     <div class="lbl" style="margin:0 0 6px">Päivät</div>
     <div class="chips primary scroll" id="shDays" role="group" aria-label="Ostoslistan päivät"></div>
     <div id="shBody">
       <div class="chips seg" id="shMode" role="group" aria-label="Ostoslistan järjestys">
         <button type="button" class="chip" data-shmode="resepti">Resepteittäin</button>
-        <button type="button" class="chip" data-shmode="az">Kaikki A–Ö</button>
+        <button type="button" class="chip" data-shmode="az">Osastoittain</button>
       </div>
-      <p class="hint" id="shHint">Napauta aines, joka on jo kotona tai lisätty S-kauppojen listaan. 🔍 hakee tuotteen S-kaupoista.</p>
+      <p class="hint" id="shHint" data-hint="ostos-rasti">Napauta aines, joka on jo kotona tai lisätty S-kauppojen listaan. 🔍 hakee tuotteen S-kaupoista.</p>
       <div class="card shpantry" id="shPantry"></div>
       <div class="shsum" id="shSum"></div>
       <div id="shList"></div>
@@ -977,7 +1048,7 @@
         <button type="button" id="shShare" class="hidden">Jaa…</button>
         <button type="button" class="link" id="shClear">Poista rastit</button>
       </div>
-      <p class="hint">Kopioi tai jaa -toiminto ottaa mukaan vain rastittamattomat ainekset. Rastit näkyvät koko perheelle.</p>
+      <p class="hint" data-hint="ostos-kopio">Kopioi tai jaa -toiminto ottaa mukaan vain rastittamattomat ainekset. Rastit näkyvät koko perheelle.</p>
     </div>
     <div id="shEmpty" class="msg hidden"></div>
   </section>
@@ -1085,6 +1156,7 @@
   // Valmistusaika: alle 60 min minuutteina, muuten tunteina puolen tunnin tarkkuudella aina ylöspäin (65 → "1,5 h", 160 → "3 h").
   const fmtTime = (m) => m < 60 ? `${m} min` : `${String(Math.ceil(m / 30) / 2).replace(".", ",")} h`;
   const fiDate = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-"); return `${+d}.${+m}.${y}`; };
+  const fiShort = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-"); return +y === new Date().getFullYear() ? `${+d}.${+m}.` : y; };
   const todayIso = () => { const t = new Date(), z = (n) => String(n).padStart(2, "0"); return `${t.getFullYear()}-${z(t.getMonth() + 1)}-${z(t.getDate())}`; };
   const byTitle = (a, b) => (a.title || "").localeCompare(b.title || "", "fi");
   const SORTS = {
@@ -1142,9 +1214,23 @@
   // Listan pikkukuva tai nimen alkukirjain. tall = viinin pystykuva (44×66).
   function thumbHtml(item, name, tall) {
     const tu = imgUrl(item, true), t = tall ? " tall" : "";
-    return tu ? `<img class="thumb${t}" src="${esc(tu)}" alt="" loading="lazy">`
-      : `<span class="thumb ph${t}" aria-hidden="true">${esc((name || "?").trim().charAt(0).toUpperCase())}</span>`;
+    if (tu) return `<img class="thumb${t}" src="${esc(tu)}" alt="" loading="lazy">`;
+    if (!tall) return emoPh(item, "thumb ph"); // resepti ilman kuvaa: pääraaka-aineen emoji
+    return `<span class="thumb ph${t}" aria-hidden="true">${esc((name || "?").trim().charAt(0).toUpperCase())}</span>`;
   }
+  // Paikkakuva reseptille ilman kuvaa (22.11.2026, ennen nimen alkukirjain): ensimmäinen MAIN_ORDER-tagi → emoji ja taustaväri.
+  // Tummassa tilassa väri sekoitetaan kortin väriin (CSS). Ilman sopivaa tagia 🍽️.
+  const MAIN_ORDER = ["katkarapu", "kala", "kana", "nauta", "lammas", "poro", "sose", "sormiruoka", "pizza", "keitto", "pasta",
+    "linssi", "papu", "sienet", "kasvis", "peruna", "kastike", "marinadi", "makeat", "alkuruoka", "pata", "uuniruoka"];
+  const MAIN_BG = { katkarapu: "#f7d5c8", kala: "#cfe3ee", kana: "#f3e2b8", nauta: "#efcfc6", lammas: "#efcfc6", poro: "#e6d3c0",
+    sose: "#dfe9f3", sormiruoka: "#dfe9f3", pizza: "#f4d9b6", keitto: "#f0dcc2", pasta: "#f4e2b6", linssi: "#d6e8c4", papu: "#d6e8c4",
+    sienet: "#e6dccd", kasvis: "#d6e8c4", peruna: "#ece0c4", kastike: "#e4e0d6", marinadi: "#e4e0d6", makeat: "#f1d9e3",
+    alkuruoka: "#d6e8c4", pata: "#ecd8c8", uuniruoka: "#f0d9c4" };
+  function mainIcon(r) {
+    const t = MAIN_ORDER.find((m) => (r?.tags || []).includes(m));
+    return t ? [TAG_ICON[t], MAIN_BG[t] || "#e9e1d4"] : ["🍽️", "#e9e1d4"];
+  }
+  const emoPh = (r, cls) => { const [e, bg] = mainIcon(r); return `<span class="${cls} emo" style="--bgc:${bg}" aria-hidden="true">${e}</span>`; };
   // Iso kuva kahteen kohtaan: CSS näyttää puhelimessa lopussa (rimg-end), isommalla näytöllä ylhäällä (rimg-top).
   // cls voi sisältää "tall" (viini: kuva omassa muodossaan, enintään 300×450).
   const bigPic = (item, alt, cls) => { const u = imgUrl(item, false); return u ? `<img class="rimg ${cls}" src="${esc(u)}" alt="${esc(alt)}">` : ""; };
@@ -1373,13 +1459,76 @@
     $("logoutBtn").classList.toggle("hidden", view === "authView" || isAdmin);
     $("adminBtn").classList.toggle("hidden", view === "authView" || view === "adminView" || !isAdmin);
     document.body.classList.toggle("v-detail", view === "detailView");
+    // Leveällä näytöllä listat ja viikko sarakkeisiin (CSS: .v-wide .list.cols, .v-plan .days)
+    document.body.classList.toggle("v-wide", ["listView", "winesView", "planAddView", "menusView"].includes(view));
+    document.body.classList.toggle("v-plan", view === "planView");
+    applyHints(view);
+    syncHeaderBack();
     window.scrollTo(0, 0);
   }
   function msg(el, text, isErr) {
     el.textContent = text || "";
     el.classList.toggle("hidden", !text);
     el.classList.toggle("err", !!isErr);
+    // Lomakkeen virhe myös ilmoituksena alareunaan (Tallenna-palkki on alhaalla, viesti voi jäädä näkymättömiin)
+    if (isErr && text && el.closest("form")) toast(text, true, 5000);
   }
+
+  // ----- Yläpalkin takaisin-linkki (22.11.2026) -----
+  // Alasivuilla näkymän oma "← …"-linkki näytetään yläpalkissa (säästää yhden rivin), pata-logo jää pieneksi etusivunapiksi.
+  let hdrBackSrc = null;
+  function syncHeaderBack() {
+    for (const el of document.querySelectorAll(".inhdr")) el.classList.remove("inhdr");
+    const sec = currentView && $(currentView);
+    const src = sec && [...sec.querySelectorAll(":scope > button.link")]
+      .find((b) => !b.classList.contains("hidden") && b.textContent.trim().startsWith("←"));
+    hdrBackSrc = src || null;
+    document.body.classList.toggle("sub", !!src);
+    if (src) { src.classList.add("inhdr"); $("hBack").textContent = src.textContent.trim(); }
+  }
+  $("hBack").onclick = () => hdrBackSrc && hdrBackSrc.click();
+
+  // ----- Ohjetekstit (22.11.2026) -----
+  // [data-hint]-ohje näkyy HINT_MAX kertaa (näkymän avauksia), ✕ piilottaa heti. Otsikon ⓘ tuo näkymän ohjeet takaisin.
+  const HINT_KEY = "kk_vihjeet", HINT_MAX = 5;
+  let hintState = {};
+  try { hintState = JSON.parse(localStorage.getItem(HINT_KEY) || "{}") || {}; } catch {}
+  const hintOff = (k) => hintState[k] === "x" || (hintState[k] || 0) >= HINT_MAX;
+  function saveHints() { try { localStorage.setItem(HINT_KEY, JSON.stringify(hintState)); } catch {} }
+  for (const el of document.querySelectorAll("[data-hint]")) {
+    el.insertAdjacentHTML("beforeend", ` <button type="button" class="hintx" data-hintx="${el.dataset.hint}" aria-label="Piilota ohje" title="Piilota ohje">✕</button>`);
+  }
+  function applyHints(view, noCount) {
+    const sec = $(view); if (!sec) return;
+    const els = [...sec.querySelectorAll("[data-hint]")]; if (!els.length) return;
+    let anyOff = false;
+    for (const el of els) {
+      const k = el.dataset.hint, off = hintOff(k);
+      if (!noCount && !off) hintState[k] = (hintState[k] || 0) + 1;
+      el.classList.toggle("hintoff", off);
+      anyOff = anyOff || off;
+    }
+    if (!noCount) saveHints();
+    const h2 = sec.querySelector("h2"); if (!h2) return;
+    let i = h2.querySelector(".hinti");
+    if (!i) { h2.insertAdjacentHTML("beforeend", ` <button type="button" class="hinti" data-hinti="${view}" aria-label="Näytä ohjeet" title="Näytä ohjeet">ⓘ</button>`); i = h2.querySelector(".hinti"); }
+    i.classList.toggle("hidden", !anyOff);
+  }
+  document.addEventListener("click", (e) => {
+    const x = e.target.closest("[data-hintx]");
+    if (x) { hintState[x.dataset.hintx] = "x"; saveHints(); applyHints(currentView, true); return; }
+    const i = e.target.closest("[data-hinti]");
+    if (i) { for (const el of $(i.dataset.hinti).querySelectorAll("[data-hint]")) hintState[el.dataset.hint] = 0; saveHints(); applyHints(i.dataset.hinti, true); }
+    // Tallenna-palkin Peruuta = näkymän oma ← Peruuta -linkki
+    const c = e.target.closest("[data-cancel]"); if (c) $(c.dataset.cancel).click();
+  });
+  // Pitkät tekstikentät kasvavat tekstin mukana (ei sisäistä vieritystä)
+  function grow(el) {
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + 2 + "px";
+  }
+  const growAll = (root) => requestAnimationFrame(() => { for (const t of root.querySelectorAll("textarea.grow")) grow(t); });
+  document.addEventListener("input", (e) => { if (e.target.matches?.("textarea.grow")) grow(e.target); });
 
   // ---------- Osoitteet (reititys) ----------
   // Jokaisella näkymällä on oma #/-osoite. Näin selaimen takaisin-ele ja sivun päivitys toimivat,
@@ -1432,6 +1581,7 @@
     }
     if (!renderRoute(...parts)) { history.replaceState({ d: depth() }, "", "#/"); renderRoute(); }
     if (currentView !== "detailView") unlockScreen();
+    syncHeaderBack();
     lastHash = location.hash; lastState = history.state;
     if (isPop) { const y = (history.state && history.state.y) || 0; requestAnimationFrame(() => window.scrollTo(0, y)); }
   }
@@ -1861,12 +2011,14 @@
     $("orderHint").classList.toggle("hidden", !ordering);
     shown.sort(SORTS[sortMode] || SORTS.oma);
 
+    // Leveällä näytöllä rivit sarakkeisiin, paitsi järjestäessä (raahaus yhdessä sarakkeessa) ja menuittain (ryhmät sarakkeissa)
+    $("list").classList.toggle("cols", !menuMode && !ordering);
     if (menuMode) {
       const groups = new Map();
       for (const r of shown) { const m = menuOf(r); if (!groups.has(m)) groups.set(m, []); groups.get(m).push(r); }
       $("list").innerHTML = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], "fi")).map(([m, rs]) =>
         `<button class="group-title" data-openmenu="${esc(m)}">🍽 ${esc(m)} <span class="muted" style="font-style:normal;font-size:.85rem">· avaa menu ›</span></button>
-         <div class="list">${rs.sort(byCourse).map((r) => recipeItem(r, true)).join("")}</div>`
+         <div class="list cols">${rs.sort(byCourse).map((r) => recipeItem(r, true)).join("")}</div>`
       ).join("") || empty;
     } else {
       $("list").innerHTML = shown.map((r) => recipeItem(r, false, ordering)).join("") || empty;
@@ -1892,6 +2044,7 @@
     const menu = hideMenu || hidden.has("menut") ? null : menuOf(r);
     const top = (r.tags || []).includes("top");
     // Lisäyspäivä rivin oikeassa laidassa (vain päivälajittelussa)
+    // Lyhyt muoto (22.11.2026): tänä vuonna "19.11.", aiemmin pelkkä vuosi; koko päivä aria-labelissa ja title-tekstissä
     const date = ["uusin", "vanhin"].includes(sortMode) && r.added_on ? fiDate(r.added_on) : "";
     const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r)].filter(Boolean).join(" · ");
     const thumb = thumbHtml(r, r.title);
@@ -1900,7 +2053,7 @@
       <div class="body"><div class="t">${esc(r.title)}</div><div class="m">${meta}</div></div>
       ${menu || top || date ? `<div class="side">
         ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
-        ${date ? `<span class="rdate" aria-label="Lisätty ${date}">${date}</span>` : ""}
+        ${date ? `<span class="rdate" aria-label="Lisätty ${date}" title="Lisätty ${date}">${fiShort(r.added_on)}</span>` : ""}
         ${top ? `<span class="star" role="img" aria-label="Top-listalla">⭐</span>` : ""}
       </div>` : ""}
       ${sorting ? `<span class="grip" role="img" aria-label="Siirrä ${esc(r.title)}">≡</span>` : ""}
@@ -2077,7 +2230,29 @@
   let detailId = null;
   let detailBaby = false; // avattu vauvan ruoista (#/resepti/<id>/vauva) → vauvaohje näkyy
   let detailSugg = null;   // avattu viikkosuunnitelman ehdotuksesta (paikka "päivä|ateria") → ehdotuspalkki
+  // Lisää viikkoon reseptisivulta (22.11.2026): päivä (tänään + 13 pv) ja ateria → Riittää-sivu (#/viikko/lisaa/…/<resepti>).
+  let detailPlan = null;   // { day, meal } kun valinta on auki
+  let pickOrigin = null;   // "päivä|ateria|resepti": Riittää-sivu avattiin reseptisivulta (paluu sinne)
+  const canPlanHere = () => canEdit && !hidden.has("viikko");
+  function defaultPlanSlot() {
+    const t = todayIso(), start = new Date().getHours() >= CARD_TOMORROW_HOUR ? addDays(t, 1) : t;
+    for (let i = 0; i < 14; i++) { const d = addDays(start, i); if (!slotItems(d, "paivallinen").length) return { day: d, meal: "paivallinen" }; }
+    return { day: start, meal: "paivallinen" };
+  }
+  function detailPlanHtml() {
+    const t = todayIso(), { day, meal } = detailPlan;
+    const days = Array.from({ length: 14 }, (_, i) => addDays(t, i));
+    const now = slotItems(day, meal).map(titleOf);
+    return `<div class="dplan"><div class="lbl">Lisää viikkosuunnitelmaan</div>
+      <div class="chips primary scroll" id="dpDays" role="group" aria-label="Päivä">${days.map((d, i) =>
+        `<button type="button" class="chip ${d === day ? "on" : ""}" data-dpday="${d}" aria-pressed="${d === day}">${i === 0 ? "Tänään" : i === 1 ? "Huomenna" : esc(dayShort(d))}</button>`).join("")}</div>
+      <div class="chips seg" role="group" aria-label="Ateria">${Object.keys(MEALS).map((m) =>
+        `<button type="button" class="chip ${m === meal ? "on" : ""}" data-dpmeal="${m}" aria-pressed="${m === meal}">${MEALS[m]}</button>`).join("")}</div>
+      <p class="dpnow">${esc(dayLabel(day))} ${MEAL_LC[meal]}: ${now.length ? "suunniteltu jo " + esc(now.join(", ")) : "vapaa"}</p>
+      <div class="actions"><button type="button" class="primary" data-act="dpgo">Jatka ›</button><button type="button" data-act="dpcancel">Peruuta</button></div></div>`;
+  }
   function openRecipe(r, baby) {
+    if (detailId !== r.id) detailPlan = null;
     detailId = r.id;
     detailBaby = !!baby && (r.tags || []).includes("vauvanruoat");
     renderDetail(r);
@@ -2125,9 +2300,11 @@
           <span class="val ${f !== 1 ? "changed" : ""}" aria-live="polite">${servingsTxt(st.servings)}</span>
           <button type="button" data-act="more" aria-label="Enemmän annoksia" ${st.servings >= 99 ? "disabled" : ""}>+</button>
         </div>` : "<span></span>"}
-        <button type="button" class="cook ${st.on ? "on" : ""}" data-act="cook" aria-pressed="${st.on}">${st.on ? "Lopeta kokkaus" : "🍳 Aloita kokkaus"}</button>
+        <span class="cookbtns"><button type="button" class="cook ${st.on ? "on" : ""}" data-act="cook" aria-pressed="${st.on}">${st.on ? "Lopeta kokkaus" : "🍳 Aloita kokkaus"}</button>${
+          canPlanHere() ? ` <button type="button" class="cook ${detailPlan ? "on" : ""}" data-act="plan" aria-expanded="${!!detailPlan}" aria-label="Lisää viikkosuunnitelmaan">🗓️ Viikkoon</button>` : ""}</span>
       </div>
       ${st.on ? `<p class="cookhint">${lockNote} Napauta ainesta tai vaihetta, kun se on tehty.</p>` : ""}
+      ${detailPlan ? detailPlanHtml() : ""}
       </div>
       </div>
       <div class="dcols ${ings && side ? "two" : ""}">
@@ -2174,8 +2351,28 @@
     }
     const sb2 = e.target.closest("[data-dsug]");
     if (sb2) return detailSuggAct(sb2.dataset.dsug, sb2);
+    const dp = e.target.closest("[data-dpday], [data-dpmeal]");
+    if (dp && detailPlan) {
+      if (dp.dataset.dpday) detailPlan.day = dp.dataset.dpday; else detailPlan.meal = dp.dataset.dpmeal;
+      const y = $("dpDays")?.scrollLeft || 0;
+      renderDetail(r); if ($("dpDays")) $("dpDays").scrollLeft = y;
+      return;
+    }
     const b = e.target.closest("[data-act]"); if (!b) return;
     switch (b.dataset.act) {
+      case "plan": {
+        detailPlan = detailPlan ? null : defaultPlanSlot(); renderDetail(r);
+        const c = $("dpDays"), on = c && c.querySelector(".chip.on"); // valittu päivä näkyviin
+        if (on) c.scrollLeft = on.offsetLeft - c.offsetLeft - (c.clientWidth - on.offsetWidth) / 2;
+        break;
+      }
+      case "dpcancel": detailPlan = null; renderDetail(r); break;
+      case "dpgo": { // → Riittää-sivu; tallennus ja Peruuta palaavat tälle reseptille
+        const { day, meal } = detailPlan;
+        pick = null; pickOrigin = `${day}|${meal}|${r.id}`; detailPlan = null;
+        go(`#/viikko/lisaa/${day}/${meal}/${r.id}`);
+        break;
+      }
       case "less": st.servings = Math.max(1, st.servings - 1); renderDetail(r); break;
       case "more": st.servings = Math.min(99, st.servings + 1); renderDetail(r); break;
       case "reset": st.servings = r.servings; renderDetail(r); break;
@@ -2548,8 +2745,8 @@
     if (canEdit) for (const el of $("cellarLoose").querySelectorAll("[data-wine]")) {
       const b = loose.find((x) => x.wine_id === el.dataset.wine); if (b) el.dataset.drag = b.id;
     }
-    $("cellarHint").textContent = "Hylly 1 on ylin, paikka 1 vasemmalla." + (canEdit && inCellar().length
-      ? " Siirrä pulloa pitämällä sitä hetki sormella ja raahaamalla. Varattuun paikkaan pudotettu pullo vaihtaa paikkaa." : "");
+    // Raahausohje omana ohjeenaan (näkyy muutaman kerran, ks. applyHints)
+    $("cellarDragHint").classList.toggle("hidden", !(canEdit && inCellar().length));
   }
   $("cellarView").onclick = (e) => {
     const p = e.target.closest("[data-place]"); if (p) return go(`#/viinit/kaappi/paikka/${p.dataset.place}`);
@@ -2766,6 +2963,7 @@
     $("tDelWrap").classList.toggle("hidden", !edit);
     msg($("tastingMsg"), "");
     show("tastingView");
+    growAll($("tastingView"));
   }
   // Viinin oma arvio = uusimman tähdillä arvioidun juontikerran tähdet (jos sellainen on).
   async function syncWineRating(w) {
@@ -2839,6 +3037,7 @@
     $("wDelWrap").classList.toggle("hidden", !w);
     msg($("wineEditMsg"), "");
     show("wineEditView");
+    growAll($("wineEditView"));
     wineSnap = wineFormState();
   }
   $("wineCancelBtn").onclick = () => back(editingWineId ? `#/viinit/${editingWineId}` : "#/viinit");
@@ -2943,6 +3142,7 @@
     $("delWrap").classList.toggle("hidden", !r);
     msg($("editMsg"), "");
     show("editView");
+    growAll($("editView"));
     editSnap = recipeFormState();
   }
 
@@ -3131,6 +3331,7 @@
     if (currentView === "shopView" && document.activeElement?.id !== "shPanIn") renderShop();
   }
   document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && currentView === "homeView" && ready) renderPlanCard(); // kellonaika: huominen klo 18 jälkeen
     if (document.visibilityState === "visible" && ["homeView", "planView", "shopView"].includes(currentView)) refreshPlan(true);
   });
   setInterval(() => {
@@ -3146,14 +3347,21 @@
     go(`#/resepti/${r.id}`);
   }
 
-  // Etusivun kortti: viikko ja tämän päivän ateriat.
+  // Etusivun kortti: viikko ja tämän päivän ateriat, klo 18 jälkeen myös huominen (22.11.2026).
+  const CARD_TOMORROW_HOUR = 18;
   function renderPlanCard() {
     if (hidden.has("viikko")) return;
     const today = todayIso();
     $("wkSub").textContent = `Viikko ${isoWeek(today)} · ${weekRange(mondayOf(today))}`;
-    const any = Object.keys(MEALS).some((m) => slotItems(today, m).length);
+    let html = planCardDay(today, "Tänään", "Tälle päivälle ei ole vielä suunniteltu ruokaa.");
+    if (new Date().getHours() >= CARD_TOMORROW_HOUR)
+      html += `<div class="wknext">${planCardDay(addDays(today, 1), "Huomenna", "Huomiselle ei ole vielä suunniteltu ruokaa.")}</div>`;
+    $("wkToday").innerHTML = html;
+  }
+  function planCardDay(day, label, none) {
+    const any = Object.keys(MEALS).some((m) => slotItems(day, m).length);
     const rows = Object.keys(MEALS).map((m) => {
-      const its = slotItems(today, m);
+      const its = slotItems(day, m);
       if (!its.length) return `<div class="trow empty"><span class="tm">${MEALS[m]}</span><span class="tt">–</span></div>`;
       return its.map((it, i) => {
         const r = recipeOf(it);
@@ -3162,8 +3370,8 @@
         return r || canEdit ? `<button type="button" class="trow" data-open="${it.id}">${inner}</button>` : `<div class="trow">${inner}</div>`;
       }).join("");
     }).join("");
-    $("wkToday").innerHTML = `<div class="lbl">Tänään ${esc(dayShort(today))}</div>` +
-      (any ? rows : `<p class="muted" style="margin:6px 0 0;font-size:.9rem">Tälle päivälle ei ole vielä suunniteltu ruokaa.</p>`);
+    return `<div class="lbl">${label} ${esc(dayShort(day))}</div>` +
+      (any ? rows : `<p class="muted" style="margin:6px 0 0;font-size:.9rem">${none}</p>`);
   }
 
   // ----- Viikkonäkymä -----
@@ -3179,7 +3387,7 @@
     const r = recipeOf(it), o = origOf(it);
     const tu = r && imgUrl(r, true);
     const thumb = tu ? `<img class="pth" src="${esc(tu)}" alt="" loading="lazy">`
-      : `<span class="pth${it.recipe_id ? "" : " free"}" aria-hidden="true">${esc(titleOf(it).trim().charAt(0).toUpperCase())}</span>`;
+      : r ? emoPh(r, "pth") : `<span class="pth${it.recipe_id ? "" : " free"}" aria-hidden="true">${esc(titleOf(it).trim().charAt(0).toUpperCase())}</span>`;
     let meta;
     if (it.leftover) {
       const from = o ? ` ${mondayOf(o.day) === mondayOf(it.day) ? WD[dateOf(o.day).getDay()] : dayShort(o.day)} ${MEAL_FROM[o.meal]}` : "";
@@ -3219,6 +3427,10 @@
           <span class="pt">${esc(recipes.find((x) => x.id === resv.rid)?.title || "")}</span>
           <span class="pm"><span class="left">🔁 tähteet</span> ${esc(from)}</span></div>`;
       }
+      // Arkipäivän tyhjä lounas yhtenä rivinä (22.11.2026): lounas syödään yleensä töissä, + ja 💡 otsikkorivillä.
+      else if (m === "lounas" && !isWeekendDay(day) && !suggNone.has(key))
+        return `<div class="meal mlite" data-slot="${key}"><div class="mh"><span class="lbl">${MEALS[m]}</span><span class="mlbtns">${
+          day >= today ? `<button type="button" class="sone" data-sone="${key}" aria-label="Ehdota ruokaa: ${esc(dayShort(day))} ${MEAL_LC[m]}" title="Ehdota ruokaa">💡</button>` : ""}<button type="button" class="plus" data-add="${day}|${m}" aria-label="Lisää ruoka: ${esc(dayShort(day))} ${MEAL_LC[m]}">+</button></span></div></div>`;
       else body = `${suggNone.has(key) ? `<div class="pempty">Ei enempää ehdotuksia tähän ateriaan.</div>` : ""}<div class="addrow">
           <button type="button" class="addslot" data-add="${day}|${m}">+ Lisää ${MEAL_LC[m]}</button>${
           day >= today ? `<button type="button" class="sugone" data-sone="${key}" aria-label="Ehdota ruokaa: ${esc(dayShort(day))} ${MEAL_LC[m]}" title="Ehdota ruokaa">💡</button>` : ""}</div>`;
@@ -3358,7 +3570,9 @@
   function openPick(day, meal, r) {
     if (!pick || pick.day !== day || pick.meal !== meal || pick.rid !== r.id) {
       const n = suggestMeals(r);
-      pick = { day, meal, rid: r.id, meals: n, servings: servingsFor(r, n), slots: leftoverSlots(day, meal, n - 1) };
+      pick = { day, meal, rid: r.id, meals: n, servings: servingsFor(r, n), slots: leftoverSlots(day, meal, n - 1),
+        fromDetail: pickOrigin === `${day}|${meal}|${r.id}` };
+      pickOrigin = null;
     }
     renderPick();
     show("planPickView");
@@ -3425,8 +3639,8 @@
     if (b.dataset.act === "less") { pick.servings = Math.max(1, pick.servings - 1); return renderPick(); }
     if (b.dataset.act === "more") { pick.servings = Math.min(99, pick.servings + 1); return renderPick(); }
     if (b.dataset.act === "cancel") { // ohi myös lisäyssivun (ehdotuksesta avattuna vain yksi askel)
-      const w = weekHash(mondayOf(pick.day)), fromSugg = pick.fromSugg; pick = null;
-      return fromSugg ? back(w) : leaveDeleted(w);
+      const w = weekHash(mondayOf(pick.day)), fromSugg = pick.fromSugg, fromDetail = pick.fromDetail, rid = pick.rid; pick = null;
+      return fromDetail ? back(`#/resepti/${rid}`) : fromSugg ? back(w) : leaveDeleted(w);
     }
     if (b.dataset.act === "save") savePick(r, b);
   };
@@ -3462,7 +3676,11 @@
       else planItems.push(...data);
     }
     pick = null;
-    if (p.fromSugg) { suggPick.delete(p.fromSugg); suggAsked.delete(p.fromSugg); back(weekHash(mondayOf(p.day))); }
+    if (p.fromDetail) { // takaisin reseptille, ilmoitus kertoo minne lisättiin
+      toast(`🗓️ Lisätty: ${dayLabel(p.day)} ${MEAL_LC[p.meal]}${p.slots.length ? ` (+ tähteet ${p.slots.length} ateriaan)` : ""}`, false, 4000);
+      back(`#/resepti/${r.id}`);
+    }
+    else if (p.fromSugg) { suggPick.delete(p.fromSugg); suggAsked.delete(p.fromSugg); back(weekHash(mondayOf(p.day))); }
     else leaveDeleted(weekHash(mondayOf(p.day))); // takaisin viikkoon (ohi lisäyssivun)
   }
   $("ppBack").onclick = () => back(pick ? `#/viikko/lisaa/${pick.day}/${pick.meal}` : "#/viikko");
@@ -3704,6 +3922,22 @@
     if (SH_PART[u] && hi / d > 1) u = SH_PART[u];
     return u ? `${n} ${u}` : n;
   }
+  // Kaupan osastot (22.11.2026): Osastoittain-näkymä ryhmittelee ainekset kaupan reitin mukaan. Ensimmäinen osuva sääntö voittaa,
+  // joten tarkemmat ensin (esim. "tomaattimurska" säilykkeisiin ennen vihanneksia, "kananmuna" maitotuotteisiin ennen lihaa).
+  const AISLES = [
+    ["veg", "🥦 Hedelmät, vihannekset ja yrtit"], ["meat", "🥩 Liha, kana ja kala"], ["dairy", "🧀 Maito, juusto ja munat"],
+    ["dry", "🍝 Pasta, riisi, jauhot ja leipä"], ["can", "🥫 Säilykkeet ja kastikkeet"], ["spice", "🧂 Mausteet, öljyt ja etikat"],
+    ["other", "🛒 Muut"],
+  ];
+  const AISLE_RULES = [
+    ["spice", /suola(?!kurk)|pippur|sokeri|öljy|etikka|liemikuutio|liemijauhe|fondi|(?<!aurinko)kuivattu|\bmauste(?!kurk)|oregano|kaneli|kumina|curry|kurkuma|paprikajauhe|savupaprika|chilihiutale|chilijauhe|cayenne|garam|muskotti|laakerinlehti|hunaja|siirappi|soijakastike|kalakastike|worcester|sinappi|vanilja|leivinjauhe|ruokasooda|hiiva|kaakao|kardemumma|neilikka|korianterinsieme|fenkolinsieme|kuminansieme|sinapinsieme|ras el|za.atar/],
+    ["can", /murska|pyree|passata|säilyke|kookosmaito|kookoskerma|kikherne|pavut|papuja|\bpesto|ketsuppi|majoneesi|suolakurk|maustekurk|kapris|oliivi|aurinkokuivat|tonnikala|tomaattisose|tomaattikastike|kastikepohja|salsa|currytahna|tahna/],
+    ["dairy", /maito|kerma|smetana|crème|creme|fraîche|jogurt|rahka|\bvoi(ta)?\b|voisula|juusto|parmesaan|pecorino|mozzarell|feta|halloumi|mascarpone|ricotta|cheddar|gruyère|emmental|kananmun|\bmun(a|aa|ia|at)\b|keltuai|valkuai|tortellon|gnocch|tofu/],
+    ["meat", /liha|broiler|\bkana|kanan|fileesuikale|pihvi|paisti|possu|sian|nauta|härkä|lammas|lampaan|karitsa|poro|käristys|pekoni|kinkku|makkara|nakki|chorizo|salami|prosciutto|lohi|lohta|kala|katkarap|seiti|turska|muikku|silakka|rapu|simpukka|mustekala|anjovis/],
+    ["dry", /pasta|spagett|makaron|penne|tagliatell|lasagne|nuudel|riisi|risotto|ohra|bulgur|couscous|kvinoa|linssi|jauho|hiutale|leipä|leivän|pita|tortilla|taikina|pizzapohj|pinjansiemen|pähkinä|manteli|siemen|rusina|vehnä|maissitärkkelys|rouhe|keksi|korppu|krutonki/],
+    ["veg", /sipul|tomaat|kurkku|paprika|porkkana|peruna|bataat|kesäkurpitsa|munakoiso|kukkakaali|parsakaali|kaali|pinaatti|salaatti|rucola|selleri|purjo|inkivääri|chili|sitruuna|lime|appelsiini|omena|banaani|marja|mustikka|puolukka|vadelma|mansikka|avokado|sieni|kantarelli|vahvero|herne|maissi|basilika|persilja|tilli|korianteri|minttu|rosmariini|timjami|salvia|yrtti|punajuuri|lanttu|nauris|palsternakka|fenkoli|parsa|retiisi|mango|ananas|rypäle|taateli|granaatti|lehtikaali|pak choi|ituja|idut|kurpitsa/],
+  ];
+  const shopAisle = (clean) => { const t = String(clean || "").toLowerCase(); return (AISLE_RULES.find(([, re]) => re.test(t)) || ["other"])[0]; };
   function shopGroups(cards) {
     const map = new Map();
     for (const c of cards) for (const l of c.lines) for (const x of l.parts || []) {
@@ -3733,7 +3967,7 @@
       }
       const titles = [...new Set(g.items.map((x) => x.title))];
       out.push({ html, sort: g0.sort, keys: g0.items.map((x) => x.keyId), term: shopTerm(g.items[0].clean), src: titles.join(", "),
-        pantry: g0.items.every((x) => x.pantry) });
+        pantry: g0.items.every((x) => x.pantry), aisle: shopAisle(g.items[0].clean) });
     }
     return out.sort((a, b) => a.sort.localeCompare(b.sort, "fi") || htmlText(a.html).localeCompare(htmlText(b.html), "fi"));
   }
@@ -3767,12 +4001,15 @@
       // Yhteishyvä-linkit myös tässä, ettei samoja aineksia lisätä S-ostoslistaan kahdesti
       if (yh) html += `<div class="card shcard shyhcard"><div class="lbl">Yhteishyvän kautta S-ostoslistaan</div>${yh}
         <p class="shyhh">Avaa resepti, lisää ainekset siellä S-ostoslistaan, niin ne merkitään tässä kerätyiksi.</p></div>`;
-      // Rastitetut listan loppuun oman väliotsikon alle (käyttäjän toive 16.11.2026; vain A–Ö, resepteittäin rivit pysyvät paikallaan)
+      // Rastitetut listan loppuun oman väliotsikon alle (käyttäjän toive 16.11.2026; vain Osastoittain, resepteittäin rivit pysyvät paikallaan)
       const rest = groups.filter((g) => !shopDone(g.keys)), got = groups.filter((g) => shopDone(g.keys));
       const row = (g) => { lines.push(g); return shopLineHtml(lines.length - 1, g, `<span class="shsrc">${esc(g.src)}</span>`); };
-      html += groups.length ? `<div class="card shcard"><ul class="shlines">${rest.map(row).join("")}${
+      // Rastittamattomat kaupan osastoittain (22.11.2026), osaston sisällä aakkosjärjestys
+      const byAisle = AISLES.map(([k, label]) => [label, rest.filter((g) => g.aisle === k)]).filter(([, gs]) => gs.length);
+      html += groups.length ? `<div class="card shcard"><ul class="shlines">${byAisle.map(([label, gs]) =>
+        `<li class="shsub shaisle">${esc(label)}</li>${gs.map(row).join("")}`).join("")}${
         got.length ? `<li class="shsub shgot${rest.length ? "" : " first"}">✓ Rastitetut · ${got.length}</li>${got.map(row).join("")}` : ""}</ul></div>` : "";
-      if (rest.length) text.push("", ...rest.map((g) => "- " + htmlText(g.html)));
+      for (const [label, gs] of byAisle) text.push("", label.replace(/^\S+\s/, "") + ":", ...gs.map((g) => "- " + htmlText(g.html)));
     } else {
       html = cards.map((c, ci) => {
         const left = planItems.filter((x) => x.leftover && x.leftover_of === c.it.id).length;
@@ -4062,7 +4299,7 @@
   function suggHtml(s) {
     const r = recipes.find((x) => x.id === s.rid); if (!r) return "";
     const tu = imgUrl(r, true);
-    const thumb = tu ? `<img class="pth" src="${esc(tu)}" alt="" loading="lazy">` : `<span class="pth" aria-hidden="true">${esc(r.title.trim().charAt(0).toUpperCase())}</span>`;
+    const thumb = tu ? `<img class="pth" src="${esc(tu)}" alt="" loading="lazy">` : emoPh(r, "pth");
     const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r), s.meals > 1 ? `riittää ${s.meals} ateriaan` : ""].filter(Boolean).join(" · ");
     const left = s.slots.length ? `<span class="pm">🔁 tähteet: ${esc(s.slots.map(slotLabel).join(", "))}</span>` : "";
     const star = (r.tags || []).includes("top") ? " ⭐" : "", dis = suggBusy ? "disabled" : "";
