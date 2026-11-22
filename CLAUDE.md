@@ -123,10 +123,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **Valmistusaika** (11/2026): alle 60 min minuutteina ("45 min"), 60 min tai yli tunteina puolen tunnin tarkkuudella
     aina ylöspäin pyöristäen (käyttäjän päätös; 60 → "1 h", 65 → "1,5 h", 160 → "3 h") listarivillä ja reseptisivulla (`fmtTime(m)`). Lomakkeessa aika syötetään minuutteina.
   - **Lisäyspäivä** (11/2026): reseptisivulla "📅 Lisätty 18.1.2023", lomakkeessa kenttä Lisäyspäivä (uudelle tänään),
-    listarivillä päivä rivin oikeassa laidassa (11/2026, ennen ⭐:ä) vain päivälajittelussa (oletuksena siis näkyy).
-    **Listarivillä lyhyt muoto** (käyttäjän hyväksymä 22.11.2026): tänä vuonna "19.11.", aiemmin pelkkä vuosi "2023"
-    (`fiShort`; koko päivä `aria-label`- ja `title`-tekstissä). Reseptisivulla koko päivä kuten ennen.
-  - Top-listan ⭐ reseptirivin oikeassa laidassa. Menumerkki rivin oikeassa laidassa ja reseptin oikeassa yläkulmassa.
+    **listarivillä ei päivää** (käyttäjän päätös 22.11.2026: ei tuo lisäarvoa; Uusimmat/Vanhimmat ensin -järjestys toimii silti).
+  - **Reseptirivi** (käyttäjän päätös 22.11.2026): ei kuvaa eikä emojia rivin alussa; nimi ja alla aika · tagikuvakkeet, **Top-listan ⭐
+    emojirivin viimeisenä**. Oikeassa reunassa menumerkki ja **reseptin oma kuva, jos sellainen on** (56 px). Kaikissa reseptilistoissa
+    (kategoriat, etusivun haku, menun reseptit, ruoan lisäys). Menumerkki myös reseptin oikeassa yläkulmassa.
   - **Tagit listarivillä pelkkinä kuvakkeina** (käyttäjän toive 11/2026, esim. 🐔 = kana). Tagit-valinnassa, lomakkeessa ja
     reseptisivulla kuvake + nimi, jotta merkitykset oppii. **Päärajaus-chipit (yläbanneri) pelkkinä emojeina** (11/2026),
     "Kaikki" tekstinä, Tagit-nappi "🏷 ▾" (valittu tagi: "🏷 🥕 ▴").
@@ -167,10 +167,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     pudotettu pullo vaihtaa paikkaa. Myös "Ilman paikkaa" -listan viinin voi raahata kellariin. Ostotiedot pullokohtaisesti (päivä, paikka, hinta) ja
     Alkon tuotenumero + linkki viinille. Viinin oma arvio = uusimman tähdillä arvioidun juontikerran tähdet.
   - Reseptikuvat aina neliöitä, **viinikuvat pystykuvia 2:3** (käyttäjän toive 11/2026: koko pullo mahtuu kuvaan), kaikki
-    värillisiä. Viinin sivulla kuva omassa muodossaan (enintään 300×450, vanhat neliökuvat neliöinä). Listalla pikkukuva rivin vasemmassa laidassa.
-    **Reseptillä ilman kuvaa pääraaka-aineen emoji värillisellä taustalla** (käyttäjän hyväksymä 22.11.2026, ennen nimen alkukirjain;
-    lähes kaikilla resepteillä ei ole kuvaa): listoissa, viikkosuunnitelmassa ja ehdotuksissa. Viineillä ja omilla merkinnöillä
-    alkukirjain kuten ennen. Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
+    värillisiä. Viinin sivulla kuva omassa muodossaan (enintään 300×450, vanhat neliökuvat neliöinä). Viinilistalla pikkukuva rivin
+    vasemmassa laidassa (ilman kuvaa alkukirjain); reseptilistalla kuva rivin oikeassa reunassa, ilman kuvaa ei kuvapaikkaa (ks. Reseptirivi).
+    **Viikkosuunnitelmassa ruokarivillä aina pääraaka-aineen emoji värillisellä taustalla** (käyttäjän päätös 22.11.2026), myös jos
+    reseptillä on kuva; omilla merkinnöillä alkukirjain. Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
     vaakatasossa pienenä (210 px) otsikon oikealla puolella.
     (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
   - **Yläpalkki** (käyttäjän toive 11/2026): adminilla yläpalkissa vain ⚙️ (Hallinta, 44 px), **Kirjaudu ulos on Hallinta-sivun
@@ -382,8 +382,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   + ≡-kahva (`.grip`, `touch-action:none`), napautus ei avaa reseptiä. Raahaus pointer-tapahtumilla (sormi ja hiiri),
   automaattivieritys reunoilla. `saveOrder(ids)`: näkyvät reseptit jakavat keskenään nykyiset `sort_order`-numeronsa uudessa
   järjestyksessä (muiden listojen suhteellinen järjestys säilyy) → RPC `set_recipe_order(p_ids, p_pos)`; virheessä palautus.
-- **Reseptirivi** (`recipeItem`): oikeassa laidassa (`.side`) menumerkki, lisäyspäivä `.rdate` (vain uusin/vanhin-lajittelussa, `fiShort`)
-  ja ⭐ (top). Metarivillä aika · tagit
+- **Reseptirivi** (`recipeItem`, 22.11.2026): `.item.card` (kuvallisella lisäksi `.picr`), `.body` = nimi `.t` + metarivi `.m`, oikealla
+  `.side` vain jos menumerkki tai kuva: menumerkki ja `<img class="thumb rthumb">` (56 px, `imgUrl(r, true)`). Ei alkukuvaa, ei päivää.
+  Metarivillä aika · tagit + ⭐ (top, oma `.ticons`-span viimeisenä)
   kuvakkeina `tagIcons(r)`: järjestys `TAG_ICON`-vakion mukaan (pääaines → ruokalaji → tapa), sama kuvake yhdistetään
   (esim. 🥔 = peruna + lisuke), nimi `aria-label`/`title`-attribuutissa, kuvakkeeton tagi tekstinä perässä.
   `tagLabel(t)` = kuvake + nimi (Tagit-chipit, lomake, reseptisivu). Päärajaus-chipit (`#primaryChips`): pelkkä emoji,
@@ -413,10 +414,10 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     palaa näkyviin) ja aineksen tai vaiheen voi napauttaa tehdyksi (yliviivaus). Ensimmäinen tekemätön vaihe korostetaan.
   - Annosmäärä ja kokkaustilan rastit säilyvät muistissa (`cook`-Map) reseptikohtaisesti, kunnes sivu ladataan
     uudelleen, kokkaus lopetetaan tai resepti tallennetaan.
-- **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi, tall)` (listan pikkukuva `.thumb` 60 px; ilman kuvaa
-  reseptillä `emoPh(r, "thumb ph")` = `.emo`-paikkakuva: `mainIcon(r)` = ensimmäinen `MAIN_ORDER`-tagi → `TAG_ICON`-emoji + `MAIN_BG`-väri
-  (`--bgc`, tummassa tilassa `color-mix` 22 % kortin väriin), muuten 🍽️; viinillä alkukirjain `.thumb.ph`; rivillä luokka `.item.withpic`;
-  viineillä `tall` → `.thumb.tall` 44×66; viikkosuunnitelman `.pth` samalla `emoPh(r, "pth")`) ja
+- **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi, tall)` (vain viinilista: `.thumb.tall` 44×66 tai
+  alkukirjain `.thumb.ph`, rivillä `.item.withpic`; reseptirivin kuva tehdään `recipeItem`issä), viikkosuunnitelman ruokarivin ja
+  ehdotuksen kuvake `emoPh(r, "pth")` = `.pth.emo`: `mainIcon(r)` = ensimmäinen `MAIN_ORDER`-tagi → `TAG_ICON`-emoji + `MAIN_BG`-väri
+  (`--bgc`, tummassa tilassa `color-mix` 22 % kortin väriin), muuten 🍽️ (aina emoji, reseptin kuvaa ei käytetä) ja
   `bigPic(item, alt, "rimg-top"|"rimg-end")` (viineillä `"tall rimg-…"` → `.rimg.tall`: kuva omassa muodossaan). Iso kuva
   renderöidään kahteen kohtaan, ja CSS näyttää alle 600 px leveällä sivun lopussa (ennen nappeja), muuten ylhäällä
   (max 440 px; reseptisivulla vaakatasossa ≥ 960 px otsikon oikealla, 210 px). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
@@ -480,7 +481,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     ruoan napautus avaa reseptin.
   - **Viikkonäkymä** (`renderPlan`, `dayHtml`, `planItemHtml`): päiväkortit, tänään korostettu (`.day.now`). Menneet päivät
     `.day.compact` (päivä + ruokien nimet), napautus (`data-expand`) avaa, "Pienennä" (`data-collapse`) sulkee. Ruoka-rivi:
-    pikkukuva tai alkukirjain (vapaa teksti: katkoviivareunus), nimi, metarivi (aika · tagikuvakkeet · annokset, tähteillä
+    pääraaka-aineen emoji `emoPh` (myös kuvallisille resepteille) tai vapaalla tekstillä alkukirjain katkoviivareunuksella, nimi, metarivi (aika · tagikuvakkeet · annokset, tähteillä
     "🔁 tähteet ti päivällisestä"). Rivin napautus `openFromPlan(it)` asettaa reseptin annosmäärän (`cookState(r).servings`,
     tähteillä alkuperäisen rivin `servings`) ja avaa reseptin; vapaa teksti avaa muokkauksen. Muokkaajalle `+` (lisää aterialle),
     `⋯` (muokkaus), tyhjässä ateriassa "+ Lisää lounas" ja päivän otsikossa 📝 (muistiinpano, `upsert`/`delete` meal_plan_notes).

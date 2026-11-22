@@ -60,8 +60,9 @@
   header .link { white-space: nowrap; padding: 4px 6px; }
   .item .side { flex: 0 1 auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px; max-width: 50%; min-width: 0; }
   .item .side .menu-badge { flex: 0 1 auto; min-width: 0; max-width: 100%; }
-  .item .star { flex: none; font-size: 1.15rem; line-height: 1; }
-  .item .rdate { flex: none; color: var(--muted); font-size: .82rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  /* Reseptirivin oma kuva oikeassa reunassa (22.11.2026; ilman kuvaa ei paikkaa) */
+  .item.picr { padding-top: 10px; padding-bottom: 10px; padding-right: 10px; }
+  .item .rthumb { width: 56px; height: 56px; }
   h2 { font-family: Georgia, serif; font-size: 1.5rem; margin: 0 0 4px; }
   h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 24px 0 8px; }
   button, .btn {
@@ -515,11 +516,10 @@
   .shlines > .shaisle:first-child { border-top: none; padding-top: 4px; }
 
   /* ===== Käytettävyysparannukset 22.11.2026 ===== */
-  /* Paikkakuva ilman kuvaa: pääraaka-aineen emoji värillisellä taustalla (ennen nimen alkukirjain) */
-  .thumb.ph.emo, .pth.emo { font: 1.85rem/1 -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  /* Viikkosuunnitelman ruokarivin kuvake: pääraaka-aineen emoji värillisellä taustalla (ei reseptin kuvaa) */
+  .pth.emo { font: 1.4rem/1 -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
     background: var(--bgc, var(--chip)); }
-  .pth.emo { font-size: 1.4rem; }
-  @media (prefers-color-scheme: dark) { .thumb.ph.emo, .pth.emo { background: color-mix(in srgb, var(--bgc, var(--chip)) 22%, var(--card)); } }
+  @media (prefers-color-scheme: dark) { .pth.emo { background: color-mix(in srgb, var(--bgc, var(--chip)) 22%, var(--card)); } }
   /* Puhelimessa etusivun kortit kahteen sarakkeeseen: kaikki osiot näkyvät ilman vieritystä */
   @media (max-width: 599px) {
     .home { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -1156,7 +1156,6 @@
   // Valmistusaika: alle 60 min minuutteina, muuten tunteina puolen tunnin tarkkuudella aina ylöspäin (65 → "1,5 h", 160 → "3 h").
   const fmtTime = (m) => m < 60 ? `${m} min` : `${String(Math.ceil(m / 30) / 2).replace(".", ",")} h`;
   const fiDate = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-"); return `${+d}.${+m}.${y}`; };
-  const fiShort = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-"); return +y === new Date().getFullYear() ? `${+d}.${+m}.` : y; };
   const todayIso = () => { const t = new Date(), z = (n) => String(n).padStart(2, "0"); return `${t.getFullYear()}-${z(t.getMonth() + 1)}-${z(t.getDate())}`; };
   const byTitle = (a, b) => (a.title || "").localeCompare(b.title || "", "fi");
   const SORTS = {
@@ -1214,12 +1213,12 @@
   // Listan pikkukuva tai nimen alkukirjain. tall = viinin pystykuva (44×66).
   function thumbHtml(item, name, tall) {
     const tu = imgUrl(item, true), t = tall ? " tall" : "";
-    if (tu) return `<img class="thumb${t}" src="${esc(tu)}" alt="" loading="lazy">`;
-    if (!tall) return emoPh(item, "thumb ph"); // resepti ilman kuvaa: pääraaka-aineen emoji
+    if (tu) return `<img class="thumb${t}" src="${esc(tu)}" alt="" loading="lazy">`; // viinilista (reseptirivit: recipeItem)
     return `<span class="thumb ph${t}" aria-hidden="true">${esc((name || "?").trim().charAt(0).toUpperCase())}</span>`;
   }
-  // Paikkakuva reseptille ilman kuvaa (22.11.2026, ennen nimen alkukirjain): ensimmäinen MAIN_ORDER-tagi → emoji ja taustaväri.
-  // Tummassa tilassa väri sekoitetaan kortin väriin (CSS). Ilman sopivaa tagia 🍽️.
+  // Viikkosuunnitelman ruokarivin kuvake (22.11.2026): aina pääraaka-aineen emoji värillisellä taustalla, myös jos reseptillä on kuva
+  // (käyttäjän päätös). Ensimmäinen MAIN_ORDER-tagi → emoji ja taustaväri; tummassa tilassa väri sekoitetaan kortin väriin (CSS).
+  // Ilman sopivaa tagia 🍽️.
   const MAIN_ORDER = ["katkarapu", "kala", "kana", "nauta", "lammas", "poro", "sose", "sormiruoka", "pizza", "keitto", "pasta",
     "linssi", "papu", "sienet", "kasvis", "peruna", "kastike", "marinadi", "makeat", "alkuruoka", "pata", "uuniruoka"];
   const MAIN_BG = { katkarapu: "#f7d5c8", kala: "#cfe3ee", kana: "#f3e2b8", nauta: "#efcfc6", lammas: "#efcfc6", poro: "#e6d3c0",
@@ -2040,21 +2039,21 @@
       `<span class="ti" role="img" aria-label="${esc(ts.join(", "))}" title="${esc(ts.join(", "))}">${e}</span>`).join("");
     return [ic && `<span class="ticons">${ic}</span>`, rest.length && esc(rest.join(", "))].filter(Boolean).join(" ");
   }
+  // Reseptirivi (käyttäjän päätös 22.11.2026): ei kuvaa/emojia rivin alussa eikä lisäyspäivää. Nimi, alla aika · tagikuvakkeet ⭐
+  // (Top-tähti emojirivin viimeisenä). Oikeassa reunassa menumerkki ja reseptin oma kuva, jos sellainen on.
   function recipeItem(r, hideMenu, sorting) {
     const menu = hideMenu || hidden.has("menut") ? null : menuOf(r);
     const top = (r.tags || []).includes("top");
-    // Lisäyspäivä rivin oikeassa laidassa (vain päivälajittelussa)
-    // Lyhyt muoto (22.11.2026): tänä vuonna "19.11.", aiemmin pelkkä vuosi; koko päivä aria-labelissa ja title-tekstissä
-    const date = ["uusin", "vanhin"].includes(sortMode) && r.added_on ? fiDate(r.added_on) : "";
-    const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r)].filter(Boolean).join(" · ");
-    const thumb = thumbHtml(r, r.title);
+    const icons = [tagIcons(r), top ? `<span class="ticons"><span class="ti" role="img" aria-label="Top-listalla" title="Top-listalla">⭐</span></span>` : ""]
+      .filter(Boolean).join(" ");
+    const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", icons].filter(Boolean).join(" · ");
+    const tu = imgUrl(r, true);
+    const pic = tu ? `<img class="thumb rthumb" src="${esc(tu)}" alt="" loading="lazy">` : "";
     const tag = sorting ? "div" : "button";
-    return `<${tag} class="item card withpic${sorting ? " sorting" : ""}" data-id="${r.id}">${thumb}
+    return `<${tag} class="item card${pic ? " picr" : ""}${sorting ? " sorting" : ""}" data-id="${r.id}">
       <div class="body"><div class="t">${esc(r.title)}</div><div class="m">${meta}</div></div>
-      ${menu || top || date ? `<div class="side">
-        ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}
-        ${date ? `<span class="rdate" aria-label="Lisätty ${date}" title="Lisätty ${date}">${fiShort(r.added_on)}</span>` : ""}
-        ${top ? `<span class="star" role="img" aria-label="Top-listalla">⭐</span>` : ""}
+      ${menu || pic ? `<div class="side">
+        ${menu ? `<span class="menu-badge">${esc(menu)}</span>` : ""}${pic}
       </div>` : ""}
       ${sorting ? `<span class="grip" role="img" aria-label="Siirrä ${esc(r.title)}">≡</span>` : ""}
     </${tag}>`;
@@ -3385,9 +3384,8 @@
   }
   function planItemHtml(it) {
     const r = recipeOf(it), o = origOf(it);
-    const tu = r && imgUrl(r, true);
-    const thumb = tu ? `<img class="pth" src="${esc(tu)}" alt="" loading="lazy">`
-      : r ? emoPh(r, "pth") : `<span class="pth${it.recipe_id ? "" : " free"}" aria-hidden="true">${esc(titleOf(it).trim().charAt(0).toUpperCase())}</span>`;
+    const thumb = r ? emoPh(r, "pth") // aina emoji, ei reseptin kuvaa
+      : `<span class="pth${it.recipe_id ? "" : " free"}" aria-hidden="true">${esc(titleOf(it).trim().charAt(0).toUpperCase())}</span>`;
     let meta;
     if (it.leftover) {
       const from = o ? ` ${mondayOf(o.day) === mondayOf(it.day) ? WD[dateOf(o.day).getDay()] : dayShort(o.day)} ${MEAL_FROM[o.meal]}` : "";
@@ -4298,8 +4296,7 @@
   }
   function suggHtml(s) {
     const r = recipes.find((x) => x.id === s.rid); if (!r) return "";
-    const tu = imgUrl(r, true);
-    const thumb = tu ? `<img class="pth" src="${esc(tu)}" alt="" loading="lazy">` : emoPh(r, "pth");
+    const thumb = emoPh(r, "pth");
     const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r), s.meals > 1 ? `riittää ${s.meals} ateriaan` : ""].filter(Boolean).join(" · ");
     const left = s.slots.length ? `<span class="pm">🔁 tähteet: ${esc(s.slots.map(slotLabel).join(", "))}</span>` : "";
     const star = (r.tags || []).includes("top") ? " ⭐" : "", dis = suggBusy ? "disabled" : "";
