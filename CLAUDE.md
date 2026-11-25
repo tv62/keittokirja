@@ -181,9 +181,20 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **Reseptisivu iPadilla vaakatasossa** (11/2026): ainekset vasemmalla ja ohje + muistiinpanot oikealla rinnakkain; ainekset
     pysyvät näkyvissä, kun ohjetta vieritetään. Pystyasennossa ja puhelimessa allekkain kuten ennen.
   - **🗓️ Viikkoon reseptisivulta** (käyttäjän hyväksymä 22.11.2026): kokkausnapin vieressä (muokkaajalle, kun viikkosuunnitelma
-    näkyy). Avaa valinnan: päivä (tänään + 13 pv, "Tänään"/"Huomenna"/"ke 25.11.") ja ateria + tieto, onko ateria vapaa. Oletus =
+    näkyy; kokkaustilassa sen tilalla ⏱ Ajastin). Avaa valinnan: päivä (tänään + 13 pv, "Tänään"/"Huomenna"/"ke 25.11.") ja ateria + tieto, onko ateria vapaa. Oletus =
     ensimmäinen vapaa päivällinen (klo 18 jälkeen huomisesta alkaen). "Jatka ›" → Riittää-sivu; tallennus ja Peruuta palaavat
     reseptille, ilmoitus "🗓️ Lisätty: Su 29.11. lounas".
+  - **Kokkaustila ja ajastin** (käyttäjän päätökset 25.11.2026): kokkaustilassa **annosmäärä on lukittu** (−/+ himmeinä, Palauta
+    piilossa) ja **Viikkoon-napin tilalla on ⏱ Ajastin**. Ohjeen ajat ("6–8 minuuttia", "30 min", "kaksi tuntia") näkyvät kokkaustilassa
+    ⏱-nappeina: napautus käynnistää ajastimen nimellä "Resepti · vaihe 2 (6–8 min)". **Väliajassa ajastin soi lyhyemmän ajan jälkeen**
+    ja soidessa on nappi "+2 min" (= väliajan loppu, kerran), muuten "+1 min". Yli 4 h aikoihin ei ajastinta. ⏱ Ajastin -paneeli:
+    1/3/5/10/15/20/30/45/60 min (käynnistyy heti) tai oma aika minuutteina + nimi (valinnainen). Useita ajastimia yhtä aikaa.
+    **Sijainti:** iPadilla (≥ 760 px) reseptisivulla **kiinteänä oikeassa yläkulmassa** (pysyy paikallaan vieritettäessä, reseptin
+    otsikko väistää), muilla sivuilla oikeassa alakulmassa; puhelimessa alareunassa koko leveydeltä. Ajastimet näkyvät kaikilla sivuilla
+    ja säilyvät sivun päivityksessä (laitekohtaisia). Kortissa jäljellä oleva aika, nimi, ⏸/▶ ja ✕; nimen napautus avaa reseptin.
+    Valmis: kortti oranssiksi ja vilkkuu, äänimerkki 2,5 s välein kunnes ✓ (kuittaa) tai lisäaika; myöhemmin "Valmis 3 min sitten".
+    **Rajoitus:** soi vain, kun keittokirja on auki näytöllä (käynnissä oleva ajastin pitää näytön päällä kuten kokkaustila); iPhonen
+    äänetön tila voi mykistää äänen. Hylätty vaihtoehto: iPhonen Kello-ajastin Pikakomennon kautta.
   - **Lomakkeissa Tallenna-palkki alareunassa** (22.11.2026): resepti- ja viinilomakkeen Tallenna + Peruuta pysyvät näytön
     alareunassa (`position: sticky`). Pitkät tekstikentät kasvavat tekstin mittaisiksi. Lomakkeen virheviesti myös ilmoituksena.
   - **Ohjetekstit näkyvät 5 kertaa** (22.11.2026): raahausohjeet (viikko, kellarikartta) ja ostoslistan kolme ohjetta; kerta =
@@ -290,6 +301,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - iPadin vaakataso: näkymä 1180×820 (pystyssä 820×1180). Vaakatasoasettelu vaatii `orientation: landscape` ja ≥ 960 px.
   Stubin `auth.signOut` kannattaa kutsua tallennettua `onAuthStateChange`-callbackia (`"SIGNED_OUT", null`), jotta uloskirjautumisen voi testata.
 - Headless-Chromium ei anna Wake Lockia, joten kokkaustila näyttää siinä "ei pysty pitämään näyttöä päällä".
+- Ajastin: `page.clock.install(…)` + `page.clock.run_for(ms)` kuluttaa aikaa; piippaukset voi laskea korvaamalla `window.beep`
+  (`page.evaluate("window.__beeps = 0; window.beep = () => __beeps++")`). Tulkinnan voi testata suoraan `timeChips(esc(teksti), 0)`.
+  Ajastimet säilyvät `localStorage`n `kk_ajastimet`-avaimessa (uudelleenlataus = sama tila).
 - Kuvat: stubiin `storage.from(b).upload/createSignedUrls/remove` (upload → `URL.createObjectURL(blob)`).
   Viinien testikuviksi sopivat käyttäjän pullokuvat (stubin `createSignedUrls` → `https://testi.local/img/<tiedosto>`).
   Kuvan valinta `page.set_input_files("#f_file" / "#w_file", polku)`, tila `recipePic.state` / `winePic.state`. Ennen rajauksen raahausta `scroll_into_view_if_needed()`,
@@ -412,6 +426,27 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     Peruuta → `back(resepti)` (ei `leaveDeleted`).
   - **Kokkaustila:** "🍳 Aloita kokkaus" pitää näytön päällä (Screen Wake Lock API, haetaan uudelleen kun sovellus
     palaa näkyviin) ja aineksen tai vaiheen voi napauttaa tehdyksi (yliviivaus). Ensimmäinen tekemätön vaihe korostetaan.
+    Kokkaustilassa stepper `.stepper.locked` (napit `disabled`, `less`/`more`/`reset` eivät tee mitään), Palauta piilossa, `detailPlan`
+    suljetaan ja `.cookbtns`-ryhmässä `data-act="tsheet"` (⏱ Ajastin) Viikkoon-napin tilalla.
+  - **Kokkausajastin** (25.11.2026, oma osio ennen "Resepti"-osiota): tila `timers` (localStorage `kk_ajastimet`, rivit
+    { id, label, rid, ms, end (päättymishetki ms, null = tauolla), left (jäljellä tauolla), extra (väliajan loppu ms) }), `timerSheet`
+    (paneeli auki; nollautuu kun resepti tai kokkaustila vaihtuu). Ohjeen ajat: `timeChips(esc-teksti, k)` korvaa `T_RE`-osumat
+    (luku tai `T_WORDS`-sana, valinnainen väli "–"/"-", yksikkö minuutti*/min/tunti*/tunni*/h/sekunti*/sek) napeilla
+    `<button class="tmr" data-tmr="sek|extra">`; `parseTime` hylkää alle 5 s ja yli `TIMER_MAX_S` (4 h). `renderDetail` käyttää sitä vain
+    kokkaustilassa; `#detail`-klikkaus käsittelee `[data-tmr]`:n ennen vaiheen rastia (vaihe ei merkity) ja `[data-tmin]` (paneelin
+    pikanapit), `tstart` (oma aika `#tMin` pilkulla tai pisteellä, 0–240 min, nimi `#tName`). `startTimer({ sec, extra, label, rid })`
+    → `audioUnlock()` + `renderDock()` + `lockScreen()`. Nimet `fmtDur` / `fmtRange` ("6–8 min", "2–2,5 h").
+    **Palkki** `#tdock` (`.tdock` > `.tcard[data-tid]`: `.tb` = aika `.tt` + nimi `.tl` (`data-topen` → resepti), `.tbtns`, edistymispalkki
+    `.bar`): `renderDock()` rakentaa kortit, `tickTimers()` (500 ms välein) päivittää tekstit ja vaihtaa napit vain tilan muuttuessa
+    (`data-state` run/pause/ring): käynnissä ⏸ `data-tpause` + ✕ `data-tdel`, tauolla ▶ + ✕, soi (`.ring`) `data-tadd` "+N min" (extra kerran,
+    sitten 60 s) + ✓ `data-tdel`. Soiva ja näkyvissä → `beep()` 2,5 s välein (Web Audio, kolme 880 Hz piippausta, `navigator.audioSession.type =
+    "transient"` jos tuettu, `vibrate` jos tuettu). `audioUnlock()` luo/jatkaa AudioContextin napautuksessa (iOS vaatii); sivun
+    latauksen jälkeen ensimmäinen `pointerdown` avaa sen. **Sijainti** CSS:llä: oletus alareuna; ≥ 760 px oikea alakulma (300 px);
+    `body.v-detail` ≥ 760 px kiinteä oikea yläkulma (`top: safe-area + 78px`, oikea reuna kortin mukaan, vaakatasossa 1160 px:n
+    leveydellä) ja `body.timers-on .dtop { padding-right: 312px }`. `placeDock()` (route, resize, tilan muutos) asettaa `body.dock-bottom`
+    + `--dockh` (palkin korkeus) → sivun alalaitaan tilaa, `.toast` ja `.savebar` palkin yläpuolelle. **Näyttö:** `timersActive()` (jokin
+    käynnissä tai soi) pitää Wake Lockin: `route()`, `openRecipe`, kokkaustilan lopetus ja `removeTimer` vapauttavat sen vain, jos
+    ajastimia ei ole käynnissä eikä kokata; `visibilitychange` hakee sen uudelleen.
   - Annosmäärä ja kokkaustilan rastit säilyvät muistissa (`cook`-Map) reseptikohtaisesti, kunnes sivu ladataan
     uudelleen, kokkaus lopetetaan tai resepti tallennetaan.
 - **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi, tall)` (vain viinilista: `.thumb.tall` 44×66 tai
