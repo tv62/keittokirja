@@ -585,13 +585,30 @@
   /* Annosmäärä lukittu kokkauksen ajaksi */
   .stepper.locked { opacity: .75; }
   /* Uusi ajastin -paneeli */
-  .tsheet { margin: 12px 0 0; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); }
-  .tsheet .lbl { margin: 0 0 8px; }
-  .tsheet .chips { flex-wrap: wrap; margin: 0; }
-  .tsheet .trow { display: flex; gap: 8px; margin-top: 10px; }
-  .tsheet .trow input { flex: 1; min-width: 0; }
-  .tsheet .trow input:last-child { flex: 1.4; }
-  .tsheet .actions { margin-top: 10px; }
+  /* Uusi ajastin -paneeli: nimi, pikavalinnat ruutuina (käynnistyvät heti), oma aika −/+-säätimellä (kirjoitus numeronäppäimistöllä) */
+  .tsheet { margin: 12px 0 0; padding: 10px 14px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg); container-type: inline-size; }
+  .tsheet .tshead { display: flex; align-items: center; justify-content: space-between; margin: 0 -8px 6px 0; }
+  .tsheet .tshead .lbl { margin: 0; }
+  .tsheet .tsx { width: 40px; height: 40px; padding: 0; border: 0; border-radius: 20px; background: transparent; color: var(--muted); font-size: 1.05rem; }
+  .tsheet .tssub { margin: 14px 0 6px; font-size: .8rem; font-weight: 600; color: var(--muted); }
+  .tsquick { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  @container (min-width: 520px) { .tsquick { grid-template-columns: repeat(9, minmax(0, 1fr)); } }
+  .tsquick button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 58px; padding: 6px 2px;
+    border-radius: 14px; background: var(--card); }
+  .tsquick b { font: 700 1.35rem/1 Georgia, "Times New Roman", serif; font-variant-numeric: tabular-nums; }
+  .tsquick small { font-size: .7rem; color: var(--muted); }
+  .tsquick button:active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--card)); }
+  .tscust { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .tsstep { display: flex; align-items: center; gap: 3px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); }
+  .tsstep button { width: 42px; height: 42px; padding: 0; border: 0; border-radius: 21px; background: var(--bg); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tsstep button:disabled { opacity: .3; }
+  .tsheet .tsval { display: flex; align-items: baseline; gap: 4px; margin: 0; padding: 0 6px 0 4px; cursor: text; }
+  .tsheet .tsval input { width: 2.7ch; padding: 0; border: 0; border-radius: 0; background: transparent; text-align: right; color: var(--ink);
+    font: 700 1.75rem/1.25 Georgia, "Times New Roman", serif; font-variant-numeric: tabular-nums; }
+  .tsheet .tsval input:focus { outline: none; box-shadow: 0 2px 0 var(--accent); }
+  .tsheet .tsval span { color: var(--muted); font-size: .85rem; }
+  .tsheet .tsgo { flex: 1 1 150px; min-height: 52px; border-radius: 14px; font-size: 1.02rem; white-space: nowrap; }
+  @container (min-width: 520px) { .tsheet .tsgo { flex: 0 0 auto; padding: 0 30px; } }
   /* Ajastimet: puhelimessa alareunassa, iPadilla reseptisivulla kiinteänä oikeassa yläkulmassa, muilla sivuilla oikeassa alakulmassa */
   .tdock { position: fixed; z-index: 60; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom));
     display: flex; flex-direction: column; gap: 8px; }
@@ -2321,18 +2338,30 @@
       return t ? `<button type="button" class="tmr" data-tmr="${t.sec}|${t.extra}" aria-label="Käynnistä ajastin: ${m}">⏱ ${m}</button>` : m;
     });
   }
+  const T_QUICK = [1, 3, 5, 10, 15, 20, 30, 45, 60], T_STEP = [-5, -1, 1, 5];
+  let tsMin = Math.min(240, Math.max(1, +localStorage.getItem("kk_ajastin_min") || 10)), tsName = ""; // oma aika (muistetaan laitteella) ja nimi (tyhjenee käynnistettäessä)
   function timerSheetHtml() {
-    return `<div class="tsheet"><div class="lbl">Uusi ajastin</div>
-      <div class="chips">${[1, 3, 5, 10, 15, 20, 30, 45, 60].map((m) => `<button type="button" class="chip" data-tmin="${m}">${m} min</button>`).join("")}</div>
-      <div class="trow"><input id="tMin" inputmode="decimal" placeholder="Oma aika, min" aria-label="Oma aika minuutteina">
-        <input id="tName" maxlength="40" placeholder="Nimi (valinnainen)" aria-label="Ajastimen nimi"></div>
-      <div class="actions"><button type="button" class="primary" data-act="tstart">Käynnistä</button>
-        <button type="button" data-act="tsheet">Peruuta</button></div></div>`;
+    const step = (d) => `<button type="button" data-tstep="${d}" aria-label="${d > 0 ? "Lisää" : "Vähennä"} ${Math.abs(d)} min"${(d < 0 ? tsMin <= 1 : tsMin >= 240) ? " disabled" : ""}>${d > 0 ? "+" : "−"}${Math.abs(d)}</button>`;
+    return `<div class="tsheet" role="group" aria-label="Uusi ajastin">
+      <div class="tshead"><span class="lbl">Uusi ajastin</span><button type="button" class="tsx" data-act="tsheet" aria-label="Sulje">✕</button></div>
+      <input id="tName" maxlength="40" value="${esc(tsName)}" placeholder="Nimi (valinnainen), esim. Pasta" aria-label="Ajastimen nimi" autocomplete="off" enterkeyhint="done">
+      <div class="tssub">Käynnistyy heti</div>
+      <div class="tsquick">${T_QUICK.map((m) => `<button type="button" data-tmin="${m}" aria-label="Käynnistä ${m} min"><b>${m}</b><small>min</small></button>`).join("")}</div>
+      <div class="tssub">Oma aika</div>
+      <div class="tscust"><div class="tsstep">${T_STEP.slice(0, 2).map(step).join("")}
+        <label class="tsval"><input id="tMin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${tsMin}" aria-label="Oma aika minuutteina" autocomplete="off" enterkeyhint="go"><span>min</span></label>
+        ${T_STEP.slice(2).map(step).join("")}</div>
+        <button type="button" class="primary tsgo" data-act="tstart">▶ Käynnistä <span id="tGoTxt">${fmtDur(tsMin * 60)}</span></button></div></div>`;
+  }
+  function syncSheet() { // oma aika muuttui: −/+ -napit ja Käynnistä-teksti ilman uudelleenpiirtoa
+    const el = $("tGoTxt"); if (!el) return;
+    el.textContent = fmtDur(tsMin * 60);
+    for (const b of document.querySelectorAll(".tsheet [data-tstep]")) b.disabled = +b.dataset.tstep < 0 ? tsMin <= 1 : tsMin >= 240;
   }
   function startSheetTimer(r, min) {
-    const name = ($("tName")?.value || "").trim();
+    const name = ($("tName")?.value ?? tsName).trim();
     startTimer({ sec: Math.round(min * 60), extra: 0, rid: r.id, label: `${name || r.title} · ${fmtDur(Math.round(min * 60))}` });
-    timerSheet = false; renderDetail(r);
+    tsName = ""; timerSheet = false; renderDetail(r);
   }
   function startTimer({ sec, extra, label, rid }) {
     audioUnlock();
@@ -2570,6 +2599,21 @@
     const cur = lis.find((li) => !st.st.has(+li.dataset.step));
     if (cur) cur.classList.add("cur");
   }
+  // Uusi ajastin -paneelin kentät: oma aika vain numeroina (1–240), nimi muistissa uudelleenpiirron yli
+  $("detail").addEventListener("input", (e) => {
+    if (e.target.id === "tName") tsName = e.target.value;
+    if (e.target.id !== "tMin") return;
+    const v = e.target.value.replace(/\D/g, "").slice(0, 3);
+    if (v !== e.target.value) e.target.value = v;
+    if (+v >= 1) { tsMin = Math.min(240, +v); syncSheet(); }
+  });
+  $("detail").addEventListener("focusin", (e) => { if (e.target.id === "tMin") setTimeout(() => e.target.select(), 0); });
+  $("detail").addEventListener("focusout", (e) => { if (e.target.id === "tMin") e.target.value = tsMin; }); // tyhjä tai yli 240 → voimassa oleva arvo
+  $("detail").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    if (e.target.id === "tMin") { e.preventDefault(); document.querySelector('[data-act="tstart"]')?.click(); }
+    else if (e.target.id === "tName") { e.preventDefault(); e.target.blur(); }
+  });
   $("detail").onclick = async (e) => {
     const r = recipes.find((x) => x.id === detailId); if (!r) return;
     const st = cookState(r);
@@ -2583,6 +2627,8 @@
     }
     const tq = e.target.closest("[data-tmin]");
     if (tq) return startSheetTimer(r, +tq.dataset.tmin);
+    const ts = e.target.closest("[data-tstep]");
+    if (ts) { tsMin = Math.min(240, Math.max(1, tsMin + +ts.dataset.tstep)); $("tMin").value = tsMin; return syncSheet(); }
     const li = e.target.closest("li[data-ing], li[data-step]");
     if (li) {
       if (!st.on) return;
@@ -2627,10 +2673,11 @@
         else { st.ing.clear(); st.st.clear(); if (!timersActive()) unlockScreen(); }
         renderDetail(r);
         break;
-      case "tsheet": timerSheet = !timerSheet; renderDetail(r); if (timerSheet) $("tMin")?.scrollIntoView({ block: "nearest" }); break;
+      case "tsheet": timerSheet = !timerSheet; renderDetail(r); if (timerSheet) document.querySelector(".tsheet")?.scrollIntoView({ block: "nearest" }); break;
       case "tstart": {
-        const m = parseFloat(String($("tMin").value).replace(",", "."));
-        if (!(m > 0 && m <= 240)) { $("tMin").focus(); return toast("Kirjoita aika minuutteina (enintään 240).", true); }
+        const m = +String($("tMin").value).replace(/\D/g, "");
+        if (!(m >= 1 && m <= 240)) { $("tMin").focus(); return toast("Oma aika minuutteina: 1–240.", true); }
+        tsMin = m; try { localStorage.setItem("kk_ajastin_min", m); } catch (_) {}
         startSheetTimer(r, m);
         break;
       }

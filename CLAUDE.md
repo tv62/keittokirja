@@ -187,8 +187,11 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **Kokkaustila ja ajastin** (käyttäjän päätökset 25.11.2026): kokkaustilassa **annosmäärä on lukittu** (−/+ himmeinä, Palauta
     piilossa) ja **Viikkoon-napin tilalla on ⏱ Ajastin**. Ohjeen ajat ("6–8 minuuttia", "30 min", "kaksi tuntia") näkyvät kokkaustilassa
     ⏱-nappeina: napautus käynnistää ajastimen nimellä "Resepti · vaihe 2 (6–8 min)". **Väliajassa ajastin soi lyhyemmän ajan jälkeen**
-    ja soidessa on nappi "+2 min" (= väliajan loppu, kerran), muuten "+1 min". Yli 4 h aikoihin ei ajastinta. ⏱ Ajastin -paneeli:
-    1/3/5/10/15/20/30/45/60 min (käynnistyy heti) tai oma aika minuutteina + nimi (valinnainen). Useita ajastimia yhtä aikaa.
+    ja soidessa on nappi "+2 min" (= väliajan loppu, kerran), muuten "+1 min". Yli 4 h aikoihin ei ajastinta. ⏱ Ajastin -paneeli
+    (ulkoasu uusittu 25.11.2026, käyttäjän toive): ylhäällä nimi (valinnainen, koskee myös pikavalintoja) ja ✕, pikavalinnat
+    1/3/5/10/15/20/30/45/60 min isoina ruutuina (käynnistyvät heti; puhelimessa 5 + 4, iPadilla yhdellä rivillä), **oma aika
+    −5 / −1 / +1 / +5 -säätimellä** (1–240 min, muistetaan laitteella, oletus 10) ja "▶ Käynnistä 10 min". Aikaa voi myös kirjoittaa:
+    kenttä avaa numeronäppäimistön (iPadilla aiemmin aukesi kirjainnäppäimistö; nyt vain kokonaiset minuutit). Useita ajastimia yhtä aikaa.
     **Sijainti:** iPadilla (≥ 760 px) reseptisivulla **osa sivua reseptin yläosan oikeassa reunassa** (käyttäjän päätös 25.11.2026:
     liikkuu sivun mukana vieritettäessä; ennen kiinteä yläkulma; otsikko ja tekstit väistävät), muilla sivuilla kiinteänä oikeassa
     alakulmassa; puhelimessa alareunassa koko leveydeltä. Ajastimet näkyvät kaikilla sivuilla
@@ -308,7 +311,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - Ajastin: `page.clock.install(…)` + `page.clock.run_for(ms)` kuluttaa aikaa; piippaukset voi laskea korvaamalla `window.beep`
   (`page.evaluate("window.__beeps = 0; window.beep = () => __beeps++")`). Tulkinnan voi testata suoraan `timeChips(esc(teksti), 0)`.
   Ajastimet säilyvät `localStorage`n `kk_ajastimet`-avaimessa (uudelleenlataus = sama tila). Kello kulkee napautusten välissä:
-  salli sekunnin heitto ("06:19" tai "06:20"). iPadin "liikkuu sivun mukana" -testissä lyhyt resepti ei vieri: aseta
+  salli sekunnin heitto ("06:19" tai "06:20"). Oma aika: `page.fill("#tMin", …)` laukaisee input-tapahtuman; napin klikkaus
+  laukaisee ensin focusoutin (tyhjä kenttä palautuu `tsMin`:iin). iPadin "liikkuu sivun mukana" -testissä lyhyt resepti ei vieri: aseta
   `document.body.style.minHeight` ennen `scrollTo`. Palkin paikka: `#tdock`:n vanhempi `.dinfo` (reseptisivu ≥ 760 px) tai body.
 - Kuvat: stubiin `storage.from(b).upload/createSignedUrls/remove` (upload → `URL.createObjectURL(blob)`).
   Viinien testikuviksi sopivat käyttäjän pullokuvat (stubin `createSignedUrls` → `https://testi.local/img/<tiedosto>`).
@@ -440,7 +444,12 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     (luku tai `T_WORDS`-sana, valinnainen väli "–"/"-", yksikkö minuutti*/min/tunti*/tunni*/h/sekunti*/sek) napeilla
     `<button class="tmr" data-tmr="sek|extra">`; `parseTime` hylkää alle 5 s ja yli `TIMER_MAX_S` (4 h). `renderDetail` käyttää sitä vain
     kokkaustilassa; `#detail`-klikkaus käsittelee `[data-tmr]`:n ennen vaiheen rastia (vaihe ei merkity) ja `[data-tmin]` (paneelin
-    pikanapit), `tstart` (oma aika `#tMin` pilkulla tai pisteellä, 0–240 min, nimi `#tName`). `startTimer({ sec, extra, label, rid })`
+    pikanapit) ja `[data-tstep]` (oma aika ±). Paneeli `timerSheetHtml()` (`.tsheet`, `container-type: inline-size`: `.tsquick`-ruudukko 5 saraketta,
+    `@container` ≥ 520 px 9 saraketta ja kapeampi `.tsgo`; `.tscust` = `.tsstep` (−/+ ja `.tsval` > `#tMin`) + Käynnistä `data-act="tstart"`,
+    teksti `#tGoTxt`). Tila `tsMin` (`T_QUICK`, `T_STEP`; localStorage `kk_ajastin_min`, tallennetaan käynnistettäessä) ja `tsName`
+    (säilyy uudelleenpiirron yli, tyhjenee käynnistettäessä). `#tMin` = `type="text" inputmode="numeric" pattern="[0-9]*"` (iPadin numerorivi;
+    `inputmode="decimal"` antoi iPadilla kirjainnäppäimistön): `#detail`-kuuntelijat `input` (vain numerot, max 3, `syncSheet()` päivittää
+    napit ja tekstin ilman uudelleenpiirtoa), `focusin` (valitsee arvon), `focusout` (tyhjä/yli 240 → `tsMin`), Enter = Käynnistä. `startTimer({ sec, extra, label, rid })`
     → `audioUnlock()` + `renderDock()` + `lockScreen()`. Nimet `fmtDur` / `fmtRange` ("6–8 min", "2–2,5 h").
     **Palkki** `#tdock` = `dockEl` (`.tdock` > `.tcard[data-tid]` > `.trow1` (`.tb` = aika `.tt` + nimi `.tl` (`data-topen` → resepti), `.tbtns`),
     säätörivi `.tadj`, edistymispalkki `.bar`): `renderDock()` rakentaa kortit, `tickTimers()` (500 ms välein) päivittää tekstit ja vaihtaa napit
