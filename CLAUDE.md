@@ -189,9 +189,13 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     ⏱-nappeina: napautus käynnistää ajastimen nimellä "Resepti · vaihe 2 (6–8 min)". **Väliajassa ajastin soi lyhyemmän ajan jälkeen**
     ja soidessa on nappi "+2 min" (= väliajan loppu, kerran), muuten "+1 min". Yli 4 h aikoihin ei ajastinta. ⏱ Ajastin -paneeli:
     1/3/5/10/15/20/30/45/60 min (käynnistyy heti) tai oma aika minuutteina + nimi (valinnainen). Useita ajastimia yhtä aikaa.
-    **Sijainti:** iPadilla (≥ 760 px) reseptisivulla **kiinteänä oikeassa yläkulmassa** (pysyy paikallaan vieritettäessä, reseptin
-    otsikko väistää), muilla sivuilla oikeassa alakulmassa; puhelimessa alareunassa koko leveydeltä. Ajastimet näkyvät kaikilla sivuilla
-    ja säilyvät sivun päivityksessä (laitekohtaisia). Kortissa jäljellä oleva aika, nimi, ⏸/▶ ja ✕; nimen napautus avaa reseptin.
+    **Sijainti:** iPadilla (≥ 760 px) reseptisivulla **osa sivua reseptin yläosan oikeassa reunassa** (käyttäjän päätös 25.11.2026:
+    liikkuu sivun mukana vieritettäessä; ennen kiinteä yläkulma; otsikko ja tekstit väistävät), muilla sivuilla kiinteänä oikeassa
+    alakulmassa; puhelimessa alareunassa koko leveydeltä. Ajastimet näkyvät kaikilla sivuilla
+    ja säilyvät sivun päivityksessä (laitekohtaisia). Kortissa jäljellä oleva aika, nimi, ±, ⏸/▶ ja ✕; nimen napautus avaa reseptin.
+    **Ajan säätö vauhdissa** (käyttäjän toive 25.11.2026, ei vahingossa): ± avaa kortin alle rivin −5 / −1 min / +1 / +5 ja ✓; rivi
+    sulkeutuu ✓:stä tai 8 s viimeisen napautuksen jälkeen. Toimii käynnissä ja tauolla (ei soidessa); vähennys ei vie alle 1 s:n
+    (liian iso miinusnappi himmeänä).
     Valmis: kortti oranssiksi ja vilkkuu, äänimerkki 2,5 s välein kunnes ✓ (kuittaa) tai lisäaika; myöhemmin "Valmis 3 min sitten".
     **Rajoitus:** soi vain, kun keittokirja on auki näytöllä (käynnissä oleva ajastin pitää näytön päällä kuten kokkaustila); iPhonen
     äänetön tila voi mykistää äänen. Hylätty vaihtoehto: iPhonen Kello-ajastin Pikakomennon kautta.
@@ -303,7 +307,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - Headless-Chromium ei anna Wake Lockia, joten kokkaustila näyttää siinä "ei pysty pitämään näyttöä päällä".
 - Ajastin: `page.clock.install(…)` + `page.clock.run_for(ms)` kuluttaa aikaa; piippaukset voi laskea korvaamalla `window.beep`
   (`page.evaluate("window.__beeps = 0; window.beep = () => __beeps++")`). Tulkinnan voi testata suoraan `timeChips(esc(teksti), 0)`.
-  Ajastimet säilyvät `localStorage`n `kk_ajastimet`-avaimessa (uudelleenlataus = sama tila).
+  Ajastimet säilyvät `localStorage`n `kk_ajastimet`-avaimessa (uudelleenlataus = sama tila). Kello kulkee napautusten välissä:
+  salli sekunnin heitto ("06:19" tai "06:20"). iPadin "liikkuu sivun mukana" -testissä lyhyt resepti ei vieri: aseta
+  `document.body.style.minHeight` ennen `scrollTo`. Palkin paikka: `#tdock`:n vanhempi `.dinfo` (reseptisivu ≥ 760 px) tai body.
 - Kuvat: stubiin `storage.from(b).upload/createSignedUrls/remove` (upload → `URL.createObjectURL(blob)`).
   Viinien testikuviksi sopivat käyttäjän pullokuvat (stubin `createSignedUrls` → `https://testi.local/img/<tiedosto>`).
   Kuvan valinta `page.set_input_files("#f_file" / "#w_file", polku)`, tila `recipePic.state` / `winePic.state`. Ennen rajauksen raahausta `scroll_into_view_if_needed()`,
@@ -436,14 +442,19 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     kokkaustilassa; `#detail`-klikkaus käsittelee `[data-tmr]`:n ennen vaiheen rastia (vaihe ei merkity) ja `[data-tmin]` (paneelin
     pikanapit), `tstart` (oma aika `#tMin` pilkulla tai pisteellä, 0–240 min, nimi `#tName`). `startTimer({ sec, extra, label, rid })`
     → `audioUnlock()` + `renderDock()` + `lockScreen()`. Nimet `fmtDur` / `fmtRange` ("6–8 min", "2–2,5 h").
-    **Palkki** `#tdock` (`.tdock` > `.tcard[data-tid]`: `.tb` = aika `.tt` + nimi `.tl` (`data-topen` → resepti), `.tbtns`, edistymispalkki
-    `.bar`): `renderDock()` rakentaa kortit, `tickTimers()` (500 ms välein) päivittää tekstit ja vaihtaa napit vain tilan muuttuessa
-    (`data-state` run/pause/ring): käynnissä ⏸ `data-tpause` + ✕ `data-tdel`, tauolla ▶ + ✕, soi (`.ring`) `data-tadd` "+N min" (extra kerran,
-    sitten 60 s) + ✓ `data-tdel`. Soiva ja näkyvissä → `beep()` 2,5 s välein (Web Audio, kolme 880 Hz piippausta, `navigator.audioSession.type =
+    **Palkki** `#tdock` = `dockEl` (`.tdock` > `.tcard[data-tid]` > `.trow1` (`.tb` = aika `.tt` + nimi `.tl` (`data-topen` → resepti), `.tbtns`),
+    säätörivi `.tadj`, edistymispalkki `.bar`): `renderDock()` rakentaa kortit, `tickTimers()` (500 ms välein) päivittää tekstit ja vaihtaa napit
+    vain tilan muuttuessa (`data-state` run/pause/ring, säätörivin ollessa auki perään `:adj`; `refreshCards()` pakottaa uudelleen): käynnissä
+    ± `data-tadjopen` + ⏸ `data-tpause` + ✕ `data-tdel`, tauolla ± + ▶ + ✕, soi (`.ring`) `data-tadd` "+N min" (extra kerran,
+    sitten 60 s) + ✓ `data-tdel`. **Säätö:** `adjId` (auki oleva kortti), `adjTouch(id)` (avaa + 8 s sulkuajastin `adjClose` alusta, null = sulje),
+    napit `data-tadj` = `ADJ` sekunteina (−300, −60, 60, 300) ja `data-tadjok`; lisäys `end` (käynnissä) tai `left` (tauolla) ja `ms` (palkin pituus,
+    min 1 s); ei, jos jäljelle jäisi alle 1 s (`tickTimers` himmentää miinusnapit); aika välähtää `.tt.bump`. Soiva ja näkyvissä → `beep()` 2,5 s välein (Web Audio, kolme 880 Hz piippausta, `navigator.audioSession.type =
     "transient"` jos tuettu, `vibrate` jos tuettu). `audioUnlock()` luo/jatkaa AudioContextin napautuksessa (iOS vaatii); sivun
-    latauksen jälkeen ensimmäinen `pointerdown` avaa sen. **Sijainti** CSS:llä: oletus alareuna; ≥ 760 px oikea alakulma (300 px);
-    `body.v-detail` ≥ 760 px kiinteä oikea yläkulma (`top: safe-area + 78px`, oikea reuna kortin mukaan, vaakatasossa 1160 px:n
-    leveydellä) ja `body.timers-on .dtop { padding-right: 312px }`. `placeDock()` (route, resize, tilan muutos) asettaa `body.dock-bottom`
+    latauksen jälkeen ensimmäinen `pointerdown` avaa sen. **Sijainti:** oletus kiinteä alareuna; ≥ 760 px kiinteä oikea alakulma (300 px).
+    `placeDock()` (route, resize, `renderDock`, tilan muutos ja **`renderDetail`in lopussa**, koska `#detail`-innerHTML irrottaa palkin) siirtää
+    reseptisivulla ≥ 760 px palkin `#detail .dinfo`:n ensimmäiseksi lapseksi ja antaa luokan `.inpage` (`position: static; float: right`;
+    `.dinfo:has(> .tdock.inpage)` = `flow-root`, sen `.tsheet/.dplan/.babybox/.sugg` saavat `overflow: hidden`, jotta tausta ei jää palkin alle);
+    muualla palkki palautetaan alkuperäiseen paikkaansa (`dockHome`, ennen `#toast`). Kiinteänä se asettaa `body.dock-bottom`
     + `--dockh` (palkin korkeus) → sivun alalaitaan tilaa, `.toast` ja `.savebar` palkin yläpuolelle. **Näyttö:** `timersActive()` (jokin
     käynnissä tai soi) pitää Wake Lockin: `route()`, `openRecipe`, kokkaustilan lopetus ja `removeTimer` vapauttavat sen vain, jos
     ajastimia ei ole käynnissä eikä kokata; `visibilitychange` hakee sen uudelleen.

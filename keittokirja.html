@@ -595,19 +595,29 @@
   /* Ajastimet: puhelimessa alareunassa, iPadilla reseptisivulla kiinteänä oikeassa yläkulmassa, muilla sivuilla oikeassa alakulmassa */
   .tdock { position: fixed; z-index: 60; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom));
     display: flex; flex-direction: column; gap: 8px; }
-  @media (min-width: 760px) {
-    .tdock { left: auto; right: max(16px, calc((100vw - 760px) / 2 + 16px)); width: 300px; }
-    body.v-detail .tdock { top: calc(env(safe-area-inset-top) + 78px); bottom: auto; right: max(16px, calc((100vw - 760px) / 2 + 30px)); }
-    body.v-detail.timers-on .dtop { padding-right: 312px; }
-  }
-  @media (min-width: 960px) and (orientation: landscape) {
-    body.v-detail .tdock { right: max(16px, calc((100vw - 1160px) / 2 + 30px)); }
-  }
+  @media (min-width: 760px) { .tdock { left: auto; right: max(16px, calc((100vw - 760px) / 2 + 16px)); width: 300px; } }
+  /* iPadin reseptisivulla ajastimet ovat osa sivua: kelluvat reseptin yläosan oikeassa reunassa ja liikkuvat sivun mukana
+     (placeDock siirtää #tdockin .dinfo-elementin alkuun). Taustalliset laatikot väistävät kelluvaa palkkia (overflow: hidden). */
+  .tdock.inpage { position: static; float: right; width: 300px; margin: 0 0 12px 18px; }
+  .dinfo:has(> .tdock.inpage) { display: flow-root; }
+  .dinfo:has(> .tdock.inpage) > :is(.tsheet, .dplan, .babybox, .sugg) { overflow: hidden; }
   body.dock-bottom { padding-bottom: calc(var(--dockh, 0px) + 16px); }
   body.dock-bottom .toast { bottom: calc(var(--dockh, 0px) + 18px + env(safe-area-inset-bottom)); }
   body.dock-bottom .savebar { bottom: var(--dockh, 0px); }
-  .tcard { position: relative; overflow: hidden; display: flex; align-items: center; gap: 8px; padding: 8px 10px 10px 4px;
+  .tcard { position: relative; overflow: hidden; padding: 8px 10px 10px 4px;
     background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 28px rgba(0,0,0,.22); }
+  .tdock.inpage .tcard { box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+  .tcard .trow1 { display: flex; align-items: center; gap: 8px; }
+  .tcard .tbtns button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  /* Ajan säätö: avautuu ±-napista (ei vahingossa), sulkeutuu ✓:stä tai 8 s kuluttua */
+  .tadj { display: flex; align-items: center; gap: 6px; margin: 8px 0 2px 10px; }
+  .tadj button { min-width: 44px; height: 40px; padding: 0 8px; border-radius: 20px; border: 1px solid var(--line); background: var(--bg);
+    color: inherit; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tadj button:disabled { opacity: .35; }
+  .tadj .u { color: var(--muted); font-size: .85rem; }
+  .tadj .ok { margin-left: auto; }
+  .tcard .tt.bump { animation: tbump .35s ease-out; }
+  @keyframes tbump { 0% { transform: scale(1.12); color: var(--accent); } 100% { transform: none; } }
   .tcard .tb { flex: 1; min-width: 0; display: block; text-align: left; border: none; background: none; color: inherit; padding: 2px 10px; min-height: 0; }
   .tcard .tt { font: 700 1.75rem/1.1 Georgia, "Times New Roman", serif; font-variant-numeric: tabular-nums; }
   .tcard .tl { font-size: .84rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2358,48 +2368,78 @@
     } catch {}
   }
   // Ajastinpalkki: puhelimessa alareunassa; iPadilla (≥ 760 px) reseptisivulla kiinteänä oikeassa yläkulmassa, muualla alakulmassa.
+  // iPadin reseptisivulla palkki siirretään sivun sisään (.dinfo:n alkuun, kelluu oikealle ja liikkuu sivun mukana); muualla bodyn lapsena.
+  const dockEl = $("tdock"), dockHome = dockEl.parentNode; // alkuperäinen paikka (#toastin vieressä)
   function placeDock() {
-    const d = $("tdock"); if (!d) return;
-    const bottom = timers.length > 0 && !(currentView === "detailView" && matchMedia("(min-width: 760px)").matches);
+    const wide = matchMedia("(min-width: 760px)").matches, info = currentView === "detailView" && wide && $("detail").querySelector(".dinfo");
+    if (info) { if (dockEl.parentNode !== info || info.firstElementChild !== dockEl) info.prepend(dockEl); }
+    else if (dockEl.parentNode !== dockHome) dockHome.insertBefore(dockEl, $("toast"));
+    dockEl.classList.toggle("inpage", !!info);
+    const bottom = timers.length > 0 && !info;
     document.body.classList.toggle("dock-bottom", bottom);
-    document.body.style.setProperty("--dockh", bottom ? d.offsetHeight + "px" : "0px");
+    document.body.style.setProperty("--dockh", bottom ? dockEl.offsetHeight + "px" : "0px");
   }
+  let adjId = null, adjClose = null; // ajastin, jonka säätörivi on auki
+  const ADJ = [-300, -60, 60, 300];   // sekunteina: −5, −1, +1, +5 min
+  function adjTouch(id) { // säätörivi auki ja sulkeutumisaika alusta (8 s)
+    adjId = id; clearTimeout(adjClose);
+    if (id) adjClose = setTimeout(() => { adjId = null; refreshCards(); }, 8000);
+  }
+  function refreshCards() { for (const c of dockEl.querySelectorAll(".tcard")) delete c.dataset.state; tickTimers(); }
   function renderDock() {
-    const d = $("tdock"), on = timers.length > 0;
+    const on = timers.length > 0;
     document.body.classList.toggle("timers-on", on);
-    d.classList.toggle("hidden", !on);
-    d.innerHTML = timers.map((t) => `<div class="tcard" data-tid="${t.id}">
+    dockEl.classList.toggle("hidden", !on);
+    dockEl.innerHTML = timers.map((t) => `<div class="tcard" data-tid="${t.id}"><div class="trow1">
       <button type="button" class="tb" data-topen="${t.id}" title="${esc(t.label)}" aria-label="${esc(t.label)}: avaa resepti"><div class="tt"></div><div class="tl">${esc(t.label)}</div></button>
-      <span class="tbtns"></span><div class="bar"></div></div>`).join("");
+      <span class="tbtns"></span></div><div class="tadj hidden" role="group" aria-label="Muuta aikaa">${ADJ.map((d, i) =>
+        `${i === 2 ? `<span class="u">min</span>` : ""}<button type="button" data-tadj="${d}" aria-label="${d > 0 ? "Lisää" : "Vähennä"} ${Math.abs(d) / 60} min">${d > 0 ? "+" : "−"}${Math.abs(d) / 60}</button>`).join("")}
+        <button type="button" class="ok" data-tadjok aria-label="Valmis">✓</button></div><div class="bar"></div></div>`).join("");
     tickTimers(); placeDock();
   }
   function tickTimers() {
     if (!timers.length) return;
     const now = Date.now(); let ringing = false;
     for (const t of timers) {
-      const c = $("tdock").querySelector(`[data-tid="${t.id}"]`); if (!c) continue;
-      const left = tLeft(t), ring = !!t.end && left <= 0, state = ring ? "ring" : t.end ? "run" : "pause";
+      const c = dockEl.querySelector(`[data-tid="${t.id}"]`); if (!c) continue;
+      const left = tLeft(t), ring = !!t.end && left <= 0, adj = !ring && adjId === t.id;
+      const state = (ring ? "ring" : t.end ? "run" : "pause") + (adj ? ":adj" : "");
       ringing = ringing || ring;
+      if (adj) for (const b of c.querySelectorAll("[data-tadj]")) b.disabled = +b.dataset.tadj < 0 && left <= -b.dataset.tadj * 1000 + 1000;
       const over = ring ? Math.floor((now - t.end) / 60000) : 0;
       c.querySelector(".tt").textContent = ring ? (over >= 1 ? `Valmis ${over} min sitten` : "Valmis!") : fmtClock(left) + (state === "pause" ? " ⏸" : "");
       c.querySelector(".bar").style.width = Math.min(100, Math.max(0, 100 * (1 - left / t.ms))) + "%";
       if (c.dataset.state !== state) {
         c.dataset.state = state;
-        c.classList.toggle("ring", ring); c.classList.toggle("paused", state === "pause");
+        const paused = !ring && !t.end;
+        c.classList.toggle("ring", ring); c.classList.toggle("paused", paused);
+        c.querySelector(".tadj").classList.toggle("hidden", !adj);
         c.querySelector(".tbtns").innerHTML = ring
           ? `<button type="button" data-tadd="${t.id}">+${t.extra ? fmtDur(Math.round(t.extra / 1000)) : "1 min"}</button><button type="button" data-tdel="${t.id}" aria-label="Kuittaa">✓</button>`
-          : `<button type="button" data-tpause="${t.id}" aria-label="${state === "pause" ? "Jatka" : "Tauko"}">${state === "pause" ? "▶" : "⏸"}</button><button type="button" data-tdel="${t.id}" aria-label="Poista ajastin">✕</button>`;
+          : `<button type="button" class="${adj ? "on" : ""}" data-tadjopen="${t.id}" aria-pressed="${adj}" aria-label="Muuta aikaa">±</button><button type="button" data-tpause="${t.id}" aria-label="${paused ? "Jatka" : "Tauko"}">${paused ? "▶" : "⏸"}</button><button type="button" data-tdel="${t.id}" aria-label="Poista ajastin">✕</button>`;
         placeDock();
       }
     }
     if (ringing && document.visibilityState === "visible" && now - lastBeep > 2500) { lastBeep = now; beep(); }
   }
   setInterval(tickTimers, 500);
-  $("tdock").onclick = (e) => {
+  dockEl.onclick = (e) => {
     audioUnlock();
     const b = e.target.closest("button"); if (!b) return;
+    const card = b.closest(".tcard"), tid = card && card.dataset.tid;
+    if (b.dataset.tadjopen != null) { adjTouch(adjId === tid ? null : tid); return refreshCards(); }
+    if (b.dataset.tadjok != null) { adjTouch(null); return refreshCards(); }
+    if (b.dataset.tadj != null) { // aika ± vauhdissa; ei alle 1 s jäljelle
+      const t = timers.find((x) => x.id === tid); if (!t) return;
+      const d = +b.dataset.tadj * 1000;
+      if (tLeft(t) + d < 1000) return;
+      if (t.end) t.end += d; else t.left += d;
+      t.ms = Math.max(1000, t.ms + d); saveTimers(); adjTouch(tid); tickTimers();
+      const tt = card.querySelector(".tt"); tt.classList.remove("bump"); void tt.offsetWidth; tt.classList.add("bump");
+      return;
+    }
     const id = b.dataset.tpause || b.dataset.tdel || b.dataset.tadd || b.dataset.topen, t = timers.find((x) => x.id === id); if (!t) return;
-    if (b.dataset.tdel) return removeTimer(id);
+    if (b.dataset.tdel) { if (adjId === id) adjTouch(null); return removeTimer(id); }
     if (b.dataset.tpause) {
       if (t.end) { t.left = Math.max(0, t.end - Date.now()); t.end = null; } else { t.end = Date.now() + t.left; t.left = null; lockScreen(); }
     } else if (b.dataset.tadd) { // soiva: lisäaika (väliajan loppu kerran, sitten +1 min)
@@ -2410,7 +2450,7 @@
       return;
     }
     saveTimers();
-    const c = b.closest(".tcard"); if (c) delete c.dataset.state; // napit uudelleen
+    if (card) delete card.dataset.state; // napit uudelleen
     tickTimers();
   };
   // Sivun latauksen jälkeen ääni avataan ensimmäisestä napautuksesta (iOS), jos ajastimia on.
@@ -2520,6 +2560,7 @@
         <button type="button" data-act="edit">Muokkaa</button>
       </div>` : ""}`;
     markCurrentStep(st);
+    placeDock(); // iPadilla ajastimet takaisin reseptin yläosaan (innerHTML korvasi sen)
   }
   // Kokkaustilassa ensimmäinen tekemätön vaihe korostetaan.
   function markCurrentStep(st) {
