@@ -500,7 +500,7 @@
   .shyhrow .shyh { min-width: 0; max-width: 100%; }
   .shyhrow .muted { font-size: .82rem; white-space: nowrap; }
   .shyhdone { font-size: .85rem; color: var(--muted); margin: 6px 0 4px; }
-  /* Perusaineet: 🏠-merkki rivillä (inline-block, ettei yliviivaus osu merkkiin) ja paneeli listan yläpuolella */
+  /* Perusaineet: talo-merkki rivillä (inline-block, ettei yliviivaus osu merkkiin) ja paneeli listan yläpuolella */
   .shpan { display: inline-block; margin-left: 6px; font-size: .8rem; }
   .shpantry { padding: 8px 14px; margin: 0 0 10px; font-size: .9rem; }
   .shpanrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -516,10 +516,27 @@
   .shlines > .shaisle:first-child { border-top: none; padding-top: 4px; }
 
   /* ===== Käytettävyysparannukset 22.11.2026 ===== */
-  /* Viikkosuunnitelman ruokarivin kuvake: pääraaka-aineen emoji värillisellä taustalla (ei reseptin kuvaa) */
-  .pth.emo { font: 1.4rem/1 -apple-system, BlinkMacSystemFont, "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
-    background: var(--bgc, var(--chip)); }
-  @media (prefers-color-scheme: dark) { .pth.emo { background: color-mix(in srgb, var(--bgc, var(--chip)) 22%, var(--card)); } }
+  /* Viikkosuunnitelman ruokarivin kuvake: pääraaka-aineen kuvake neutraalilla laatalla (A-tyyli 26.11.2026; ei reseptin kuvaa).
+     .tint = värilaatta (MAIN_BG, vain ICON_STYLE "C") */
+  .pth.emo { background: var(--chip); color: var(--ink); }
+  .pth.emo .ic { width: 26px; height: 26px; }
+  .pth.emo.tint { background: var(--bgc, var(--chip)); }
+  @media (prefers-color-scheme: dark) { .pth.emo.tint { background: color-mix(in srgb, var(--bgc, var(--chip)) 22%, var(--card)); } }
+  /* Kuvakkeet (ico, 26.11.2026): ohut viiva tekstin värillä, koko fontin mukaan. Kiinteät kuvakkeet: <span class="ici" data-ic="…"> */
+  .ic { width: 1.2em; height: 1.2em; flex: none; display: inline-block; vertical-align: -.26em; }
+  .cat .e .ic, .wkhead .e .ic, .subcard .e .ic { width: 1em; height: 1em; display: block; }
+  .chips.primary .chip.ico .ic { width: 1.1em; height: 1.1em; }
+  .chip.ico .ic { width: 1.35em; height: 1.35em; }
+  .chip:not(.ico) > .ic { margin-right: .35em; }
+  header .gear .ic { width: 1.05em; height: 1.05em; display: block; }
+  .ticons .ic { width: 1.05em; height: 1.05em; vertical-align: -.2em; }
+  .pstar .ic { width: .9em; height: .9em; vertical-align: -.1em; color: var(--muted); }
+  .shpan .ic { color: var(--muted); }
+  .shq { color: var(--muted); } .shq .ic { width: 20px; height: 20px; }
+  .shaisle .ic { width: 1.25em; height: 1.25em; vertical-align: -.3em; margin-right: 2px; }
+  .vbadge .ic { width: 1.1em; height: 1.1em; vertical-align: -.25em; }
+  /* Kuvitustyylin (D) vaaleat värit tummassa tilassa */
+  @media (prefers-color-scheme: dark) { :root { --ic-cream: #5b4a3d; --ic-glass: #3a322e; --ic-milk: #46505a; --ic-steel: #8a8f95; } }
   /* Puhelimessa etusivun kortit kahteen sarakkeeseen: kaikki osiot näkyvät ilman vieritystä */
   @media (max-width: 599px) {
     .home { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -535,7 +552,7 @@
   @media (max-width: 359px) { /* hyvin kapea puhelin */
     .wkhead { font-size: 1.15rem; gap: 12px; } .wkhead .e { font-size: 2rem; } .trow .tm { width: 72px; }
   }
-  /* Arkipäivän tyhjä lounas yhtenä rivinä (+ ja 💡) */
+  /* Arkipäivän tyhjä lounas yhtenä rivinä (+ ja ehdota-lamppu) */
   .meal.mlite .mh { min-height: 40px; }
   .mlbtns { display: flex; align-items: center; margin-right: -10px; }
   .mlbtns .plus { margin-right: 0; }
@@ -662,7 +679,7 @@
     <button id="hBack" class="link" type="button"></button>
     <h1><button id="titleBtn" type="button" aria-label="Keittokirja – etusivulle"><img class="logo" src="pata.svg" alt="" width="58" height="32"><span class="ttl">Keittokirja</span></button></h1>
     <div class="hbtns">
-      <button id="adminBtn" class="link gear hidden" aria-label="Hallinta" title="Hallinta">⚙️</button>
+      <button id="adminBtn" class="link gear hidden" aria-label="Hallinta" title="Hallinta"><span class="ici" data-ic="asetukset"></span></button>
       <button id="logoutBtn" class="link hidden">Kirjaudu ulos</button>
     </div>
   </header>
@@ -699,23 +716,23 @@
     <div id="homeMain">
       <div class="home">
         <div class="wk wide hidden" id="wkCard">
-          <button type="button" class="wkhead" data-plan="1"><span class="e">🗓️</span><span class="grow">Viikkosuunnitelma<span class="s" id="wkSub"></span></span><span class="chev" aria-hidden="true">›</span></button>
+          <button type="button" class="wkhead" data-plan="1"><span class="e" data-ic="viikko"></span><span class="grow">Viikkosuunnitelma<span class="s" id="wkSub"></span></span><span class="chev" aria-hidden="true">›</span></button>
           <div class="wktoday" id="wkToday"></div>
         </div>
         <button class="cat card" data-cat="arkiruoka">
-          <span class="e">🥘</span><span>Arkiruoka<span class="s" id="cnt_arkiruoka"></span></span>
+          <span class="e" data-ic="pata"></span><span>Arkiruoka<span class="s" id="cnt_arkiruoka"></span></span>
         </button>
         <button class="cat card" data-cat="viikonloppuherkut">
-          <span class="e">🥂</span><span>Viikonloppu&shy;herkut<span class="s" id="cnt_viikonloppuherkut"></span></span>
+          <span class="e" data-ic="kuohu"></span><span>Viikonloppu&shy;herkut<span class="s" id="cnt_viikonloppuherkut"></span></span>
         </button>
         <button class="cat card" data-nav="menus">
-          <span class="e">📜</span><span>Menut<span class="s" id="cnt_menus"></span></span>
+          <span class="e" data-ic="menu"></span><span>Menut<span class="s" id="cnt_menus"></span></span>
         </button>
         <button class="cat card" data-nav="wines">
-          <span class="e">🍷</span><span>Viinikellari<span class="s" id="cnt_wines"></span></span>
+          <span class="e" data-ic="viini"></span><span>Viinikellari<span class="s" id="cnt_wines"></span></span>
         </button>
         <button class="cat card wide" data-cat="vauvanruoat">
-          <span class="e">🍼</span><span>Vauvan ruoat<span class="s" id="cnt_vauvanruoat"></span></span>
+          <span class="e" data-ic="vauva"></span><span>Vauvan ruoat<span class="s" id="cnt_vauvanruoat"></span></span>
         </button>
       </div>
       <div class="actions" style="justify-content:space-between;align-items:center">
@@ -769,22 +786,22 @@
       <input id="f_title" required maxlength="200">
       <label for="f_category">Kategoria</label>
       <select id="f_category">
-        <option value="arkiruoka">🥘 Arkiruoka</option>
-        <option value="viikonloppuherkut">🥂 Viikonloppuherkut</option>
-        <option value="vauvanruoat">🍼 Vauvan ruoat</option>
+        <option value="arkiruoka">Arkiruoka</option>
+        <option value="viikonloppuherkut">Viikonloppuherkut</option>
+        <option value="vauvanruoat">Vauvan ruoat</option>
         <option value="">Ei kategoriaa</option>
       </select>
       <label for="f_menu">Menu (valinnainen)</label>
       <input id="f_menu" list="menuList" autocomplete="off" placeholder="esim. Lapponia alla piemontese">
       <datalist id="menuList"></datalist>
       <label style="display:flex;align-items:center;gap:8px;color:var(--ink)">
-        <input type="checkbox" id="f_top" style="width:auto;margin:0"> ⭐ Top-listalla
+        <input type="checkbox" id="f_top" style="width:auto;margin:0"> <span class="ici" data-ic="top"></span> Top-listalla
       </label>
       <label id="f_babywrap" style="display:flex;align-items:center;gap:8px;color:var(--ink)">
-        <input type="checkbox" id="f_baby" style="width:auto;margin:0"> 🍼 Näytä myös vauvan ruoissa
+        <input type="checkbox" id="f_baby" style="width:auto;margin:0"> <span class="ici" data-ic="vauva"></span> Näytä myös vauvan ruoissa
       </label>
       <div id="f_babynoteswrap">
-        <label for="f_babynotes">🍼 Vauvaohje <span class="muted">(näkyy vain, kun resepti avataan vauvan ruoista)</span></label>
+        <label for="f_babynotes"><span class="ici" data-ic="vauva"></span> Vauvaohje <span class="muted">(näkyy vain, kun resepti avataan vauvan ruoista)</span></label>
         <textarea class="grow" id="f_babynotes" rows="2" placeholder="esim. Ota vauvan annos sivuun ennen suolaa ja liemikuutiota."></textarea>
       </div>
       <label for="f_description">Lyhyt kuvaus</label>
@@ -817,8 +834,8 @@
         </div>
         <p id="f_imgnote" class="hint hidden"></p>
         <div class="actions" style="margin-top:8px">
-          <label for="f_file" class="btn" id="f_imgpick">📷 Lisää kuva</label>
-          <button type="button" id="f_imgpaste" class="hidden">📋 Liitä kuva</button>
+          <label for="f_file" class="btn" id="f_imgpick"><span class="ici" data-ic="kuva"></span> Lisää kuva</label>
+          <button type="button" id="f_imgpaste" class="hidden"><span class="ici" data-ic="kopioi"></span> Liitä kuva</button>
           <button type="button" id="f_imgundo" class="hidden">Peru</button>
           <button type="button" id="f_imgdel" class="danger hidden">Poista kuva</button>
         </div>
@@ -902,7 +919,7 @@
     <div id="bNewWrap" class="card bnew hidden">
       <div><b>✓ Viini tallennettu.</b> Lisätäänkö pulloja kellariin?</div>
       <div class="actions"><button type="button" id="bSkipBtn">Ohita</button>
-        <button type="button" id="bElseBtn">🍷 Juotu muualla</button></div>
+        <button type="button" id="bElseBtn"><span class="ici" data-ic="viini"></span> Juotu muualla</button></div>
       <div class="hint">Esim. ravintolassa juotu viini: lisää juontikerta ilman pulloa.</div>
     </div>
     <form id="bottleForm" class="card">
@@ -932,7 +949,7 @@
   <section id="tastingView" class="hidden">
     <button class="link" id="tastingCancelBtn">← Peruuta</button>
     <form id="tastingForm" class="card">
-      <h2 id="tastingTitle">🍷 Avaa pullo</h2>
+      <h2 id="tastingTitle">Avaa pullo</h2>
       <div class="muted" id="tastingWine"></div>
       <label for="t_date">Juontipäivä</label>
       <input id="t_date" type="date">
@@ -1031,8 +1048,8 @@
         </div>
         <p id="w_imgnote" class="hint hidden"></p>
         <div class="actions" style="margin-top:8px">
-          <label for="w_file" class="btn" id="w_imgpick">📷 Lisää kuva</label>
-          <button type="button" id="w_imgpaste" class="hidden">📋 Liitä kuva</button>
+          <label for="w_file" class="btn" id="w_imgpick"><span class="ici" data-ic="kuva"></span> Lisää kuva</label>
+          <button type="button" id="w_imgpaste" class="hidden"><span class="ici" data-ic="kopioi"></span> Liitä kuva</button>
           <button type="button" id="w_imgundo" class="hidden">Peru</button>
           <button type="button" id="w_imgdel" class="danger hidden">Poista kuva</button>
         </div>
@@ -1050,7 +1067,7 @@
   <!-- Viikkosuunnitelma: viikkonäkymä -->
   <section id="planView" class="hidden">
     <button class="link" data-home="1">← Etusivu</button>
-    <div class="whead"><h2>Viikkosuunnitelma</h2><button type="button" class="cellarpill" id="shopBtn">🛒 Ostoslista</button></div>
+    <div class="whead"><h2>Viikkosuunnitelma</h2><button type="button" class="cellarpill" id="shopBtn"><span class="ici" data-ic="ostos"></span> Ostoslista</button></div>
     <div class="weeknav">
       <button type="button" class="wbtn" id="wkPrev" aria-label="Edellinen viikko">‹</button>
       <div class="wl"><div class="wn" id="wkName"></div><div class="wd" id="wkDates"></div></div>
@@ -1069,7 +1086,7 @@
     <h2 style="margin:6px 0 0">Lisää ruoka</h2>
     <div class="muted" id="paSlot" style="margin:0 0 14px"></div>
     <form class="card" id="paOwnForm" style="padding:12px 14px 14px;margin:0 0 18px">
-      <label for="paOwn" style="margin-top:0">✏️ Oma merkintä</label>
+      <label for="paOwn" style="margin-top:0"><span class="ici" data-ic="kyna"></span> Oma merkintä</label>
       <div style="display:flex;gap:8px"><input id="paOwn" maxlength="200" placeholder="esim. Pizza ulkoa, Mökillä" autocomplete="off" enterkeyhint="done"><button type="submit" id="paOwnBtn" style="flex:none">Lisää</button></div>
     </form>
     <div class="lbl" style="margin:0 0 6px">Tai valitse resepti</div>
@@ -1106,7 +1123,7 @@
   <!-- Viikkosuunnitelma: ostoslista (valittujen päivien ruokien ainekset) -->
   <section id="shopView" class="hidden">
     <button class="link" id="shBack">← Viikkosuunnitelma</button>
-    <h2 style="margin:6px 0 2px">🛒 Ostoslista</h2>
+    <h2 style="margin:6px 0 2px"><span class="ici" data-ic="ostos"></span> Ostoslista</h2>
     <p class="hint" data-hint="ostos-alku" style="margin:0 0 12px">Suunniteltujen ruokien ainekset annosmäärien mukaan. Tähteinä syötävä ruoka lasketaan vain kerran.</p>
     <div class="lbl" style="margin:0 0 6px">Päivät</div>
     <div class="chips primary scroll" id="shDays" role="group" aria-label="Ostoslistan päivät"></div>
@@ -1115,12 +1132,12 @@
         <button type="button" class="chip" data-shmode="resepti">Resepteittäin</button>
         <button type="button" class="chip" data-shmode="az">Osastoittain</button>
       </div>
-      <p class="hint" id="shHint" data-hint="ostos-rasti">Napauta aines, joka on jo kotona tai lisätty S-kauppojen listaan. 🔍 hakee tuotteen S-kaupoista.</p>
+      <p class="hint" id="shHint" data-hint="ostos-rasti">Napauta aines, joka on jo kotona tai lisätty S-kauppojen listaan. <span class="ici" data-ic="haku"></span> hakee tuotteen S-kaupoista.</p>
       <div class="card shpantry" id="shPantry"></div>
       <div class="shsum" id="shSum"></div>
       <div id="shList"></div>
       <div class="actions" id="shActs">
-        <button type="button" class="primary" id="shCopy">📋 Kopioi lista</button>
+        <button type="button" class="primary" id="shCopy"><span class="ici" data-ic="kopioi"></span> Kopioi lista</button>
         <button type="button" id="shShare" class="hidden">Jaa…</button>
         <button type="button" class="link" id="shClear">Poista rastit</button>
       </div>
@@ -1167,10 +1184,89 @@
   const $ = (id) => document.getElementById(id);
 
   const CATS = { arkiruoka: "Arkiruoka", viikonloppuherkut: "Viikonloppuherkut", vauvanruoat: "Vauvan ruoat" };
-  const CAT_ICON = { arkiruoka: "🥘", viikonloppuherkut: "🥂", vauvanruoat: "🍼" };
+  // ---------- Kuvakkeet (26.11.2026, käyttäjän valinta A: ohut viiva; ennen emojeja) ----------
+  // Kaikki kuvakkeet samasta datasta (24 px ruudukko): p = alueet [polku, väri], l = viivat (polku tai [polku, väri]),
+  // d = pisteet, c = ympyrät. Tyylin vaihto yhdestä kohdasta (käyttäjä halusi säilyttää mahdollisuuden): "A" ohut viiva
+  // (käytössä), "B" viiva + lämmin sävy, "D" kuvitus (värit IC_PAL, tumma tila CSS:n --ic-*), "C" = A + viikkosuunnitelman
+  // värilaatat (MAIN_BG). Ehdotukset: Claude Design -luonnos "Keittokirjan kuvakkeet – tyyliehdotukset".
+  const ICON_STYLE = "A";
+  const ICONS = {
+    "viikko":{"p":[["M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v11A2.5 2.5 0 0 1 18.5 21h-13A2.5 2.5 0 0 1 3 18.5Z","cream"],["M3 10V7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5V10Z","red"]],"l":["M8 3v4","M16 3v4"],"d":[[8,14],[12,14],[16,14],[8,17.5],[12,17.5]]},
+    "pata":{"p":[["M4.5 12h15v4.5a3.5 3.5 0 0 1-3.5 3.5H8a3.5 3.5 0 0 1-3.5-3.5Z","red"],["M3.8 12c.5-3 3.8-4.6 8.2-4.6s7.7 1.6 8.2 4.6Z","red2"],["M10.6 7.4v-.9a1.4 1.4 0 0 1 2.8 0v.9","steel"]],"l":["M4.5 14H2.8","M19.5 14h1.7"]},
+    "kuohu":{"p":[["M9.6 2.8h4.8l-.5 8.4a1.9 1.9 0 0 1-3.8 0Z","gold"],["M18.5 2.6l.7 1.7 1.7.7-1.7.7-.7 1.7-.7-1.7-1.7-.7 1.7-.7Z","gold"]],"l":["M12 13.1v6.4","M9 20.5h6"],"d":[[11.4,9.4],[12.6,7.2],[11.6,5.2]]},
+    "menu":{"p":[["M6 3h12a1.5 1.5 0 0 1 1.5 1.5v15A1.5 1.5 0 0 1 18 21H6a1.5 1.5 0 0 1-1.5-1.5v-15A1.5 1.5 0 0 1 6 3Z","cream"]],"l":["M8.5 7.5h7","M9.5 11h5","M8.5 14.5h7","M10 18h4"]},
+    "viini":{"p":[["M7 3h10c0 6-1 9.5-5 9.5S7 9 7 3Z","glass"],["M7.3 6.5h9.4c-.3 3.5-1.7 6-4.7 6s-4.4-2.5-4.7-6Z","wine"]],"l":["M12 12.5v7","M8.5 20.5h7"]},
+    "vauva":{"p":[["M10 6c0-2 1-3.5 2-3.5s2 1.5 2 3.5Z","wood"],["M9.3 6h5.4a.8.8 0 0 1 .8.8v1.4H8.5V6.8a.8.8 0 0 1 .8-.8Z","red"],["M9 8.2h6V19a2.5 2.5 0 0 1-2.5 2.5h-1A2.5 2.5 0 0 1 9 19Z","milk"]],"l":["M11 12h2","M11 15h2","M11 18h2"]},
+    "kana":{"p":[["M4 7c1.5 1 2.8 2.6 3.5 4.2 1.5-1 3.3-1.4 4.8-1l.3-2.2c.2-2.1 1.6-3.4 3.2-3.4s2.8 1.3 2.8 3c0 1.2-.4 2-1 2.8 1.4 1.2 2.2 2.8 2.2 4.6 0 3.4-2.8 5.5-6.8 5.5-4.4 0-7.4-2.1-8-6C4.6 12 4.2 9.5 4 7Z","cream"],["M14.4 4.9c-.2-1.4.6-2.1 1.3-1.5.6-.8 1.8-.3 1.5 1.2Z","red"],["M18.5 6.9l1.8.7-1.8.7Z","gold"]],"l":["M9 14.5c1.5 2.5 5 2.7 7 .5","M12 20.5V22","M15 20.5V22"],"d":[[16.4,6.9]]},
+    "nauta":{"p":[["M8.2 8.6L4.4 8.3C4.3 9.9 5.7 11 8.2 10.7","cream"],["M15.8 8.6L19.6 8.3C19.7 9.9 18.3 11 15.8 10.7","cream"],["M8 14.2V7.6C8 6.3 9.7 5.4 12 5.4S16 6.3 16 7.6V14.2C15 13.3 13.6 12.8 12 12.8S9 13.3 8 14.2Z","cream"],["M7 15.9C7 14.1 9.1 12.8 12 12.8S17 14.1 17 15.9C17 18.4 14.8 20.2 12 20.2S7 18.4 7 15.9Z","pink"]],"l":["M8.6 6.2C7.2 6.3 6.1 5.4 6 3.8","M15.4 6.2C16.8 6.3 17.9 5.4 18 3.8"],"d":[[10.2,9.6],[13.8,9.6],[10.4,16.4],[13.6,16.4]]},
+    "lammas":{"p":[["M8.4 9.2C8.6 7.5 10.4 6.6 11.8 7.3C12.6 6.1 14.6 5.9 15.6 7.1C17 6.6 18.6 7.6 18.6 9.1C19.9 9.7 20.3 11.4 19.4 12.5C20 13.8 19.2 15.4 17.7 15.5C17.1 16.8 15.2 17.2 14.1 16.3C13 17.2 11.1 17 10.5 15.7C9.6 15.7 8.9 15.2 8.6 14.6","cream"],["M8.9 11.3C8.6 9.9 7.1 9.1 5.6 9.5C4 10 3.3 11.7 3.9 13.3C4.4 14.7 5.9 15.4 7.3 15C8.6 14.6 9.3 13.3 8.9 11.3Z","dark"]],"l":["M11.2 16.7v3.1","M16.3 16.5v3.3","M5.4 9.7L4.5 8.3"],"d":[[5.9,12.1]]},
+    "poro":{"p":[["M9.6 10.2c0-1 1-1.6 2.4-1.6s2.4.6 2.4 1.6l-.6 7.3c-.2 2-1 3-1.8 3s-1.6-1-1.8-3Z","wood"],["M9.7 10.6L6.8 9.6l1.9 2.6","wood"],["M14.3 10.6l2.9-1-1.9 2.6","wood"]],"l":["M10.6 8.7C9.6 6.2 7.6 4.7 5 4.2","M8.3 5.7L7.6 3","M6.6 4.6 4.5 6.4","M13.4 8.7c1-2.5 3-4 5.6-4.5","M15.7 5.7l.7-2.7","M17.4 4.6l2.1 1.8"],"d":[[11,12.7],[13,12.7],[12,19.1]]},
+    "kala":{"p":[["M3 12c2.5-4.5 8-5.5 12-2.8L20.5 6v12L15 14.8c-4 2.7-9.5 1.7-12-2.8Z","blue"]],"l":["M10 9c1 2 1 4 0 6"],"d":[[7,11.4]]},
+    "katkarapu":{"p":[["M16.1 4.19C16.46 4.55 17.67 5.52 18.23 6.32C18.79 7.12 19.22 8.08 19.45 9.01C19.69 9.94 19.75 10.97 19.65 11.91C19.54 12.85 19.24 13.82 18.82 14.64C18.4 15.47 17.79 16.26 17.12 16.87C16.45 17.48 15.62 18 14.79 18.33C13.96 18.66 13.02 18.84 12.15 18.86C11.27 18.88 10.34 18.72 9.53 18.44C8.72 18.15 7.93 17.69 7.28 17.15C6.64 16.61 6.07 15.91 5.66 15.19C5.26 14.47 4.99 13.23 4.85 12.83L6.22 12.54C6.36 12.83 6.71 13.78 7.09 14.28C7.46 14.78 7.96 15.24 8.47 15.57C8.99 15.89 9.59 16.14 10.17 16.26C10.75 16.38 11.39 16.39 11.96 16.31C12.53 16.22 13.11 16.01 13.6 15.74C14.08 15.46 14.54 15.07 14.89 14.66C15.24 14.24 15.52 13.73 15.69 13.24C15.86 12.74 15.94 12.18 15.93 11.68C15.91 11.17 15.8 10.64 15.61 10.18C15.42 9.73 15.14 9.29 14.81 8.94C14.49 8.59 13.86 8.23 13.67 8.09Z","pink"],["M5.54 12.69L2.72 10.02L7.02 9.1Z","pink"]],"l":["M15.78 10.66L19.64 9.98","M15.33 14.01L18.02 15.9","M12.45 16.2L12.91 18.81","M8.62 15.66L7.47 17.3","M15.02 4.39C17 2.6 19.4 2 21.8 2.6","M13.82 4.99C16.2 3.6 18.4 3.6 20.6 5"],"d":[[15.4,7.3]]},
+    "kasvis":{"p":[["M10.5 9.5c1.5-1.5 4.1-1.5 5.5-.1 1.4 1.4 1.4 4 0 5.5L6.2 20.6c-1.2.7-2.5-.6-1.8-1.8Z","orange"]],"l":[["M15.6 8.4c0-2.5 1-4.4 3-5.4","green"],["M16.6 9.4c2-1 3.9-1 4.4 0","green"],["M15.6 8.4c-1.5-1.5-2-3.4-1.5-4.9","green"],"M11 13.5l1.5 1.5","M8.3 16.7l1 1"]},
+    "linssi":{"p":[["M3.8 15.2C6.8 10 12 7.4 19.6 6.4 18.6 13 13.6 17.6 6.6 17.6 5.5 17.6 4.4 16.7 3.8 15.2Z","green"]],"l":["M19.6 6.4l1.4-1.6"],"c":[[8.6,13.7,1.6],[12.2,11.8,1.6],[15.7,10,1.5]]},
+    "papu":{"p":[["M4.78 10.13C4.44 9.49 4.36 8.31 4.53 7.69C4.69 7.07 5.29 6.6 5.78 6.42C6.27 6.24 7.04 6.64 7.48 6.62C7.92 6.59 8.08 6.53 8.44 6.27C8.8 6 9.12 5.21 9.62 5.03C10.11 4.85 10.87 4.83 11.39 5.19C11.92 5.56 12.61 6.51 12.77 7.23C12.92 7.94 12.84 8.84 12.32 9.47C11.79 10.1 10.58 10.65 9.62 11C8.66 11.34 7.37 11.71 6.57 11.56C5.76 11.42 5.12 10.78 4.78 10.13Z","wood"],["M10.96 14.99C11.05 14.27 11.66 13.26 12.15 12.85C12.64 12.44 13.41 12.39 13.91 12.53C14.42 12.66 14.81 13.43 15.19 13.66C15.57 13.89 15.73 13.94 16.18 13.93C16.62 13.91 17.35 13.45 17.85 13.58C18.36 13.72 18.99 14.14 19.21 14.74C19.43 15.34 19.46 16.52 19.17 17.19C18.89 17.86 18.31 18.56 17.52 18.77C16.73 18.99 15.42 18.74 14.43 18.47C13.44 18.21 12.18 17.77 11.61 17.19C11.03 16.61 10.87 15.72 10.96 14.99Z","wood"]]},
+    "peruna":{"p":[["M4.55 15.35C4.28 14.21 4.13 12.13 4.8 10.95C5.47 9.77 7.11 8.91 8.55 8.26C9.99 7.62 11.89 7.21 13.43 7.1C14.97 6.98 16.68 6.95 17.79 7.57C18.9 8.19 19.9 9.62 20.11 10.82C20.32 12.01 19.96 13.7 19.07 14.73C18.17 15.76 16.25 16.42 14.75 16.97C13.25 17.53 11.45 17.94 10.06 18.08C8.67 18.21 7.31 18.25 6.39 17.8C5.47 17.34 4.81 16.49 4.55 15.35Z","wood"]],"l":["M8 11.6l.9.5","M13.4 9.2l.7.7","M14.6 14.6l1-.2"]},
+    "sienet":{"p":[["M3.5 12C3.5 7.5 7.4 4 12 4s8.5 3.5 8.5 8Z","wood"],["M9.3 12v6.5a2.7 2.7 0 0 0 5.4 0V12","cream"]],"d":[[8,8.6],[12.4,7],[15.8,9.2]]},
+    "feta":{"p":[["M3 13.5L13 6.6 21 10.5V18.5H3Z","gold"]],"l":["M3 13.5h18"],"c":[[8,16.1,1.1],[15,15.8,1.3],[11.6,10.6,0.9]]},
+    "marjat":{"p":[["M4.5 14.6a4.1 4.1 0 1 0 8.2 0a4.1 4.1 0 1 0 -8.2 0Z","blue"],["M11.9 14.2a3.7 3.7 0 1 0 7.4 0a3.7 3.7 0 1 0 -7.4 0Z","blue"],["M9 8.6a3.4 3.4 0 1 0 6.8 0a3.4 3.4 0 1 0 -6.8 0Z","blue"],["M13.4 5.4C14 3.4 15.8 2.4 18 2.8 17.4 4.8 15.6 5.8 13.4 5.4Z","green"]]},
+    "keitto":{"p":[["M3.5 11h17c0 5-3.5 8.5-8.5 8.5S3.5 16 3.5 11Z","red"]],"l":["M9.5 19.4l.4 1.6h4.2l.4-1.6","M8.5 4c-1 1.5 1 2.5 0 4","M12 3c-1 1.5 1 2.5 0 4","M15.5 4c-1 1.5 1 2.5 0 4"]},
+    "pasta":{"p":[["M3 14.5h18c0 3-4 5.5-9 5.5s-9-2.5-9-5.5Z","cream"],["M5.6 14.5c.6-3.6 3.3-5.6 6.4-5.6s5.8 2 6.4 5.6","gold"],["M10.1 8.6a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0Z","red"]],"l":["M8.4 13c1-1 2 .5 3-.5s2 .5 3-.5 1.6.3 2.2.1"]},
+    "pizza":{"p":[["M12 21L4 6c5-2.7 11-2.7 16 0Z","gold"]],"l":["M5.4 8.6c4.3-2.1 8.9-2.1 13.2 0"],"c":[[10,11,1.2],[14,11.6,1.2],[12,15.4,1.1]]},
+    "kastike":{"p":[["M4 10.8h12.6l4.4-2.3c-.5 5.2-3.2 8.5-8 8.5h-3c-3.4 0-5.6-2.5-6-6.2Z","cream"]],"l":["M4.3 12.2C2.2 12.2 2 15.4 4.6 15.3","M9.2 17l-.6 2.5h6l-.6-2.5"]},
+    "marinadi":{"p":[["M7.5 6.5h9a2 2 0 0 1 2 2v10.5a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2V8.5a2 2 0 0 1 2-2Z","glass"],["M5.5 11.5h13V19a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2Z","orange"],["M8 3.5h8v3H8Z","red"]]},
+    "sose":{"p":[["M18.52 9.72C18.27 9.98 17.98 10.22 17.68 10.42C17.39 10.62 17.07 10.79 16.75 10.92C16.44 11.05 16.11 11.15 15.8 11.2C15.49 11.25 15.18 11.26 14.89 11.23C14.6 11.2 14.32 11.13 14.08 11.02C13.84 10.91 13.61 10.75 13.43 10.57C13.25 10.39 13.09 10.16 12.98 9.92C12.87 9.68 12.8 9.4 12.77 9.11C12.74 8.82 12.75 8.51 12.8 8.2C12.85 7.89 12.95 7.56 13.08 7.25C13.21 6.93 13.38 6.61 13.58 6.32C13.78 6.02 14.02 5.73 14.28 5.48C14.53 5.22 14.82 4.98 15.12 4.78C15.41 4.58 15.73 4.41 16.05 4.28C16.36 4.15 16.69 4.05 17 4C17.31 3.95 17.62 3.94 17.91 3.97C18.2 4 18.48 4.07 18.72 4.18C18.96 4.29 19.19 4.45 19.37 4.63C19.55 4.81 19.71 5.04 19.82 5.28C19.93 5.52 20 5.8 20.03 6.09C20.06 6.38 20.05 6.69 20 7C19.95 7.31 19.85 7.64 19.72 7.95C19.59 8.27 19.42 8.59 19.22 8.88C19.02 9.18 18.78 9.47 18.52 9.72Z","steel"]],"l":["M14.2 10.1 4.6 19.6"]},
+    "sormiruoka":{"p":[["M8 13.2V5.6a1.3 1.3 0 0 1 2.6 0V11V4.3a1.3 1.3 0 0 1 2.6 0V11V5.3a1.3 1.3 0 0 1 2.6 0v6.2V7.6a1.3 1.3 0 0 1 2.6 0V14c0 4-2.8 7-6.6 7-2.4 0-4-1-5.3-3L4.8 14.4c-.7-1.1.6-2.3 1.7-1.6L8 14Z","cream"]]},
+    "alkuruoka":{"p":[["M7.2 12C6.4 9 7.8 6.6 10.4 6 11.2 8.8 10 11.2 7.2 12Z","green"],["M10.6 12c.2-3.2 2.2-5.3 5-5.6.3 3.1-1.6 5.2-5 5.6Z","green"],["M14.1 10.2a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0Z","red"],["M3.5 12h17c0 4.7-3.8 8-8.5 8s-8.5-3.3-8.5-8Z","cream"]]},
+    "illallinen":{"p":[["M6.7 12a5.8 5.8 0 1 0 11.6 0a5.8 5.8 0 1 0 -11.6 0Z","cream"]],"l":["M3.6 3.5V8.4c0 1 .5 1.6 1.4 1.6S6.4 9.4 6.4 8.4V3.5","M5 10v10.5","M5 3.5v4","M20.4 20.5V3.5c-1.6 1-2 4-1.6 7.6h1.6"],"c":[[12.5,12,3.4]]},
+    "makeat":{"p":[["M3.5 12L16 6.4l4.5 3.8V18.5h-17Z","cream"],["M3.5 12L16 6.4l4.5 3.8Z","pink"],["M14.1 4.6a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0Z","red"]],"l":["M3.5 15.2h17"]},
+    "uuniruoka":{"p":[["M12 21c-4 0-6.5-2.6-6.5-6 0-3.5 2.5-5.5 3.5-8.5.4 2 1.5 3 2.5 3.5 0-3 1.5-5.5 4-7 0 3.5 3 6 3 11.5 0 4-2.5 6.5-6.5 6.5Z","orange"],["M12 21c-1.7 0-2.7-1.2-2.7-2.7 0-1.8 1.5-2.7 1.9-4.3 1.6 1 3.5 2.4 3.5 4.4 0 1.5-1.1 2.6-2.7 2.6Z","gold"]]},
+    "helppo":{"p":[["M3.2 12a8.8 8.8 0 1 0 17.6 0a8.8 8.8 0 1 0 -17.6 0Z","green"]],"l":["M8 12.3l2.8 2.7 5.2-5.7"]},
+    "liha":{"p":[["M15.01 8.99C15.31 9.3 15.57 9.67 15.76 10.07C15.95 10.47 16.08 10.93 16.13 11.4C16.19 11.88 16.18 12.39 16.1 12.9C16.02 13.41 15.87 13.95 15.67 14.46C15.46 14.97 15.18 15.49 14.86 15.97C14.54 16.45 14.15 16.92 13.74 17.34C13.32 17.75 12.85 18.14 12.37 18.46C11.89 18.78 11.37 19.06 10.86 19.27C10.35 19.47 9.81 19.62 9.3 19.7C8.79 19.78 8.28 19.79 7.8 19.73C7.33 19.68 6.87 19.55 6.47 19.36C6.07 19.17 5.7 18.91 5.39 18.61C5.09 18.3 4.83 17.93 4.64 17.53C4.45 17.13 4.32 16.67 4.27 16.2C4.21 15.72 4.22 15.21 4.3 14.7C4.38 14.19 4.53 13.65 4.73 13.14C4.94 12.63 5.22 12.11 5.54 11.63C5.86 11.15 6.25 10.68 6.66 10.26C7.08 9.85 7.55 9.46 8.03 9.14C8.51 8.82 9.03 8.54 9.54 8.33C10.05 8.13 10.59 7.98 11.1 7.9C11.61 7.82 12.12 7.81 12.6 7.87C13.07 7.92 13.53 8.05 13.93 8.24C14.33 8.43 14.7 8.69 15.01 8.99Z","red"],["M17.4 6.9a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0Z","cream"],["M15.6 5.1a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0Z","cream"]],"l":["M14.4 9.6l2.5-2.5","M7 14.6c.4-2.4 2.2-4.6 4.6-5.4"]},
+    "top":{"p":[["M12 3.2l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.6l-5.2 2.8 1-5.9-4.3-4.1 5.9-.8Z","gold"]]},
+    "ajastin":{"p":[["M4.5 13.5a7.5 7.5 0 1 0 15 0a7.5 7.5 0 1 0 -15 0Z","cream"]],"l":["M10 2.5h4","M12 2.5V6","M12 13.5l3-3","M18.4 7.1l1.3-1.3"]},
+    "kokkaus":{"p":[["M7 14.6C4.6 14.3 3 12.5 3 10.3 3 7.9 5 5.9 7.4 6.1 8.2 4.3 10 3.1 12 3.1s3.8 1.2 4.6 3c2.4-.2 4.4 1.8 4.4 4.2 0 2.2-1.6 4-4 4.3","cream"],["M7 13.5h10V19a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 19Z","cream"]],"l":["M7 17h10","M10 11v2.5","M14 11v2.5"]},
+    "ostos":{"p":[["M6 7h14.5L18 15.5H7.5Z","red"]],"l":["M2.5 4H5l2.5 11.5H18"],"c":[[9,19.5,1.4],[17,19.5,1.4]]},
+    "ehdota":{"p":[["M9 17c0-1.5-.5-2.5-1.5-3.5a6 6 0 1 1 9 0c-1 1-1.5 2-1.5 3.5Z","gold"]],"l":["M9.5 19.5h5","M10.5 21.5h3"]},
+    "tahteet":{"l":["M4 11a8 8 0 0 1 13.7-5.6L20 7.5","M20 3.5v4h-4","M20 13a8 8 0 0 1-13.7 5.6L4 16.5","M4 20.5v-4h4"]},
+    "kuva":{"p":[["M3 8.5a2 2 0 0 1 2-2h2.5L9 4.5h6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z","steel"]],"c":[[12,13,3.6]]},
+    "kopioi":{"p":[["M7 5h-.5A1.5 1.5 0 0 0 5 6.5v13A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 17.5 5H17","cream"],["M9 3.2h6a1 1 0 0 1 1 1v1.6a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4.2a1 1 0 0 1 1-1Z","steel"]],"l":["M8.5 11h7","M8.5 14.5h7","M8.5 18h4"]},
+    "kirja":{"p":[["M3 5.6c3-1 6.5-.7 9 1 2.5-1.7 6-2 9-1v12.9c-3-1-6.5-.7-9 1-2.5-1.7-6-2-9-1Z","cream"]],"l":["M12 6.6v12.9"]},
+    "koti":{"p":[["M5.5 10.2 12 4.5l6.5 5.7v9.3a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1Z","cream"],["M10 20.5v-5.5h4v5.5","wood"]],"l":["M3.5 11.8 12 4.4l8.5 7.4"]},
+    "muistio":{"p":[["M6 3.5h8l4.5 4.5v11.5a1.5 1.5 0 0 1-1.5 1.5H6a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 6 3.5Z","cream"]],"l":["M14 3.5V8h4.5","M8 12h8","M8 15h8","M8 18h5"]},
+    "asetukset":{"p":[["M18.95 10.14L21.06 10.4L21.06 13.6L18.95 13.86L18.24 15.6L19.54 17.28L17.28 19.54L15.6 18.24L13.86 18.95L13.6 21.06L10.4 21.06L10.14 18.95L8.4 18.24L6.72 19.54L4.46 17.28L5.76 15.6L5.05 13.86L2.94 13.6L2.94 10.4L5.05 10.14L5.76 8.4L4.46 6.72L6.72 4.46L8.4 5.76L10.14 5.05L10.4 2.94L13.6 2.94L13.86 5.05L15.6 5.76L17.28 4.46L19.54 6.72L18.24 8.4Z","steel"]],"c":[[12,12,3]]},
+    "haku":{"p":[["M4 10.5a6.5 6.5 0 1 0 13 0a6.5 6.5 0 1 0 -13 0Z","glass"]],"l":["M15.3 15.3 20.5 20.5"]},
+    "tagi":{"p":[["M3.5 11.6V4.8c0-.7.6-1.3 1.3-1.3h6.8l8.9 8.9c.5.5.5 1.3 0 1.8l-6.3 6.3c-.5.5-1.3.5-1.8 0Z","gold"]],"c":[[8,8,1.4]]},
+    "kyna":{"p":[["M15.5 4.5l4 4L8.5 19.5 4 20l.5-4.5Z","gold"]],"l":["M13.5 6.5l4 4"]},
+    "parsakaali":{"p":[["M9.6 11.4 10.5 19.6a1.6 1.6 0 0 0 1.6 1.4h-.2a1.6 1.6 0 0 0 1.6-1.4l.9-8.2","green"],["M6 11.4C3.63 11.07 3.83 10.23 3.6 9.4C3.37 8.57 3.97 7 4.6 6.4C5.23 5.8 6.6 6.27 7.4 5.8C8.2 5.33 8.57 4 9.4 3.6C10.23 3.2 11.53 3.23 12.4 3.4C13.27 3.57 13.77 4.43 14.6 4.6C15.43 4.77 16.57 4.03 17.4 4.4C18.23 4.77 19.2 5.93 19.6 6.8C20 7.67 20.1 8.83 19.8 9.6C19.5 10.37 20.1 11.1 17.8 11.4C15.5 11.7 8.37 11.73 6 11.4Z","green"]],"l":["M12 11.4v3","M10 9.2c.8.8 1.4 1.5 2 2.2.6-.7 1.2-1.4 2-2.2"]},
+    "sailyke":{"p":[["M5.5 6v12c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5V6","red"],["M5.5 6c0-1.4 2.9-2.5 6.5-2.5s6.5 1.1 6.5 2.5-2.9 2.5-6.5 2.5S5.5 7.4 5.5 6Z","steel"]],"l":["M5.5 16c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5","M11 5.8c.6-.7 2.4-.8 3.2 0"]},
+    "mauste":{"p":[["M7.6 7.5h8.8l1 11.6a1.8 1.8 0 0 1-1.8 1.9H8.4a1.8 1.8 0 0 1-1.8-1.9Z","glass"],["M8 7.5C8 5 9.8 3 12 3s4 2 4 4.5Z","steel"]],"d":[[10.8,5.4],[13.2,5.4],[12,4.4]]},
+    "muut":{"p":[["M5 8h14l-1 11.6a1.5 1.5 0 0 1-1.5 1.4h-9A1.5 1.5 0 0 1 6 19.6Z","cream"]],"l":["M9 10V6.5a3 3 0 0 1 6 0V10"]},
+    "timantti":{"p":[["M7 4h10l4 5-9 11.5L3 9Z","blue"]],"l":["M3 9h18","M9.6 4 8 9l4 11.5L16 9l-1.6-5"]},
+    "vaaka":{"p":[["M2.5 13.5c0 1.8 1.6 2.8 3 2.8s3-1 3-2.8Z","gold"],["M15.5 13.5c0 1.8 1.6 2.8 3 2.8s3-1 3-2.8Z","gold"]],"l":["M12 4v16","M8 20.5h8","M4.5 6.5h15","M2.5 13.5l3-7 3 7","M15.5 13.5l3-7 3 7"],"d":[[12,3.6]]},
+    "raha":{"p":[["M3 6.5h18v11H3Z","green"]],"l":["M6 9.5v5","M18 9.5v5"],"c":[[12,12,2.6]]},
+    "tiimalasi":{"p":[["M7.5 3c0 4.5 3 6.5 3 9s-3 4.5-3 9h9c0-4.5-3-6.5-3-9s3-4.5 3-9Z","glass"],["M9 19.6c.8-2 2-2.8 3-3 1 .2 2.2 1 3 3Z","gold"]],"l":["M6 3h12","M6 21h12"]},
+    "taimi":{"p":[["M12 13.5c0-3.5-2.5-5.5-6.5-5.5 0 3.5 2.5 5.5 6.5 5.5Z","green"],["M12 11c0-4 2.5-6.5 7-6.5 0 4.5-2.5 6.5-7 6.5Z","green"]],"l":["M12 20.5V11","M7 20.5h10"]},
+  };
+  const IC_PAL = { red: "#d8301f", red2: "#b9251b", cream: "#f7ecd3", gold: "#e9b949", wood: "#c9965f", steel: "#b9bec4", glass: "#f6f2ec",
+    wine: "#8e1b2c", milk: "#eef3f8", blue: "#6fa3c6", orange: "#e8823a", green: "#5f8f3e", pink: "#efb2a6", dark: "#5a4a3d" };
+  const IC_TINT = new Set(["red", "red2", "gold", "wine", "blue", "orange", "wood", "pink", "green"]);
+  function ico(k, cls) {
+    const d = ICONS[k]; if (!d) return "";
+    const st = ICON_STYLE === "C" ? "A" : ICON_STYLE;
+    let s = "";
+    for (const [p, r] of d.p || []) s += `<path d="${p}"${st === "D" ? ` style="fill:var(--ic-${r},${IC_PAL[r]})"`
+      : st === "B" && IC_TINT.has(r) ? ' style="fill:var(--accent)" fill-opacity=".22"' : ""}/>`;
+    for (const l of d.l || []) { const [p, r] = typeof l === "string" ? [l] : l; s += `<path d="${p}"${st === "D" && r ? ` style="stroke:var(--ic-${r},${IC_PAL[r]})"` : ""}/>`; }
+    for (const [x, y] of d.d || []) s += `<path d="M${x} ${y}h.01" stroke-width="2.3"/>`;
+    for (const [x, y, r] of d.c || []) s += `<circle cx="${x}" cy="${y}" r="${r}"/>`;
+    return `<svg class="ic${cls ? " " + cls : ""}" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="${st === "D" ? 1.35 : 1.6}" stroke-linecap="round" stroke-linejoin="round">${s}</svg>`;
+  }
+  for (const el of document.querySelectorAll("[data-ic]")) el.innerHTML = ico(el.dataset.ic); // sivun kiinteät kuvakkeet
+  const CAT_ICON = { arkiruoka: "pata", viikonloppuherkut: "kuohu", vauvanruoat: "vauva" };
   // Etusivun osiot, jotka admin voi piilottaa käyttäjältä (private.family_members.hidden_sections, RLS estää datan).
-  const SECTIONS = [["arkiruoka", "🥘", "Arki"], ["viikonloppuherkut", "🥂", "Viikonloppu"], ["vauvanruoat", "🍼", "Vauva"],
-    ["menut", "📜", "Menut"], ["viinit", "🍷", "Viinikellari"], ["viikko", "🗓️", "Viikkosuunnitelma"]];
+  const SECTIONS = [["arkiruoka", "pata", "Arki"], ["viikonloppuherkut", "kuohu", "Viikonloppu"], ["vauvanruoat", "vauva", "Vauva"],
+    ["menut", "menu", "Menut"], ["viinit", "viini", "Viinikellari"], ["viikko", "viikko", "Viikkosuunnitelma"]];
   // Päärajaukset kategorioittain: [tagi, otsikko]. "@menu" = reseptit, joilla on menu. Kuvake tulee TAG_ICON/PRIM_ICON-vakiosta.
   const PRIMARY = {
     vauvanruoat: [["top", "Top-lista"], ["sose", "Soseet"], ["sormiruoka", "Sormiruoat"]],
@@ -1178,31 +1274,31 @@
   // Tagien kuvakkeet. Listarivillä tagit näkyvät pelkkinä kuvakkeina tässä järjestyksessä (pääaines → ruokalaji → tapa),
   // samanlaiset kuvakkeet yhdistetään. Tagi ilman kuvaketta näkyy tekstinä. Muualla (Tagit-valinta, lomake, resepti) kuvake + nimi.
   const TAG_ICON = {
-    kana: "🐔", nauta: "🐄", lammas: "🐑", poro: "🦌", kala: "🐟", katkarapu: "🦐", kasvis: "🥕", linssi: "🫛", papu: "🫘",
-    peruna: "🥔", sienet: "🍄", feta: "🧀", marjat: "🫐",
-    keitto: "🍲", pasta: "🍝", pizza: "🍕", kastike: "🥣", marinadi: "🫙", lisuke: "🥔", sose: "🥄", sormiruoka: "🖐️",
-    alkuruoka: "🥗", illallinen: "🍽️", makeat: "🍰",
-    uuniruoka: "🔥", pata: "🫕", helppo: "👌",
+    kana: "kana", nauta: "nauta", lammas: "lammas", poro: "poro", kala: "kala", katkarapu: "katkarapu", kasvis: "kasvis",
+    linssi: "linssi", papu: "papu", peruna: "peruna", sienet: "sienet", feta: "feta", marjat: "marjat",
+    keitto: "keitto", pasta: "pasta", pizza: "pizza", kastike: "kastike", marinadi: "marinadi", lisuke: "peruna", sose: "sose",
+    sormiruoka: "sormiruoka", alkuruoka: "alkuruoka", illallinen: "illallinen", makeat: "makeat",
+    uuniruoka: "uuniruoka", pata: "pata", helppo: "helppo",
   };
-  const PRIM_ICON = { top: "⭐", "@menu": "📜" };
+  const PRIM_ICON = { top: "top", "@menu": "menu" };
   const TAG_ORDER = Object.keys(TAG_ICON);
   const tagRank = (t) => { const i = TAG_ORDER.indexOf(t); return i < 0 ? 1e9 : i; };
-  const tagLabel = (t) => (TAG_ICON[t] ? TAG_ICON[t] + " " : "") + t;
+  const tagLabel = (t) => (TAG_ICON[t] ? ico(TAG_ICON[t]) + " " : "") + esc(t); // HTML: kuvake + nimi
   // Valintasivu ennen listaa (vain näille kategorioille): ryhmä = [avain, emoji, otsikko, tagit (mikä tahansa riittää)].
   // Osoitteet #/reseptit/<kategoria> (valintasivu) ja #/reseptit/<kategoria>/<avain | "kaikki"> (lista).
   const GRID = {
     arkiruoka: { all: "Kaikki arkiruoat", groups: [
-      ["top", "⭐", "Top-lista", ["top"]], ["kana", "🐔", "Kana", ["kana"]], ["liha", "🥩", "Liha", ["nauta", "lammas"]],
-      ["poro", "🦌", "Poro", ["poro"]], ["kala", "🐟", "Kala", ["kala", "katkarapu"]], ["kasvis", "🥕", "Kasvis", ["kasvis"]],
-      ["keitto", "🍲", "Keitot", ["keitto"]], ["pasta", "🍝", "Pastat", ["pasta"]], ["lisuke", "🥔", "Lisukkeet", ["lisuke"]],
-      ["kastike", "🥣", "Kastikkeet", ["kastike"]],
+      ["top", "top", "Top-lista", ["top"]], ["kana", "kana", "Kana", ["kana"]], ["liha", "liha", "Liha", ["nauta", "lammas"]],
+      ["poro", "poro", "Poro", ["poro"]], ["kala", "kala", "Kala", ["kala", "katkarapu"]], ["kasvis", "kasvis", "Kasvis", ["kasvis"]],
+      ["keitto", "keitto", "Keitot", ["keitto"]], ["pasta", "pasta", "Pastat", ["pasta"]], ["lisuke", "peruna", "Lisukkeet", ["lisuke"]],
+      ["kastike", "kastike", "Kastikkeet", ["kastike"]],
     ] },
     // "@menu" = reseptit, joilla on menu (näytetään menuittain ryhmiteltynä).
     viikonloppuherkut: { all: "Kaikki viikonloppuherkut", groups: [
-      ["top", "⭐", "Top-lista", ["top"]], ["menut", "📜", "Menut", ["@menu"]], ["alkuruoka", "🥗", "Alkuruoka", ["alkuruoka"]],
-      ["illallinen", "🍽️", "Illallinen", ["illallinen"]], ["makeat", "🍰", "Makeat", ["makeat"]], ["poro", "🦌", "Poro", ["poro"]],
-      ["liha", "🥩", "Liha", ["nauta", "lammas"]], ["kala", "🐟", "Kala", ["kala", "katkarapu"]], ["kasvis", "🥕", "Kasvis", ["kasvis"]],
-      ["pasta", "🍝", "Pastat", ["pasta"]], ["lisuke", "🥔", "Lisukkeet", ["lisuke"]],
+      ["top", "top", "Top-lista", ["top"]], ["menut", "menu", "Menut", ["@menu"]], ["alkuruoka", "alkuruoka", "Alkuruoka", ["alkuruoka"]],
+      ["illallinen", "illallinen", "Illallinen", ["illallinen"]], ["makeat", "makeat", "Makeat", ["makeat"]], ["poro", "poro", "Poro", ["poro"]],
+      ["liha", "liha", "Liha", ["nauta", "lammas"]], ["kala", "kala", "Kala", ["kala", "katkarapu"]], ["kasvis", "kasvis", "Kasvis", ["kasvis"]],
+      ["pasta", "pasta", "Pastat", ["pasta"]], ["lisuke", "peruna", "Lisukkeet", ["lisuke"]],
     ] },
   };
   const hasTag = (r, t) => t === "@menu" ? !hidden.has("menut") && !!menuOf(r) : (r.tags || []).includes(t);
@@ -1293,9 +1389,9 @@
     if (tu) return `<img class="thumb${t}" src="${esc(tu)}" alt="" loading="lazy">`; // viinilista (reseptirivit: recipeItem)
     return `<span class="thumb ph${t}" aria-hidden="true">${esc((name || "?").trim().charAt(0).toUpperCase())}</span>`;
   }
-  // Viikkosuunnitelman ruokarivin kuvake (22.11.2026): aina pääraaka-aineen emoji värillisellä taustalla, myös jos reseptillä on kuva
-  // (käyttäjän päätös). Ensimmäinen MAIN_ORDER-tagi → emoji ja taustaväri; tummassa tilassa väri sekoitetaan kortin väriin (CSS).
-  // Ilman sopivaa tagia 🍽️.
+  // Viikkosuunnitelman ruokarivin kuvake: aina pääraaka-aineen kuvake laatalla, myös jos reseptillä on kuva (käyttäjän päätös
+  // 22.11.2026). 26.11.2026 (A-tyyli): viivakuvake neutraalilla laatalla; MAIN_BG-värit käytössä vain ICON_STYLE "C":llä.
+  // Ensimmäinen MAIN_ORDER-tagi → kuvake ja taustaväri; ilman sopivaa tagia lautanen.
   const MAIN_ORDER = ["katkarapu", "kala", "kana", "nauta", "lammas", "poro", "sose", "sormiruoka", "pizza", "keitto", "pasta",
     "linssi", "papu", "sienet", "kasvis", "peruna", "kastike", "marinadi", "makeat", "alkuruoka", "pata", "uuniruoka"];
   const MAIN_BG = { katkarapu: "#f7d5c8", kala: "#cfe3ee", kana: "#f3e2b8", nauta: "#efcfc6", lammas: "#efcfc6", poro: "#e6d3c0",
@@ -1304,9 +1400,10 @@
     alkuruoka: "#d6e8c4", pata: "#ecd8c8", uuniruoka: "#f0d9c4" };
   function mainIcon(r) {
     const t = MAIN_ORDER.find((m) => (r?.tags || []).includes(m));
-    return t ? [TAG_ICON[t], MAIN_BG[t] || "#e9e1d4"] : ["🍽️", "#e9e1d4"];
+    return t ? [TAG_ICON[t], MAIN_BG[t] || "#e9e1d4"] : ["illallinen", "#e9e1d4"];
   }
-  const emoPh = (r, cls) => { const [e, bg] = mainIcon(r); return `<span class="${cls} emo" style="--bgc:${bg}" aria-hidden="true">${e}</span>`; };
+  const emoPh = (r, cls) => { const [k, bg] = mainIcon(r), c = ICON_STYLE === "C";
+    return `<span class="${cls} emo${c ? " tint" : ""}"${c ? ` style="--bgc:${bg}"` : ""} aria-hidden="true">${ico(k)}</span>`; };
   // Iso kuva kahteen kohtaan: CSS näyttää puhelimessa lopussa (rimg-end), isommalla näytöllä ylhäällä (rimg-top).
   // cls voi sisältää "tall" (viini: kuva omassa muodossaan, enintään 300×450).
   const bigPic = (item, alt, cls) => { const u = imgUrl(item, false); return u ? `<img class="rimg ${cls}" src="${esc(u)}" alt="${esc(alt)}">` : ""; };
@@ -1345,7 +1442,7 @@
       if (k === "keep") el("imgprev").src = st.url;
       el("cropwrap").classList.toggle("hidden", k !== "new");
       msg(el("imgnote"), k === "removed" ? "Kuva poistetaan, kun tallennat." : "");
-      el("imgpick").textContent = k === "keep" || k === "new" ? "📷 Vaihda kuva" : "📷 Lisää kuva";
+      el("imgpick").innerHTML = ico("kuva") + (k === "keep" || k === "new" ? " Vaihda kuva" : " Lisää kuva");
       el("imgundo").classList.toggle("hidden", !(k === "new" || k === "removed"));
       el("imgdel").classList.toggle("hidden", k !== "keep");
       if (k === "new") requestAnimationFrame(draw);
@@ -1433,7 +1530,7 @@
           if (t) return loadBlob(await it.getType(t));
         }
         msg(el("imgnote"), NO_IMG, true);
-      }).catch(() => msg(el("imgnote"), "Kuvaa ei saatu liitettyä. Paina 📋 Liitä kuva ja sitten esiin tulevaa Liitä-kuplaa. " +
+      }).catch(() => msg(el("imgnote"), "Kuvaa ei saatu liitettyä. Paina Liitä kuva -nappia ja sitten esiin tulevaa Liitä-kuplaa. " +
         "Jos se ei auta, kopioi kuva uudelleen.", true));
     };
 
@@ -1457,7 +1554,7 @@
       dropOff();
       const f = imageFile(e.dataTransfer);
       if (f) loadBlob(f);
-      else msg(el("imgnote"), "Kuvaa ei voitu ottaa vastaan. Tallenna kuva ensin ja lisää se 📷-napilla.", true);
+      else msg(el("imgnote"), "Kuvaa ei voitu ottaa vastaan. Tallenna kuva ensin ja lisää se Lisää kuva -napilla.", true);
       if (f) el("imgbox").scrollIntoView({ behavior: "smooth", block: "center" });
     });
     window.addEventListener("dragend", dropOff);
@@ -1885,7 +1982,7 @@
       const vis = u.on_list && !u.is_admin ? `<div class="vis">
           <div class="vlabel">Näkyy etusivulla – napauta piilottaaksesi tai näyttääksesi:</div>
           <div class="chips">${SECTIONS.map(([k, ic, label]) =>
-            `<button class="chip ${hid.has(k) ? "off" : "on"}" data-act="vis" data-email="${e}" data-sec="${k}" data-hidden="${esc([...hid].join(","))}" aria-pressed="${!hid.has(k)}">${ic} ${label}</button>`).join("")}</div>
+            `<button class="chip ${hid.has(k) ? "off" : "on"}" data-act="vis" data-email="${e}" data-sec="${k}" data-hidden="${esc([...hid].join(","))}" aria-pressed="${!hid.has(k)}">${ico(ic)} ${label}</button>`).join("")}</div>
         </div>` : "";
       return `<div class="card urow">
         <div class="em">${e}${badge}</div>
@@ -2033,14 +2130,14 @@
     $("toGrid").classList.toggle("hidden", !grid || !activePrimary);
     if (grid) {
       $("toGrid").textContent = "← " + CATS[currentCat];
-      $("listTitle").textContent = !activePrimary ? CATS[currentCat] : grp ? `${grp[1]} ${grp[2]}` : "📖 " + grid.all;
+      $("listTitle").innerHTML = !activePrimary ? esc(CATS[currentCat]) : grp ? `${ico(grp[1])} ${esc(grp[2])}` : `${ico("kirja")} ${esc(grid.all)}`;
     }
     if (gridMode) {
       const n = (tags) => base.filter((r) => tags.some((t) => hasTag(r, t))).length;
       const card = (k, e, label, c, cls = "") =>
-        `<button class="subcard ${cls}" data-group="${esc(k)}"><span class="e">${e}</span><span>${esc(label)}<span class="s">${c} ${c === 1 ? "resepti" : "reseptiä"}</span></span></button>`;
+        `<button class="subcard ${cls}" data-group="${esc(k)}"><span class="e">${ico(e)}</span><span>${esc(label)}<span class="s">${c} ${c === 1 ? "resepti" : "reseptiä"}</span></span></button>`;
       $("subGrid").innerHTML = grid.groups.filter((g) => n(g[3])).map(([k, e, label, tags]) => card(k, e, label, n(tags))).join("") +
-        card("kaikki", "📖", grid.all, base.length, "wide");
+        card("kaikki", "kirja", grid.all, base.length, "wide");
       $("tagChips").classList.add("hidden");
       $("sortBar").classList.add("hidden"); $("orderHint").classList.add("hidden");
       msg($("listMsg"), base.length ? "" : "Tässä kategoriassa ei ole vielä reseptejä.");
@@ -2055,14 +2152,14 @@
     $("primaryChips").classList.toggle("scroll", !!grid);
     $("primaryChips").innerHTML =
       (prim.length ? [[grid ? "kaikki" : "", "", "Kaikki"], ...prim] : []).map(([k, e, label]) =>
-        `<button class="chip ${e ? "ico" : ""} ${(activePrimary || "") === k ? "on" : ""}" data-prim="${esc(k)}"${e ? ` aria-label="${esc(label)}" title="${esc(label)}"` : ""}>${e || esc(label)}</button>`).join("") +
-      `<button class="chip ghost ico ${showTags ? "on" : ""}" data-tagtoggle="1" aria-expanded="${showTags}" aria-label="Tagit${activeTag ? ": " + esc(activeTag) : ""}" title="Tagit">🏷${activeTag ? " " + esc(TAG_ICON[activeTag] || activeTag) : ""} ${showTags ? "▴" : "▾"}</button>`;
+        `<button class="chip ${e ? "ico" : ""} ${(activePrimary || "") === k ? "on" : ""}" data-prim="${esc(k)}"${e ? ` aria-label="${esc(label)}" title="${esc(label)}"` : ""}>${e ? ico(e) : esc(label)}</button>`).join("") +
+      `<button class="chip ghost ico ${showTags ? "on" : ""}" data-tagtoggle="1" aria-expanded="${showTags}" aria-label="Tagit${activeTag ? ": " + esc(activeTag) : ""}" title="Tagit">${ico("tagi")}${activeTag ? " " + (TAG_ICON[activeTag] ? ico(TAG_ICON[activeTag]) : esc(activeTag)) : ""} ${showTags ? "▴" : "▾"}</button>`;
 
     // Pikatagit (piilossa oletuksena)
     const tags = [...new Set(base.flatMap(plainTags))].sort((a, b) => a.localeCompare(b, "fi"));
     $("tagChips").classList.toggle("hidden", !showTags);
     $("tagChips").innerHTML = tags.map((t) =>
-      `<button class="chip ${t === activeTag ? "on" : ""}" data-tag="${esc(t)}">${esc(tagLabel(t))}</button>`).join("");
+      `<button class="chip ${t === activeTag ? "on" : ""}" data-tag="${esc(t)}">${tagLabel(t)}</button>`).join("");
 
     msg($("listMsg"), base.length ? "" : "Tässä kategoriassa ei ole vielä reseptejä.");
     const shown = base.filter((r) => {
@@ -2094,7 +2191,7 @@
       const groups = new Map();
       for (const r of shown) { const m = menuOf(r); if (!groups.has(m)) groups.set(m, []); groups.get(m).push(r); }
       $("list").innerHTML = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], "fi")).map(([m, rs]) =>
-        `<button class="group-title" data-openmenu="${esc(m)}">🍽 ${esc(m)} <span class="muted" style="font-style:normal;font-size:.85rem">· avaa menu ›</span></button>
+        `<button class="group-title" data-openmenu="${esc(m)}">${ico("menu")} ${esc(m)} <span class="muted" style="font-style:normal;font-size:.85rem">· avaa menu ›</span></button>
          <div class="list cols">${rs.sort(byCourse).map((r) => recipeItem(r, true)).join("")}</div>`
       ).join("") || empty;
     } else {
@@ -2113,8 +2210,8 @@
     for (const t of plainTags(r).sort((a, b) => tagRank(a) - tagRank(b))) {
       if (TAG_ICON[t]) byIcon.set(TAG_ICON[t], [...(byIcon.get(TAG_ICON[t]) || []), t]); else rest.push(t);
     }
-    const ic = [...byIcon].map(([e, ts]) =>
-      `<span class="ti" role="img" aria-label="${esc(ts.join(", "))}" title="${esc(ts.join(", "))}">${e}</span>`).join("");
+    const ic = [...byIcon].map(([k, ts]) =>
+      `<span class="ti" role="img" aria-label="${esc(ts.join(", "))}" title="${esc(ts.join(", "))}">${ico(k)}</span>`).join("");
     return [ic && `<span class="ticons">${ic}</span>`, rest.length && esc(rest.join(", "))].filter(Boolean).join(" ");
   }
   // Reseptirivi (käyttäjän päätös 22.11.2026): ei kuvaa/emojia rivin alussa eikä lisäyspäivää. Nimi, alla aika · tagikuvakkeet ⭐
@@ -2122,7 +2219,7 @@
   function recipeItem(r, hideMenu, sorting) {
     const menu = hideMenu || hidden.has("menut") ? null : menuOf(r);
     const top = (r.tags || []).includes("top");
-    const icons = [tagIcons(r), top ? `<span class="ticons"><span class="ti" role="img" aria-label="Top-listalla" title="Top-listalla">⭐</span></span>` : ""]
+    const icons = [tagIcons(r), top ? `<span class="ticons"><span class="ti" role="img" aria-label="Top-listalla" title="Top-listalla">${ico("top")}</span></span>` : ""]
       .filter(Boolean).join(" ");
     const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", icons].filter(Boolean).join(" · ");
     const tu = imgUrl(r, true);
@@ -2343,7 +2440,7 @@
   function timeChips(html, k) {
     return html.replace(T_RE, (m, a, b, unit) => {
       const t = parseTime(m, a, b, unit);
-      return t ? `<button type="button" class="tmr" data-tmr="${t.sec}|${t.extra}" aria-label="Käynnistä ajastin: ${m}">⏱ ${m}</button>` : m;
+      return t ? `<button type="button" class="tmr" data-tmr="${t.sec}|${t.extra}" aria-label="Käynnistä ajastin: ${m}">${ico("ajastin")} ${m}</button>` : m;
     });
   }
   const T_QUICK = [1, 3, 5, 10, 15, 20, 30, 45, 60], T_STEP = [-5, -1, 1, 5];
@@ -2558,11 +2655,11 @@
       </div>
       ${r.description ? `<p class="muted" style="margin:4px 0">${esc(r.description)}</p>` : ""}
       <div class="meta">
-        ${r.prep_minutes ? `<span>⏱ ${fmtTime(r.prep_minutes)}</span>` : ""}
-        ${r.added_on ? `<span>📅 Lisätty ${fiDate(r.added_on)}</span>` : ""}
-        ${plainTags(r).length ? `<span>${esc(plainTags(r).sort((a, b) => tagRank(a) - tagRank(b)).map((t) => TAG_ICON[t] ? tagLabel(t) : "🏷 " + t).join(", "))}</span>` : ""}
+        ${r.prep_minutes ? `<span>${ico("ajastin")} ${fmtTime(r.prep_minutes)}</span>` : ""}
+        ${r.added_on ? `<span>${ico("viikko")} Lisätty ${fiDate(r.added_on)}</span>` : ""}
+        ${plainTags(r).length ? `<span>${plainTags(r).sort((a, b) => tagRank(a) - tagRank(b)).map((t) => TAG_ICON[t] ? tagLabel(t) : ico("tagi") + " " + esc(t)).join(", ")}</span>` : ""}
       </div>
-      ${detailBaby && r.baby_notes ? `<div class="babybox"><strong>🍼 Vauvalle</strong><div class="notes">${esc(r.baby_notes)}</div></div>` : ""}
+      ${detailBaby && r.baby_notes ? `<div class="babybox"><strong>${ico("vauva")} Vauvalle</strong><div class="notes">${esc(r.baby_notes)}</div></div>` : ""}
       ${suggBoxHtml(r)}
       <div class="cookbar">
         ${r.servings ? `<div class="stepper ${st.on ? "locked" : ""}" role="group" aria-label="Annosmäärä${st.on ? " (lukittu kokkauksen ajaksi)" : ""}"
@@ -2571,12 +2668,12 @@
           <span class="val ${f !== 1 ? "changed" : ""}" aria-live="polite">${servingsTxt(st.servings)}</span>
           <button type="button" data-act="more" aria-label="Enemmän annoksia" ${st.on || st.servings >= 99 ? "disabled" : ""}>+</button>
         </div>` : "<span></span>"}
-        <span class="cookbtns"><button type="button" class="cook ${st.on ? "on" : ""}" data-act="cook" aria-pressed="${st.on}">${st.on ? "Lopeta kokkaus" : "🍳 Aloita kokkaus"}</button>${
-          st.on ? ` <button type="button" class="cook ${timerSheet ? "on" : ""}" data-act="tsheet" aria-expanded="${timerSheet}">⏱ Ajastin</button>`
-          : canPlanHere() ? ` <button type="button" class="cook ${detailPlan ? "on" : ""}" data-act="plan" aria-expanded="${!!detailPlan}" aria-label="Lisää viikkosuunnitelmaan">🗓️ Viikkoon</button>` : ""}</span>
+        <span class="cookbtns"><button type="button" class="cook ${st.on ? "on" : ""}" data-act="cook" aria-pressed="${st.on}">${st.on ? "Lopeta kokkaus" : ico("kokkaus") + " Aloita kokkaus"}</button>${
+          st.on ? ` <button type="button" class="cook ${timerSheet ? "on" : ""}" data-act="tsheet" aria-expanded="${timerSheet}">${ico("ajastin")} Ajastin</button>`
+          : canPlanHere() ? ` <button type="button" class="cook ${detailPlan ? "on" : ""}" data-act="plan" aria-expanded="${!!detailPlan}" aria-label="Lisää viikkosuunnitelmaan">${ico("viikko")} Viikkoon</button>` : ""}</span>
       </div>
       ${st.on ? `<p class="cookhint">${lockNote} Napauta ainesta tai vaihetta, kun se on tehty.${
-        (r.instructions || []).length ? " Ohjeen ajasta (⏱) käynnistyy ajastin." : ""}</p>` : ""}
+        (r.instructions || []).length ? ` Ohjeen ajasta (${ico("ajastin")}) käynnistyy ajastin.` : ""}</p>` : ""}
       ${st.on && timerSheet ? timerSheetHtml() : ""}
       ${detailPlan ? detailPlanHtml() : ""}
       </div>
@@ -2594,7 +2691,7 @@
       </div>
       ${pic("rimg-end")}
       ${canEdit ? `<div class="actions">
-        <button type="button" data-act="top">${isTop ? "★ Poista Top-listalta" : "⭐ Lisää Top-listalle"}</button>
+        <button type="button" data-act="top">${ico("top")} ${isTop ? "Poista Top-listalta" : "Lisää Top-listalle"}</button>
         <button type="button" data-act="edit">Muokkaa</button>
       </div>` : ""}`;
     markCurrentStep(st);
@@ -2875,7 +2972,7 @@
     const openSet = new Set(bottles.filter((b) => b.status === "juotu").map((b) => b.wine_id));
     // Tila: Kellarissa (pullomerkki) / 🍷 Avatut (avain "juodut"; valitun napautus = kaikki viinit), tyypit värimerkkeinä. Nimi näkyy vain valitussa.
     // Kaapissa-napissa pullomäärä aina, Avatut-napissa avattujen viinien määrä vain valittuna (käyttäjän valinta 13.11.2026).
-    const stat = [["kaapissa", BOTTLE_ICO, "Kellarissa"], ["juodut", "🍷", "Avatut"]].map(([k, ic, l]) => {
+    const stat = [["kaapissa", BOTTLE_ICO, "Kellarissa"], ["juodut", ico("viini"), "Avatut"]].map(([k, ic, l]) => {
       const on = wineStatus === k, n = k === "kaapissa" ? nIn : on ? openSet.size : 0;
       const al = k === "kaapissa" ? (nIn ? ` (${pullot(nIn)})` : "") : ` (${openSet.size} ${openSet.size === 1 ? "viini" : "viiniä"})`;
       return `<button class="chip ${on ? "on" : ""}" data-wst="${k}" aria-pressed="${on}" aria-label="${l}${al}"><span aria-hidden="true">${ic}</span>${on ? `<span>${l}</span>` : ""}${n ? `<span class="n" aria-hidden="true">${n}</span>` : ""}</button>`;
@@ -2924,7 +3021,7 @@
     const info = [b.purchased_on ? "ostettu " + fiDate(b.purchased_on) : "", b.purchase_place, eur(b.price)].filter(Boolean).join(" · ");
     return `<div class="brow">
       <div class="bi"><div class="bp">${esc(placeTxt(b))}</div>${info ? `<div class="m">${esc(info)}</div>` : ""}</div>
-      ${canEdit ? `<button class="primary" data-wact="open" data-b="${b.id}">🍷 Avaa</button>
+      ${canEdit ? `<button class="primary" data-wact="open" data-b="${b.id}">${ico("viini")} Avaa</button>
         <button class="icon" data-wact="editb" data-b="${b.id}" aria-label="Muokkaa pulloa">⋯</button>` : ""}
     </div>`;
   }
@@ -2953,7 +3050,7 @@
     return `<span class="stars" role="img" aria-label="${n}/5">${starsTxt(n)}</span>${m[2] ? ` <span class="srest">${esc(m[2])}</span>` : ""}`;
   }
   // Hinta-laatusuhteen kuvake (Viinilehti)
-  const VALUE_ICON = { "Löytö": "💎", "Edullinen ostos": "💎", "Laatu vastaa hintaa": "⚖️", "Kallis": "💸" };
+  const VALUE_ICON = { "Löytö": "timantti", "Edullinen ostos": "timantti", "Laatu vastaa hintaa": "vaaka", "Kallis": "raha" };
   function openWine(w) {
     curWineId = w.id;
     renderWine(w); show("wineView");
@@ -2963,7 +3060,7 @@
     });
   }
   // Viinilehden juotavuusmerkinnät (lasi / pullo kallellaan / pullo pystyssä)
-  const READY_ICON = { "Valmis juotavaksi": "🍷", "Valmis, mutta kehittyy": "⏳", "Kehittyy varastoinnin myötä": "🌱" };
+  const READY_ICON = { "Valmis juotavaksi": "viini", "Valmis, mutta kehittyy": "tiimalasi", "Kehittyy varastoinnin myötä": "taimi" };
   function renderWine(w) {
     const srcUrl = safeUrl(w.source_url), alko = alkoUrl(w.alko_id);
     const row = (k, v) => v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "";
@@ -2980,7 +3077,7 @@
           <div>${w.own_rating ? `<span class="stars" role="img" aria-label="${w.own_rating}/5">${starsTxt(w.own_rating)}</span>` : "–"}</div></div>
         <div class="rrow"><div class="lbl">${w.source_name ? esc(w.source_name) : "Arvio"}</div>
           <div>${srcRatingHtml(w.source_rating)}
-          ${w.source_characterful || w.source_readiness || w.source_value ? `<div class="vbadges">${w.source_characterful ? `<span class="vbadge">Luonteikas viini</span>` : ""}${w.source_readiness ? `<span class="vbadge" title="Juotavuus">${READY_ICON[w.source_readiness] || "🍷"} ${esc(w.source_readiness)}</span>` : ""}${w.source_value ? `<span class="vbadge" title="Hinta-laatusuhde">${VALUE_ICON[w.source_value] || "💎"} ${esc(w.source_value)}</span>` : ""}</div>` : ""}
+          ${w.source_characterful || w.source_readiness || w.source_value ? `<div class="vbadges">${w.source_characterful ? `<span class="vbadge">Luonteikas viini</span>` : ""}${w.source_readiness ? `<span class="vbadge" title="Juotavuus">${ico(READY_ICON[w.source_readiness] || "viini")} ${esc(w.source_readiness)}</span>` : ""}${w.source_value ? `<span class="vbadge" title="Hinta-laatusuhde">${ico(VALUE_ICON[w.source_value] || "timantti")} ${esc(w.source_value)}</span>` : ""}</div>` : ""}
           ${srcUrl ? `<div><a href="${esc(srcUrl)}" target="_blank" rel="noopener" style="font-size:.85rem">Avaa arvio</a></div>` : ""}</div></div>
       </div>
       <dl class="kv">
@@ -2996,7 +3093,7 @@
         ${canEdit ? `<div class="actions" style="margin-top:10px"><button data-wact="addb">+ Lisää pulloja kellariin</button></div>` : ""}
       </div>
       <div class="wsec">
-        <div class="wsh"><h3>🍷 Juontihistoria</h3>${canEdit ? `<button class="link" data-wact="addt">+ Lisää juontikerta</button>` : ""}</div>
+        <div class="wsh"><h3>${ico("viini")} Juontihistoria</h3>${canEdit ? `<button class="link" data-wact="addt">+ Lisää juontikerta</button>` : ""}</div>
         ${hist.length ? hist.map((t) => tastingRow(t, multiV)).join("") : `<p class="muted" style="margin:0">Ei vielä juontikertoja.</p>`}
       </div>
       ${w.own_notes ? `<h3>Omat muistiinpanot</h3><p class="notes">${esc(w.own_notes)}</p>` : ""}
@@ -3259,7 +3356,7 @@
   function openTasting(w, b, mode) {
     tState = { wine: w, bottle: b, mode };
     const edit = mode === "muokkaa";
-    $("tastingTitle").textContent = mode === "avaa" ? "🍷 Avaa pullo" : edit ? "Muokkaa juontikertaa" : "Lisää juontikerta";
+    $("tastingTitle").innerHTML = mode === "avaa" ? ico("viini") + " Avaa pullo" : edit ? "Muokkaa juontikertaa" : "Lisää juontikerta";
     $("tastingWine").textContent = wineTitle(w) + (mode === "avaa" && b.shelf ? " · " + placeTxt(b) : "");
     $("t_date").value = edit ? (b.opened_on || "") : todayIso();
     $("t_buy").value = edit ? (b.purchased_on || "") : "";
@@ -3267,7 +3364,7 @@
     $("t_occasion").value = edit ? (b.occasion || "") : "";
     $("t_notes").value = edit ? (b.notes || "") : "";
     tStars = edit ? (b.rating || 0) : 0; renderTStars();
-    $("tastingSaveBtn").textContent = mode === "avaa" ? "🍷 Avaa pullo" : "Tallenna";
+    $("tastingSaveBtn").innerHTML = mode === "avaa" ? ico("viini") + " Avaa pullo" : "Tallenna";
     $("tDelWrap").classList.toggle("hidden", !edit);
     msg($("tastingMsg"), "");
     show("tastingView");
@@ -3432,7 +3529,7 @@
     $("f_instructions").value = (r?.instructions || []).map(asText).join("\n");
     const curCat = r ? catOf(r) : cat || Object.keys(CATS).find((c) => !hidden.has(c)) || "";
     $("f_category").innerHTML = Object.keys(CATS).filter((c) => !hidden.has(c) || c === curCat)
-      .map((c) => `<option value="${c}">${CAT_ICON[c]} ${CATS[c]}</option>`).join("") + `<option value="">Ei kategoriaa</option>`;
+      .map((c) => `<option value="${c}">${CATS[c]}</option>`).join("") + `<option value="">Ei kategoriaa</option>`;
     $("f_category").value = curCat;
     $("f_menu").value = r ? (menuOf(r) || "") : "";
     $("f_top").checked = !!r && (r.tags || []).includes("top");
@@ -3463,7 +3560,7 @@
     first.forEach((t) => rest.delete(t));
     const all = [...first, ...[...rest].sort((a, b) => a.localeCompare(b, "fi"))];
     $("f_tagpick").innerHTML = all.map((t) =>
-      `<button type="button" class="chip ${editTags.has(t) ? "on" : ""}" data-tag="${esc(t)}" aria-pressed="${editTags.has(t)}">${esc(tagLabel(t))}</button>`).join("");
+      `<button type="button" class="chip ${editTags.has(t) ? "on" : ""}" data-tag="${esc(t)}" aria-pressed="${editTags.has(t)}">${tagLabel(t)}</button>`).join("");
   }
   $("f_tagpick").onclick = (e) => {
     const b = e.target.closest("[data-tag]"); if (!b) return;
@@ -3673,7 +3770,7 @@
       if (!its.length) return `<div class="trow empty"><span class="tm">${MEALS[m]}</span><span class="tt">–</span></div>`;
       return its.map((it, i) => {
         const r = recipeOf(it);
-        const side = it.leftover ? `<span class="left">🔁 tähteet</span>` : r?.prep_minutes ? `<span class="tx">${esc(fmtTime(r.prep_minutes))}</span>` : "";
+        const side = it.leftover ? `<span class="left">${ico("tahteet")} tähteet</span>` : r?.prep_minutes ? `<span class="tx">${esc(fmtTime(r.prep_minutes))}</span>` : "";
         const inner = `<span class="tm">${i ? "" : MEALS[m]}</span><span class="tt">${esc(titleOf(it))}</span>${side}`;
         return r || canEdit ? `<button type="button" class="trow" data-open="${it.id}">${inner}</button>` : `<div class="trow">${inner}</div>`;
       }).join("");
@@ -3698,11 +3795,11 @@
     let meta;
     if (it.leftover) {
       const from = o ? ` ${mondayOf(o.day) === mondayOf(it.day) ? WD[dateOf(o.day).getDay()] : dayShort(o.day)} ${MEAL_FROM[o.meal]}` : "";
-      meta = `<span class="left">🔁 tähteet</span>${esc(from)}`;
+      meta = `<span class="left">${ico("tahteet")} tähteet</span>${esc(from)}`;
     } else if (r) {
       meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r), it.servings ? servingsTxt(it.servings) : ""].filter(Boolean).join(" · ");
     } else meta = it.recipe_id ? "resepti ei ole näkyvissä" : "oma merkintä";
-    const star = r && (r.tags || []).includes("top") ? " ⭐" : "";
+    const star = r && (r.tags || []).includes("top") ? ` <span class="pstar" title="Top-listalla">${ico("top")}</span>` : "";
     const body = `${thumb}<span class="ptxt"><span class="pt">${esc(titleOf(it))}${star}</span><span class="pm">${meta}</span></span>`;
     return `<div class="pi"${canEdit ? ` data-drag="p:${it.id}"` : ""}>${r || canEdit ? `<button type="button" class="pbody" data-open="${it.id}">${body}</button>` : `<div class="pbody">${body}</div>`}${
       canEdit ? `<button type="button" class="more" data-item="${it.id}" aria-label="Muokkaa: ${esc(titleOf(it))}">⋯</button>` : ""}</div>`;
@@ -3720,7 +3817,7 @@
     if (noteEdit === day) noteHtml = `<form class="noteform" data-noteform="${day}">
         <input id="noteInput" maxlength="300" value="${esc(note || "")}" placeholder="esim. Treenit klo 18" aria-label="Muistiinpano ${esc(dayLabel(day))}" enterkeyhint="done">
         <button type="submit" class="primary">Tallenna</button><button type="button" data-notecancel="1">Peru</button></form>`;
-    else if (note) noteHtml = canEdit ? `<button type="button" class="dnote" data-note="${day}">📝 ${esc(note)}</button>` : `<div class="dnote">📝 ${esc(note)}</div>`;
+    else if (note) noteHtml = canEdit ? `<button type="button" class="dnote" data-note="${day}">${ico("muistio")} ${esc(note)}</button>` : `<div class="dnote">${ico("muistio")} ${esc(note)}</div>`;
     const meals = Object.keys(MEALS).map((m) => {
       const its = slotItems(day, m), key = day + "|" + m, s = sugg.get(key), resv = suggReserved.get(key);
       const plus = canEdit && (its.length || s || resv) ? `<button type="button" class="plus" data-add="${day}|${m}" aria-label="Lisää ruoka: ${esc(dayShort(day))} ${MEAL_LC[m]}">+</button>` : "";
@@ -3730,22 +3827,22 @@
       else if (s) body = suggHtml(s);
       else if (resv) {
         const from = `${mondayOf(resv.day) === mondayOf(day) ? WD[dateOf(resv.day).getDay()] : dayShort(resv.day)} ${MEAL_FROM[resv.meal]}`;
-        body = `<div class="sresv"><div class="sgh"><span>💡 Ehdotuksen tähteet</span></div>
+        body = `<div class="sresv"><div class="sgh"><span>${ico("ehdota")} Ehdotuksen tähteet</span></div>
           <span class="pt">${esc(recipes.find((x) => x.id === resv.rid)?.title || "")}</span>
-          <span class="pm"><span class="left">🔁 tähteet</span> ${esc(from)}</span></div>`;
+          <span class="pm"><span class="left">${ico("tahteet")} tähteet</span> ${esc(from)}</span></div>`;
       }
       // Arkipäivän tyhjä lounas yhtenä rivinä (22.11.2026): lounas syödään yleensä töissä, + ja 💡 otsikkorivillä.
       else if (m === "lounas" && !isWeekendDay(day) && !suggNone.has(key))
         return `<div class="meal mlite" data-slot="${key}"><div class="mh"><span class="lbl">${MEALS[m]}</span><span class="mlbtns">${
-          day >= today ? `<button type="button" class="sone" data-sone="${key}" aria-label="Ehdota ruokaa: ${esc(dayShort(day))} ${MEAL_LC[m]}" title="Ehdota ruokaa">💡</button>` : ""}<button type="button" class="plus" data-add="${day}|${m}" aria-label="Lisää ruoka: ${esc(dayShort(day))} ${MEAL_LC[m]}">+</button></span></div></div>`;
+          day >= today ? `<button type="button" class="sone" data-sone="${key}" aria-label="Ehdota ruokaa: ${esc(dayShort(day))} ${MEAL_LC[m]}" title="Ehdota ruokaa">${ico("ehdota")}</button>` : ""}<button type="button" class="plus" data-add="${day}|${m}" aria-label="Lisää ruoka: ${esc(dayShort(day))} ${MEAL_LC[m]}">+</button></span></div></div>`;
       else body = `${suggNone.has(key) ? `<div class="pempty">Ei enempää ehdotuksia tähän ateriaan.</div>` : ""}<div class="addrow">
           <button type="button" class="addslot" data-add="${day}|${m}">+ Lisää ${MEAL_LC[m]}</button>${
-          day >= today ? `<button type="button" class="sugone" data-sone="${key}" aria-label="Ehdota ruokaa: ${esc(dayShort(day))} ${MEAL_LC[m]}" title="Ehdota ruokaa">💡</button>` : ""}</div>`;
+          day >= today ? `<button type="button" class="sugone" data-sone="${key}" aria-label="Ehdota ruokaa: ${esc(dayShort(day))} ${MEAL_LC[m]}" title="Ehdota ruokaa">${ico("ehdota")}</button>` : ""}</div>`;
       return `<div class="meal" data-slot="${key}"><div class="mh"><span class="lbl">${MEALS[m]}</span>${plus}</div>${body}</div>`;
     }).join("");
     return `<div class="day${isToday ? " now" : ""}" data-day="${day}">
       <div class="dh"><span class="dn">${esc(dayLabel(day))}</span>${isToday ? `<span class="badge warn">Tänään</span>` : ""}<span class="sp"></span>${
-        canEdit && !note && noteEdit !== day ? `<button type="button" class="iconbtn" data-note="${day}" aria-label="Lisää muistiinpano: ${esc(dayLabel(day))}" title="Lisää muistiinpano">📝</button>` : ""}${
+        canEdit && !note && noteEdit !== day ? `<button type="button" class="iconbtn" data-note="${day}" aria-label="Lisää muistiinpano: ${esc(dayLabel(day))}" title="Lisää muistiinpano">${ico("muistio")}</button>` : ""}${
         past ? `<button type="button" class="link" data-collapse="${day}">Pienennä</button>` : ""}</div>
       ${noteHtml}${meals}</div>`;
   }
@@ -3805,18 +3902,18 @@
     show("planAddView");
   }
   const paGroupsOf = (cat) => GRID[cat] ? GRID[cat].groups.filter((g) => !groupOff(g))
-    : (PRIMARY[cat] || []).map(([t, label]) => [t, PRIM_ICON[t] || TAG_ICON[t] || "🏷", label, [t]]);
+    : (PRIMARY[cat] || []).map(([t, label]) => [t, PRIM_ICON[t] || TAG_ICON[t] || "tagi", label, [t]]);
   function renderPlanAdd() {
     const cats = visibleCats(), ws = words($("paQ").value);
     $("paCats").classList.toggle("hidden", cats.length < 2 || ws.length > 0);
     $("paCats").innerHTML = cats.map((c) =>
-      `<button type="button" class="chip ${c === paCat ? "on" : ""}" data-pacat="${c}" aria-pressed="${c === paCat}">${CAT_ICON[c]} ${CATS[c]}</button>`).join("");
+      `<button type="button" class="chip ${c === paCat ? "on" : ""}" data-pacat="${c}" aria-pressed="${c === paCat}">${ico(CAT_ICON[c])} ${CATS[c]}</button>`).join("");
     const inCat = recipes.filter((r) => paCat && hasTag(r, paCat));
     const groups = paGroupsOf(paCat).filter((g) => inCat.some((r) => g[3].some((t) => hasTag(r, t))));
     if (paGroup && !groups.some((g) => g[0] === paGroup)) paGroup = null;
     $("paGroups").classList.toggle("hidden", !groups.length || ws.length > 0);
     $("paGroups").innerHTML = `<button type="button" class="chip ${paGroup ? "" : "on"}" data-pagroup="">Kaikki</button>` +
-      groups.map(([k, e, label]) => `<button type="button" class="chip ico ${k === paGroup ? "on" : ""}" data-pagroup="${esc(k)}" aria-label="${esc(label)}" title="${esc(label)}">${e}</button>`).join("");
+      groups.map(([k, e, label]) => `<button type="button" class="chip ico ${k === paGroup ? "on" : ""}" data-pagroup="${esc(k)}" aria-label="${esc(label)}" title="${esc(label)}">${ico(e)}</button>`).join("");
     const g = paGroup && groups.find((x) => x[0] === paGroup);
     const list = (ws.length ? recipes.filter((r) => matches(recipeHay(r), ws)) : inCat.filter((r) => !g || g[3].some((t) => hasTag(r, t))))
       .slice().sort(SORTS[sortMode] || SORTS.uusin);
@@ -3900,7 +3997,7 @@
   }
   function renderPick() {
     const r = recipes.find((x) => x.id === pick.rid); if (!r) return;
-    const meta = [r.prep_minutes ? `<span>⏱ ${esc(fmtTime(r.prep_minutes))}</span>` : "", plainTags(r).length ? `<span>${tagIcons(r)}</span>` : "",
+    const meta = [r.prep_minutes ? `<span>${ico("ajastin")} ${esc(fmtTime(r.prep_minutes))}</span>` : "", plainTags(r).length ? `<span>${tagIcons(r)}</span>` : "",
       r.servings ? `<span>resepti ${servingsTxt(r.servings)}</span>` : ""].join("");
     const opts = [...new Set([1, 1.5, 2, 2.5, 3, 4, 5, 6, ppm])].sort((a, b) => a - b)
       .map((v) => `<option value="${v}" ${v === ppm ? "selected" : ""}>${String(v).replace(".", ",")}</option>`).join("");
@@ -3910,7 +4007,7 @@
         const wk = mondayOf(s.day), note = wk === wk0 ? "" : wk === addDays(wk0, 7) ? " · ensi viikko" : ` · viikko ${isoWeek(s.day)}`;
         return `<div class="slot"><span class="n">${i + 2}</span><span class="sb">
           <select data-slot="${i}" aria-label="Tähteiden ateria ${i + 1}">${slotOptions(s.day + "|" + s.meal)}</select>
-          <span class="ss"><span class="left">🔁 tähteet</span>${esc(note)}</span></span></div>`;
+          <span class="ss"><span class="left">${ico("tahteet")} tähteet</span>${esc(note)}</span></span></div>`;
       })].join("");
     const more = r.servings && pick.servings > r.servings;
     $("pp").innerHTML = `<div class="card">
@@ -3984,7 +4081,7 @@
     }
     pick = null;
     if (p.fromDetail) { // takaisin reseptille, ilmoitus kertoo minne lisättiin
-      toast(`🗓️ Lisätty: ${dayLabel(p.day)} ${MEAL_LC[p.meal]}${p.slots.length ? ` (+ tähteet ${p.slots.length} ateriaan)` : ""}`, false, 4000);
+      toast(`Lisätty viikkoon: ${dayLabel(p.day)} ${MEAL_LC[p.meal]}${p.slots.length ? ` (+ tähteet ${p.slots.length} ateriaan)` : ""}`, false, 4000);
       back(`#/resepti/${r.id}`);
     }
     else if (p.fromSugg) { suggPick.delete(p.fromSugg); suggAsked.delete(p.fromSugg); back(weekHash(mondayOf(p.day))); }
@@ -4156,10 +4253,10 @@
   function yhHtml(c, ci, compact) {
     const sent = shopChecked[yhKey(c.it)];
     const link = (cls, txt, lbl) => `<a class="${cls}" href="${esc(c.yh)}" target="_blank" rel="noopener" data-shyh="${ci}" aria-label="${esc(lbl)}">${txt}</a>`;
-    if (compact) return `<div class="shyhrow">${link("shyh sm" + (sent ? " sent" : ""), `${sent ? "✓ " : "🛒 "}${esc(c.r.title)} ↗`,
+    if (compact) return `<div class="shyhrow">${link("shyh sm" + (sent ? " sent" : ""), `${sent ? "✓ " : ico("ostos") + " "}${esc(c.r.title)} ↗`,
       `Yhteishyvä: ${c.r.title}${sent ? ", lisätty" : ""}`)}<span class="muted">${esc(dayShort(c.it.day))}${c.it.servings ? " · " + servingsTxt(c.it.servings) : ""}</span></div>`;
     if (sent) return `<div class="shyhdone">✓ Lisätty S-ostoslistaan Yhteishyvän kautta ${esc(dayShort(sent))} · ${link("", "Avaa ↗", "Avaa resepti Yhteishyvässä")}</div>`;
-    return `${link("shyh", "🛒 Lisää S-ostoslistaan Yhteishyvästä ↗", "Avaa resepti Yhteishyvässä ja lisää ainekset S-ostoslistaan")}
+    return `${link("shyh", ico("ostos") + " Lisää S-ostoslistaan Yhteishyvästä ↗", "Avaa resepti Yhteishyvässä ja lisää ainekset S-ostoslistaan")}
       <p class="shyhh">${c.it.servings ? `Valitse siellä ${servingsTxt(c.it.servings)}. ` : ""}Ainekset merkitään tässä kerätyiksi.</p>`;
   }
   // Perusaine = aineksen pääsana (viimeinen sana perusmuodossa) on perusaineiden listalla. Tarkka vertailu, jotta esim.
@@ -4232,9 +4329,9 @@
   // Kaupan osastot (22.11.2026): Osastoittain-näkymä ryhmittelee ainekset kaupan reitin mukaan. Ensimmäinen osuva sääntö voittaa,
   // joten tarkemmat ensin (esim. "tomaattimurska" säilykkeisiin ennen vihanneksia, "kananmuna" maitotuotteisiin ennen lihaa).
   const AISLES = [
-    ["veg", "🥦 Hedelmät, vihannekset ja yrtit"], ["meat", "🥩 Liha, kana ja kala"], ["dairy", "🧀 Maito, juusto ja munat"],
-    ["dry", "🍝 Pasta, riisi, jauhot ja leipä"], ["can", "🥫 Säilykkeet ja kastikkeet"], ["spice", "🧂 Mausteet, öljyt ja etikat"],
-    ["other", "🛒 Muut"],
+    ["veg", "Hedelmät, vihannekset ja yrtit", "parsakaali"], ["meat", "Liha, kana ja kala", "liha"], ["dairy", "Maito, juusto ja munat", "feta"],
+    ["dry", "Pasta, riisi, jauhot ja leipä", "pasta"], ["can", "Säilykkeet ja kastikkeet", "sailyke"], ["spice", "Mausteet, öljyt ja etikat", "mauste"],
+    ["other", "Muut", "muut"],
   ];
   const AISLE_RULES = [
     ["spice", /suola(?!kurk)|pippur|sokeri|öljy|etikka|liemikuutio|liemijauhe|fondi|(?<!aurinko)kuivattu|\bmauste(?!kurk)|oregano|kaneli|kumina|curry|kurkuma|paprikajauhe|savupaprika|chilihiutale|chilijauhe|cayenne|garam|muskotti|laakerinlehti|hunaja|siirappi|soijakastike|kalakastike|worcester|sinappi|vanilja|leivinjauhe|ruokasooda|hiiva|kaakao|kardemumma|neilikka|korianterinsieme|fenkolinsieme|kuminansieme|sinapinsieme|ras el|za.atar/],
@@ -4283,8 +4380,8 @@
   function shopLineHtml(i, l, extra) {
     const ok = shopDone(l.keys);
     return `<li class="shline${ok ? " ok" : ""}"><button type="button" class="shchk" data-shi="${i}" aria-pressed="${ok}">
-      <span class="shbox" aria-hidden="true"></span><span class="shtx">${l.html}${l.pantry ? `<span class="shpan" title="Perusaine: oletetaan kotona">🏠</span>` : ""}${extra || ""}</span></button>${
-      l.term ? `<a class="shq" href="${esc(shopUrl(l.term))}" target="_blank" rel="noopener" aria-label="Hae S-kaupoista: ${esc(l.term)}" title="Hae S-kaupoista: ${esc(l.term)}">🔍</a>` : ""}</li>`;
+      <span class="shbox" aria-hidden="true"></span><span class="shtx">${l.html}${l.pantry ? `<span class="shpan" title="Perusaine: oletetaan kotona">${ico("koti")}</span>` : ""}${extra || ""}</span></button>${
+      l.term ? `<a class="shq" href="${esc(shopUrl(l.term))}" target="_blank" rel="noopener" aria-label="Hae S-kaupoista: ${esc(l.term)}" title="Hae S-kaupoista: ${esc(l.term)}">${ico("haku")}</a>` : ""}</li>`;
   }
   function renderShop() {
     const avail = shopDaysAvail();
@@ -4312,11 +4409,11 @@
       const rest = groups.filter((g) => !shopDone(g.keys)), got = groups.filter((g) => shopDone(g.keys));
       const row = (g) => { lines.push(g); return shopLineHtml(lines.length - 1, g, `<span class="shsrc">${esc(g.src)}</span>`); };
       // Rastittamattomat kaupan osastoittain (22.11.2026), osaston sisällä aakkosjärjestys
-      const byAisle = AISLES.map(([k, label]) => [label, rest.filter((g) => g.aisle === k)]).filter(([, gs]) => gs.length);
-      html += groups.length ? `<div class="card shcard"><ul class="shlines">${byAisle.map(([label, gs]) =>
-        `<li class="shsub shaisle">${esc(label)}</li>${gs.map(row).join("")}`).join("")}${
+      const byAisle = AISLES.map(([k, label, ic]) => [label, rest.filter((g) => g.aisle === k), ic]).filter(([, gs]) => gs.length);
+      html += groups.length ? `<div class="card shcard"><ul class="shlines">${byAisle.map(([label, gs, ic]) =>
+        `<li class="shsub shaisle">${ico(ic)} ${esc(label)}</li>${gs.map(row).join("")}`).join("")}${
         got.length ? `<li class="shsub shgot${rest.length ? "" : " first"}">✓ Rastitetut · ${got.length}</li>${got.map(row).join("")}` : ""}</ul></div>` : "";
-      for (const [label, gs] of byAisle) text.push("", label.replace(/^\S+\s/, "") + ":", ...gs.map((g) => "- " + htmlText(g.html)));
+      for (const [label, gs] of byAisle) text.push("", label + ":", ...gs.map((g) => "- " + htmlText(g.html)));
     } else {
       html = cards.map((c, ci) => {
         const left = planItems.filter((x) => x.leftover && x.leftover_of === c.it.id).length;
@@ -4410,7 +4507,7 @@
     const found = new Set(parts.filter((x) => x.pantry).flatMap((x) => shopSegs(x.clean).map(shopNoun)));
     const shown = pantryList.filter((w) => found.has(pantryNorm(w)));
     const btn = `<button type="button" class="link" data-pan="${shopPanOpen ? "close" : "open"}">${shopPanOpen ? "Valmis" : canEdit ? "Muokkaa" : "Näytä"}</button>`;
-    let h = `<div class="shpanrow"><span>🏠 <b>Perusaineet</b> ${shown.length ? `merkitty valmiiksi: ${esc(shown.join(", "))}` : "merkitään valmiiksi kerätyiksi"}</span>${btn}</div>`;
+    let h = `<div class="shpanrow"><span>${ico("koti")} <b>Perusaineet</b> ${shown.length ? `merkitty valmiiksi: ${esc(shown.join(", "))}` : "merkitään valmiiksi kerätyiksi"}</span>${btn}</div>`;
     if (shopPanOpen) {
       const sugg = [...new Set(parts.filter((x) => !x.pantry && (x.lo == null || x.unit === "tl" || x.unit === "rkl") && shopSegs(x.clean).length === 1)
         .map((x) => shopNoun(x.clean)).filter((n) => n && n.length > 2 && !set.has(n) && !/^(kuori|kuorta|mehu|varsi|vartta|oksa|oksaa|lehti|lehteä|pala|palaa)$/.test(n)))].sort((a, b) => a.localeCompare(b, "fi")).slice(0, 12);
@@ -4607,18 +4704,18 @@
     const r = recipes.find((x) => x.id === s.rid); if (!r) return "";
     const thumb = emoPh(r, "pth");
     const meta = [r.prep_minutes ? esc(fmtTime(r.prep_minutes)) : "", tagIcons(r), s.meals > 1 ? `riittää ${s.meals} ateriaan` : ""].filter(Boolean).join(" · ");
-    const left = s.slots.length ? `<span class="pm">🔁 tähteet: ${esc(s.slots.map(slotLabel).join(", "))}</span>` : "";
-    const star = (r.tags || []).includes("top") ? " ⭐" : "", dis = suggBusy ? "disabled" : "";
-    return `<div class="sugg" data-drag="s:${s.key}"><div class="sgh"><span>💡 Ehdotus</span><button type="button" class="sgskip" data-sskip="${s.key}" ${dis}>Jätä tyhjäksi ✕</button></div>
+    const left = s.slots.length ? `<span class="pm">${ico("tahteet")} tähteet: ${esc(s.slots.map(slotLabel).join(", "))}</span>` : "";
+    const star = (r.tags || []).includes("top") ? ` <span class="pstar" title="Top-listalla">${ico("top")}</span>` : "", dis = suggBusy ? "disabled" : "";
+    return `<div class="sugg" data-drag="s:${s.key}"><div class="sgh"><span>${ico("ehdota")} Ehdotus</span><button type="button" class="sgskip" data-sskip="${s.key}" ${dis}>Jätä tyhjäksi ✕</button></div>
       <div class="pi"><button type="button" class="pbody" data-sopen="${s.key}">${thumb}<span class="ptxt"><span class="pt">${esc(r.title)}${star}</span><span class="pm">${meta}</span>${left}</span></button></div>
-      <div class="sgbtns"><button type="button" class="primary" data-sok="${s.key}" ${dis}>✓ Hyväksy</button><button type="button" data-sno="${s.key}" ${dis}>↻ Toinen</button><button type="button" class="sgview" data-sopen="${s.key}" aria-label="Katso resepti: ${esc(r.title)}" title="Katso resepti">📖</button></div></div>`;
+      <div class="sgbtns"><button type="button" class="primary" data-sok="${s.key}" ${dis}>✓ Hyväksy</button><button type="button" data-sno="${s.key}" ${dis}>↻ Toinen</button><button type="button" class="sgview" data-sopen="${s.key}" aria-label="Katso resepti: ${esc(r.title)}" title="Katso resepti">${ico("kirja")}</button></div></div>`;
   }
   function renderSugBar() {
     const show = canEdit && addDays(planWeek, 6) >= todayIso();
     $("sugBar").classList.toggle("hidden", !show);
     if (!show) return;
     const n = sugg.size, active = suggOn || n > 0 || suggAsked.size > 0;
-    $("sugBar").innerHTML = !active ? `<button type="button" data-sug="on">💡 Ehdota ruokia</button>`
+    $("sugBar").innerHTML = !active ? `<button type="button" data-sug="on">${ico("ehdota")} Ehdota ruokia</button>`
       : `${n ? `<button type="button" class="primary" data-sug="all" ${suggBusy ? "disabled" : ""}>✓ Hyväksy kaikki (${n})</button>`
           : `<p class="hint">Ei enempää ehdotuksia tälle viikolle.</p>`}<button type="button" data-sug="off">Piilota ehdotukset</button>`;
   }
@@ -4659,9 +4756,9 @@
   function suggBoxHtml(r) {
     const s = curSugg(r); if (!s) return "";
     const info = [`${dayShort(s.day)} ${MEAL_LC[s.meal]}`, s.meals > 1 ? `riittää ${s.meals} ateriaan` : "", r.servings && s.servings ? servingsTxt(s.servings) : ""].filter(Boolean).join(" · ");
-    const left = s.slots.length ? `<div class="pm">🔁 tähteet: ${esc(s.slots.map(slotLabel).join(", "))}</div>` : "";
+    const left = s.slots.length ? `<div class="pm">${ico("tahteet")} tähteet: ${esc(s.slots.map(slotLabel).join(", "))}</div>` : "";
     const dis = suggBusy ? "disabled" : "";
-    return `<div class="sugg dsugg"><div class="sgh"><span>💡 Ehdotus viikkosuunnitelmaan</span></div>
+    return `<div class="sugg dsugg"><div class="sgh"><span>${ico("ehdota")} Ehdotus viikkosuunnitelmaan</span></div>
       <div class="pm">${esc(info)}</div>${left}
       <div class="sgbtns"><button type="button" class="primary" data-dsug="ok" ${dis}>✓ Hyväksy</button><button type="button" data-dsug="no" ${dis}>↻ Toinen</button></div>
       <button type="button" class="link dsadj" data-dsug="adj">Säädä annoksia ja tähteitä ›</button></div>`;
@@ -4752,7 +4849,7 @@
   function followMsg(f, done) {
     const one = new Set(f.map((x) => x.title)).size === 1;
     const list = f.map((x) => `${one ? "" : x.title + " "}${slotLabel(x)}${x.stacked ? " (samassa ateriassa on jo ruokaa)" : ""}`).join(", ");
-    return `🔁 Tähteet ${done ? "siirrettiin" : "siirtyvät"}: ${list}`;
+    return `Tähteet ${done ? "siirrettiin" : "siirtyvät"}: ${list}`;
   }
   let toastTimer = null;
   function toast(text, isErr, ms) {
@@ -4914,9 +5011,9 @@
     $("pi").innerHTML = `
       ${it.recipe_id ? `<h2 style="margin:0">${esc(titleOf(it))}</h2>`
         : `<label for="piTitle" style="margin-top:0">Merkintä</label><input id="piTitle" maxlength="200" value="${esc(piState.title)}">`}
-      ${it.leftover ? `<p class="hint"><span class="left">🔁 tähteet</span>${o ? " " + esc(`${dayShort(o.day)} ${MEAL_FROM[o.meal]}`) : ""}</p>` : ""}
-      ${lefts.length ? `<p class="hint">🔁 Tähteet: ${esc(lefts.map(slotLabel).join(", "))}</p>` : ""}
-      ${r ? `<div class="actions" style="margin-top:12px"><button type="button" data-act="open">📖 Avaa resepti</button></div>` : ""}
+      ${it.leftover ? `<p class="hint"><span class="left">${ico("tahteet")} tähteet</span>${o ? " " + esc(`${dayShort(o.day)} ${MEAL_FROM[o.meal]}`) : ""}</p>` : ""}
+      ${lefts.length ? `<p class="hint">${ico("tahteet")} Tähteet: ${esc(lefts.map(slotLabel).join(", "))}</p>` : ""}
+      ${r ? `<div class="actions" style="margin-top:12px"><button type="button" data-act="open">${ico("kirja")} Avaa resepti</button></div>` : ""}
       <div class="row">
         <div><label for="piDay">Päivä</label><select id="piDay">${days}</select></div>
         <div><label for="piMeal">Ateria</label><select id="piMeal">${Object.keys(MEALS).map((m) => `<option value="${m}" ${m === piState.meal ? "selected" : ""}>${MEALS[m]}</option>`).join("")}</select></div>

@@ -127,9 +127,15 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **Reseptirivi** (käyttäjän päätös 22.11.2026): ei kuvaa eikä emojia rivin alussa; nimi ja alla aika · tagikuvakkeet, **Top-listan ⭐
     emojirivin viimeisenä**. Oikeassa reunassa menumerkki ja **reseptin oma kuva, jos sellainen on** (56 px). Kaikissa reseptilistoissa
     (kategoriat, etusivun haku, menun reseptit, ruoan lisäys). Menumerkki myös reseptin oikeassa yläkulmassa.
-  - **Tagit listarivillä pelkkinä kuvakkeina** (käyttäjän toive 11/2026, esim. 🐔 = kana). Tagit-valinnassa, lomakkeessa ja
-    reseptisivulla kuvake + nimi, jotta merkitykset oppii. **Päärajaus-chipit (yläbanneri) pelkkinä emojeina** (11/2026),
-    "Kaikki" tekstinä, Tagit-nappi "🏷 ▾" (valittu tagi: "🏷 🥕 ▴").
+  - **Kuvakkeet ohuina viivoina, ei emojeja** (käyttäjän valinta A 26.11.2026 Claude Design -luonnoksesta "Keittokirjan kuvakkeet –
+    tyyliehdotukset"; hylätyt nyt: B viiva + lämmin sävy, C värilaatat, D värikäs kuvitus). Omat piirretyt kuvakkeet (56 kpl) tekstin
+    värillä kaikkialla: etusivun osiot, tagit, valintasivut, napit, ostoslistan osastot, viinimerkinnät. **Mahdollisuus vaihtaa toiseen
+    tyyliin säilytetään** (käyttäjän toive): `ICON_STYLE` = "A"/"B"/"C"/"D" yhdessä kohdassa. Viikkosuunnitelman ruokarivillä viivakuvake
+    neutraalilla laatalla (A-esimerkin mukaan). Ilmoitukset, valikot (`<option>`) ja kopioitu ostoslista ovat tekstiä ilman kuvakkeita.
+    Ennallaan (aiemmat erilliset valinnat): pata-logo, kellarikartan kuvake ja Kellarissa-pullomerkki sekä tähtiarviot (★).
+  - **Tagit listarivillä pelkkinä kuvakkeina** (käyttäjän toive 11/2026, esim. kanan kuva = kana). Tagit-valinnassa, lomakkeessa ja
+    reseptisivulla kuvake + nimi, jotta merkitykset oppii. **Päärajaus-chipit (yläbanneri) pelkkinä kuvakkeina** (11/2026),
+    "Kaikki" tekstinä, Tagit-nappi tagikuvake + ▾ (valittu tagi: tagi + sen kuvake + ▴).
   - Kuvitetut menut näytetään täsmälleen suunnitellun näköisinä. Ei uudelleenpiirretä.
   - **Viinin sivulla oma arvio ja lähteen arvio päällekkäin** (käyttäjän toive 13.11.2026, ennen rinnakkain): yksi kortti, ylempänä
     Oma arvio, alla lähde (Viinilehti), tähdet samassa sarakkeessa vertailua varten. **Lähteen arviosta vain tähdet** (ei "Tyylikäs
@@ -169,8 +175,8 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - Reseptikuvat aina neliöitä, **viinikuvat pystykuvia 2:3** (käyttäjän toive 11/2026: koko pullo mahtuu kuvaan), kaikki
     värillisiä. Viinin sivulla kuva omassa muodossaan (enintään 300×450, vanhat neliökuvat neliöinä). Viinilistalla pikkukuva rivin
     vasemmassa laidassa (ilman kuvaa alkukirjain); reseptilistalla kuva rivin oikeassa reunassa, ilman kuvaa ei kuvapaikkaa (ks. Reseptirivi).
-    **Viikkosuunnitelmassa ruokarivillä aina pääraaka-aineen emoji värillisellä taustalla** (käyttäjän päätös 22.11.2026), myös jos
-    reseptillä on kuva; omilla merkinnöillä alkukirjain. Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
+    **Viikkosuunnitelmassa ruokarivillä aina pääraaka-aineen kuvake laatalla** (käyttäjän päätös 22.11.2026; 26.11.2026 alkaen
+    viivakuvake neutraalilla laatalla, ennen emoji värillisellä taustalla), myös jos reseptillä on kuva; omilla merkinnöillä alkukirjain. Puhelimessa kuva sivun lopussa (ennen nappeja), iPadilla/isolla näytöllä ylhäällä; reseptisivulla iPad
     vaakatasossa pienenä (210 px) otsikon oikealla puolella.
     (Tyylittelyä kokeiltiin: piirros-, akvarelli- ja mustavalkotyylit hylättiin, värikuva valittiin.)
   - **Yläpalkki** (käyttäjän toive 11/2026): adminilla yläpalkissa vain ⚙️ (Hallinta, 44 px), **Kirjaudu ulos on Hallinta-sivun
@@ -183,7 +189,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **🗓️ Viikkoon reseptisivulta** (käyttäjän hyväksymä 22.11.2026): kokkausnapin vieressä (muokkaajalle, kun viikkosuunnitelma
     näkyy; kokkaustilassa sen tilalla ⏱ Ajastin). Avaa valinnan: päivä (tänään + 13 pv, "Tänään"/"Huomenna"/"ke 25.11.") ja ateria + tieto, onko ateria vapaa. Oletus =
     ensimmäinen vapaa päivällinen (klo 18 jälkeen huomisesta alkaen). "Jatka ›" → Riittää-sivu; tallennus ja Peruuta palaavat
-    reseptille, ilmoitus "🗓️ Lisätty: Su 29.11. lounas".
+    reseptille, ilmoitus "Lisätty viikkoon: Su 29.11. lounas".
   - **Kokkaustila ja ajastin** (käyttäjän päätökset 25.11.2026): kokkaustilassa **annosmäärä on lukittu** (−/+ himmeinä, Palauta
     piilossa) ja **Viikkoon-napin tilalla on ⏱ Ajastin**. Ohjeen ajat ("6–8 minuuttia", "30 min", "kaksi tuntia") näkyvät kokkaustilassa
     ⏱-nappeina: napautus käynnistää ajastimen nimellä "Resepti · vaihe 2 (6–8 min)". **Väliajassa ajastin soi lyhyemmän ajan jälkeen**
@@ -316,6 +322,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   salli sekunnin heitto ("06:19" tai "06:20"). Oma aika: `page.fill("#tMin", …)` laukaisee input-tapahtuman; napin klikkaus
   laukaisee ensin focusoutin (tyhjä kenttä palautuu `tsMin`:iin). iPadin "liikkuu sivun mukana" -testissä lyhyt resepti ei vieri: aseta
   `document.body.style.minHeight` ennen `scrollTo`. Palkin paikka: `#tdock`:n vanhempi `.dinfo` (reseptisivu ≥ 760 px) tai body.
+- Kuvakkeet: ne ovat `<svg class="ic">`-elementtejä, joten `textContent` ei sisällä kuvaketta (esim. ajastinnappi " 6–8 minuuttia" →
+  `trim()`); tarkista kuvake `querySelector('… svg.ic')`. Emojien puuttumisen voi tarkistaa `/\p{Extended_Pictographic}/u`.
+  Kuvakkeita piirtäessä kontaktiarkki: renderöi kaikki `ICONS` isona ja 17 px:n kokoisena vaalealla ja tummalla taustalla.
 - Kuvat: stubiin `storage.from(b).upload/createSignedUrls/remove` (upload → `URL.createObjectURL(blob)`).
   Viinien testikuviksi sopivat käyttäjän pullokuvat (stubin `createSignedUrls` → `https://testi.local/img/<tiedosto>`).
   Kuvan valinta `page.set_input_files("#f_file" / "#w_file", polku)`, tila `recipePic.state` / `winePic.state`. Ennen rajauksen raahausta `scroll_into_view_if_needed()`,
@@ -410,13 +419,28 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
   järjestyksessä (muiden listojen suhteellinen järjestys säilyy) → RPC `set_recipe_order(p_ids, p_pos)`; virheessä palautus.
 - **Reseptirivi** (`recipeItem`, 22.11.2026): `.item.card` (kuvallisella lisäksi `.picr`), `.body` = nimi `.t` + metarivi `.m`, oikealla
   `.side` vain jos menumerkki tai kuva: menumerkki ja `<img class="thumb rthumb">` (56 px, `imgUrl(r, true)`). Ei alkukuvaa, ei päivää.
-  Metarivillä aika · tagit + ⭐ (top, oma `.ticons`-span viimeisenä)
+  Metarivillä aika · tagit + Top-tähti (`ico("top")`, oma `.ticons`-span viimeisenä)
   kuvakkeina `tagIcons(r)`: järjestys `TAG_ICON`-vakion mukaan (pääaines → ruokalaji → tapa), sama kuvake yhdistetään
-  (esim. 🥔 = peruna + lisuke), nimi `aria-label`/`title`-attribuutissa, kuvakkeeton tagi tekstinä perässä.
-  `tagLabel(t)` = kuvake + nimi (Tagit-chipit, lomake, reseptisivu). Päärajaus-chipit (`#primaryChips`): pelkkä emoji,
-  luokka `.chip.ico` (52×44 px), nimi `aria-label`/`title`; emoji `PRIM_ICON` (top, @menu), muuten `TAG_ICON`, GRID-chipeissä
-  ryhmän emoji. "Kaikki" tekstinä.
-- **Resepti:** menumerkki oikeassa yläkulmassa avaa menun. Napit "⭐ Lisää Top-listalle" ja "Muokkaa"
+  (esim. peruna-kuvake = peruna + lisuke), nimi `aria-label`/`title`-attribuutissa, kuvakkeeton tagi tekstinä perässä.
+  `tagLabel(t)` = HTML: kuvake + escapettu nimi (Tagit-chipit, lomake, reseptisivu; älä escapeta uudelleen). Päärajaus-chipit
+  (`#primaryChips`): pelkkä kuvake, luokka `.chip.ico` (52×44 px), nimi `aria-label`/`title`; kuvake `PRIM_ICON` (top, @menu),
+  muuten `TAG_ICON`, GRID-chipeissä ryhmän kuvake. "Kaikki" tekstinä.
+- **Kuvakkeet** (26.11.2026, oma osio ennen `CAT_ICON`ia): `ICONS` = { avain: { p: [[polku, väri]], l: [polku | [polku, väri]],
+  d: [[x, y]], c: [[x, y, r]] } } 24 px ruudukossa (alueet täyttyvät kuvitustyylissä; avoin polku täyttyy, mutta viiva sulkeutuu vain
+  Z:llä). `ico(avain, luokka?)` → inline-`<svg class="ic">` (`stroke: currentColor`, viiva 1,6; tyhjä merkkijono tuntemattomalle).
+  `ICON_STYLE`: "A" ohut viiva (käytössä), "B" alueet `--accent` 22 % (`IC_TINT`-värit), "D" kuvitus (`IC_PAL`, tummassa tilassa CSS:n
+  `--ic-cream/glass/milk/steel`), "C" = A + `emoPh` värilaatat (`MAIN_BG`, `.tint`). Kiinteä HTML: `<span class="ici" data-ic="…">`
+  (tai `.e`-span etusivulla) täytetään käynnistyksessä. Koko `.ic` = 1,2em (fontin mukaan); paikkakohtaiset koot CSS:ssä (`.cat .e`,
+  `.subcard .e`, `.chip.ico`, `.ticons`, `.pth.emo` 26 px, `.shaisle`, `.vbadge`, `header .gear`), tekstin ja kuvakkeen väli chipissä
+  `.chip:not(.ico) > .ic`. Vakiot sisältävät kuvakeavaimia: `CAT_ICON`, `SECTIONS`, `TAG_ICON`, `PRIM_ICON`, `GRID`-ryhmät, `AISLES`
+  ([avain, nimi, kuvake]), `VALUE_ICON`, `READY_ICON`. Kuvakkeet: viikko (kalenteri), pata, kuohu, menu, viini, vauva, kana, nauta,
+  lammas, poro, kala, katkarapu, kasvis, linssi, papu, peruna, sienet, feta, marjat, keitto, pasta, pizza, kastike (kastikekulho),
+  marinadi (purkki), sose (lusikka), sormiruoka (käsi), alkuruoka, illallinen (lautanen), makeat, uuniruoka (liekki), helppo,
+  liha (luullinen liha), top, ajastin, kokkaus (kokin hattu), ostos, ehdota (lamppu), tahteet, kuva, kopioi, kirja, koti, muistio,
+  asetukset, haku, tagi, kyna, parsakaali, sailyke, mauste, muut (kassi), timantti, vaaka, raha, tiimalasi, taimi.
+  **Uusi kuvake:** piirrä 24 px ruudukkoon samalla viivalla (pyöristetyt päät, ei täyttöä A-tyylissä), tarkista isona ja 17 px:n
+  kokoisena vaaleassa ja tummassa tilassa (Playwright-kuvakaappaus), lisää `ICONS`iin. Älä käytä emojeja käyttöliittymässä.
+- **Resepti:** menumerkki oikeassa yläkulmassa avaa menun. Napit "Lisää Top-listalle" (tähtikuvake) ja "Muokkaa"
   (Poista on lomakkeen alaosassa, ettei sitä paina vahingossa).
   - **Rakenne** (`renderDetail`): `.dtop` (luokka `.haspic`, jos kuva) = `rimg-top` + `.dinfo` (otsikko, kuvaus, meta,
     vauvalaatikko, annos- ja kokkausnapit); `.dcols` (luokka `.two`, jos sekä ainekset että ohje/muistiinpanot/lähde) =
@@ -475,8 +499,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     uudelleen, kokkaus lopetetaan tai resepti tallennetaan.
 - **Kuvat (reseptit ja viinit):** `imgUrl(item, small)`, `thumbHtml(item, nimi, tall)` (vain viinilista: `.thumb.tall` 44×66 tai
   alkukirjain `.thumb.ph`, rivillä `.item.withpic`; reseptirivin kuva tehdään `recipeItem`issä), viikkosuunnitelman ruokarivin ja
-  ehdotuksen kuvake `emoPh(r, "pth")` = `.pth.emo`: `mainIcon(r)` = ensimmäinen `MAIN_ORDER`-tagi → `TAG_ICON`-emoji + `MAIN_BG`-väri
-  (`--bgc`, tummassa tilassa `color-mix` 22 % kortin väriin), muuten 🍽️ (aina emoji, reseptin kuvaa ei käytetä) ja
+  ehdotuksen kuvake `emoPh(r, "pth")` = `.pth.emo`: `mainIcon(r)` = ensimmäinen `MAIN_ORDER`-tagi → [`TAG_ICON`-avain, `MAIN_BG`-väri],
+  muuten lautanen; A-tyylissä viivakuvake `--chip`-laatalla (väri `--ink`), C-tyylissä `.tint` + `--bgc` (tummassa `color-mix` 22 %);
+  reseptin kuvaa ei käytetä; ja
   `bigPic(item, alt, "rimg-top"|"rimg-end")` (viineillä `"tall rimg-…"` → `.rimg.tall`: kuva omassa muodossaan). Iso kuva
   renderöidään kahteen kohtaan, ja CSS näyttää alle 600 px leveällä sivun lopussa (ennen nappeja), muuten ylhäällä
   (max 440 px; reseptisivulla vaakatasossa ≥ 960 px otsikon oikealla, 210 px). Vanha `image_url` toimii varalla, jos `image_path` puuttuu.
@@ -540,8 +565,8 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     ruoan napautus avaa reseptin.
   - **Viikkonäkymä** (`renderPlan`, `dayHtml`, `planItemHtml`): päiväkortit, tänään korostettu (`.day.now`). Menneet päivät
     `.day.compact` (päivä + ruokien nimet), napautus (`data-expand`) avaa, "Pienennä" (`data-collapse`) sulkee. Ruoka-rivi:
-    pääraaka-aineen emoji `emoPh` (myös kuvallisille resepteille) tai vapaalla tekstillä alkukirjain katkoviivareunuksella, nimi, metarivi (aika · tagikuvakkeet · annokset, tähteillä
-    "🔁 tähteet ti päivällisestä"). Rivin napautus `openFromPlan(it)` asettaa reseptin annosmäärän (`cookState(r).servings`,
+    pääraaka-aineen kuvake `emoPh` (myös kuvallisille resepteille) tai vapaalla tekstillä alkukirjain katkoviivareunuksella, nimi, metarivi (aika · tagikuvakkeet · annokset, tähteillä
+    "tähteet ti päivällisestä" toistokuvakkeella). Rivin napautus `openFromPlan(it)` asettaa reseptin annosmäärän (`cookState(r).servings`,
     tähteillä alkuperäisen rivin `servings`) ja avaa reseptin; vapaa teksti avaa muokkauksen. Muokkaajalle `+` (lisää aterialle),
     `⋯` (muokkaus), tyhjässä ateriassa "+ Lisää lounas" ja päivän otsikossa 📝 (muistiinpano, `upsert`/`delete` meal_plan_notes).
     Arkipäivän tyhjä lounas (ei ehdotusta, ei ehdotuksen tähteitä, ei "Ei enempää ehdotuksia") = `.meal.mlite`: otsikkorivillä
@@ -601,7 +626,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     ruoan uusi paikka, tähteen vanha paikka) → ehdokkaat `slotsAfter` 2 pv sisällä, ei samana päivänä, `leftoverOk`; ensin paikka ilman
     ruokaa ja ehdotusta (`sk` = ehdotusten paikat siirron jälkeen), sitten ilman ruokaa, lopuksi vähiten täytetty (`stacked`, varalla
     seuraavan päivän päivällinen). Varaukset lasketaan siirron jälkeisillä paikoilla; sort = paikan suurin + 1. Täydentää `moves`-mapin
-    ja palauttaa `[{ id, title, day, meal, stacked }]` → `followMsg(f, done)` ("🔁 Tähteet siirtyvät / siirrettiin: …", varatussa
+    ja palauttaa `[{ id, title, day, meal, stacked }]` → `followMsg(f, done)` ("Tähteet siirtyvät / siirrettiin: …", varatussa
     "(samassa ateriassa on jo ruokaa)"). `planMove` palauttaa `follow`; raahatessa ilmoitus `toast(…, false, 0)`, pudotuksen jälkeen 6 s.
     Itse raahattu tähde: valmistuksen jälkeen (`slotRank`) ja enintään 2 pv → muuten `{ ok: false, reason }`: kohde `.meal.drop-bad` ja
     haamu `.dragghost.bad` punaisina, ilmoitus `toast()` (alhaalla, `#toast`), pudotuksessa lähdekortti välähtää punaisena (`.flashbad`).
@@ -648,7 +673,7 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     **Osastot** (22.11.2026): ryhmän `aisle` = `shopAisle(clean)`: `AISLE_RULES` (järjestys spice → can → dairy → meat → dry → veg,
     ensimmäinen osuva regex pienaakkosiin, esim. "tomaattimurska" → can ennen veg, "kananmuna" → dairy ennen meat, "aurinkokuivattu"
     ei mausteisiin), muuten other. `rest` jaetaan `AISLES`-järjestyksessä otsikoiden `<li class="shsub shaisle">` alle (ensimmäinen
-    ilman ylärajaa). Kopioitu teksti: osaston nimi ilman emojia + ":" ja rivit. Uusi aines väärässä osastossa → lisää sana sääntöön.
+    ilman ylärajaa). Osaston otsikossa kuvake (`AISLES` = [avain, nimi, kuvake]). Kopioitu teksti: osaston nimi + ":" ja rivit. Uusi aines väärässä osastossa → lisää sana sääntöön.
   - **🔍** `shopTerm(clean)`: ensimmäinen vaihtoehto ennen " tai " (paitsi "mauste- tai suolakurkkua"), laatusanat pois, perusmuoto;
     "lehtisellerin varsi" → "lehtiselleri", "valkosipulinkynsi" → "valkosipuli". `shopUrl(term)`, `target="_blank"`.
   - **Yhteishyvä** `yhUrl(r)` = ensimmäinen `https://(www.)yhteishyva.fi/…`-osoite `source`-kentästä (`safeUrl`), muutettuna sovelluslinkiksi
@@ -819,10 +844,9 @@ Redirect URL = sivun osoite.
   `kastike`, `marinadi`, `katkarapu`, `pizza`, `lammas`, `papu`, `helppo`, `sienet`; vauvan ruoissa `sose`, `sormiruoka`
 - Lisukkeet (perunat, salaatit ym.) saavat `lisuke`-tagin. Kasvisruoka-lisuke voi saada myös `kasvis`-tagin.
 - Kategoria-, top- ja menu-tagit ovat "metatageja" (`isMeta`), eikä niitä näytetä tavallisina tageina.
-- **Kuvakkeet** `TAG_ICON`-vakiossa (keittokirja.html). Uudelle tagille lisää kuvake sinne (muuten se näkyy listarivillä tekstinä).
-  Nykyiset: kana 🐔, nauta 🐄, lammas 🐑, poro 🦌, kala 🐟, katkarapu 🦐, kasvis 🥕, linssi 🫛, papu 🫘, peruna 🥔, sienet 🍄,
-  feta 🧀, marjat 🫐, keitto 🍲, pasta 🍝, pizza 🍕, kastike 🥣, marinadi 🫙, lisuke 🥔, sose 🥄, sormiruoka 🖐️, alkuruoka 🥗,
-  illallinen 🍽️, makeat 🍰, uuniruoka 🔥, pata 🫕, helppo 👌.
+- **Kuvakkeet** `TAG_ICON`-vakiossa (keittokirja.html): tagi → `ICONS`-kuvakeavain. Uudelle tagille lisää rivi sinne (ja tarvittaessa
+  uusi piirretty kuvake `ICONS`iin, ks. Kuvakkeet); muuten tagi näkyy listarivillä tekstinä. Nykyiset: kuvake samanniminen kuin tagi,
+  paitsi lisuke → peruna. Pata-tagilla ja Arkiruoka-osiolla on sama pata-kuvake.
 
 ## Reseptien lisääminen
 
