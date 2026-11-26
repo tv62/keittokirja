@@ -195,7 +195,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     **Sijainti:** iPadilla (≥ 760 px) reseptisivulla **osa sivua reseptin yläosan oikeassa reunassa** (käyttäjän päätös 25.11.2026:
     liikkuu sivun mukana vieritettäessä; ennen kiinteä yläkulma; otsikko ja tekstit väistävät), muilla sivuilla kiinteänä oikeassa
     alakulmassa; puhelimessa alareunassa koko leveydeltä. Ajastimet näkyvät kaikilla sivuilla
-    ja säilyvät sivun päivityksessä (laitekohtaisia). Kortissa jäljellä oleva aika, nimi, ±, ⏸/▶ ja ✕; nimen napautus avaa reseptin.
+    ja säilyvät sivun päivityksessä (laitekohtaisia). Kortissa jäljellä oleva aika, nimi, ±, tauko/jatka ja ✕; nimen napautus avaa reseptin.
+    **Tauko- ja jatka-merkit piirrettyinä** (käyttäjän toive 26.11.2026: samaa tyyliä kuin ± ja ✕; ⏸ ja ▶ näkyivät iOS:ssä emojeina),
+    myös tauolla olevan ajan perässä ja Käynnistä-napissa.
     **Ajan säätö vauhdissa** (käyttäjän toive 25.11.2026, ei vahingossa): ± avaa kortin alle rivin −5 / −1 min / +1 / +5 ja ✓; rivi
     sulkeutuu ✓:stä tai 8 s viimeisen napautuksen jälkeen. Toimii käynnissä ja tauolla (ei soidessa); vähennys ei vie alle 1 s:n
     (liian iso miinusnappi himmeänä).
@@ -457,7 +459,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     ± `data-tadjopen` + ⏸ `data-tpause` + ✕ `data-tdel`, tauolla ± + ▶ + ✕, soi (`.ring`) `data-tadd` "+N min" (extra kerran,
     sitten 60 s) + ✓ `data-tdel`. **Säätö:** `adjId` (auki oleva kortti), `adjTouch(id)` (avaa + 8 s sulkuajastin `adjClose` alusta, null = sulje),
     napit `data-tadj` = `ADJ` sekunteina (−300, −60, 60, 300) ja `data-tadjok`; lisäys `end` (käynnissä) tai `left` (tauolla) ja `ms` (palkin pituus,
-    min 1 s); ei, jos jäljelle jäisi alle 1 s (`tickTimers` himmentää miinusnapit); aika välähtää `.tt.bump`. Soiva ja näkyvissä → `beep()` 2,5 s välein (Web Audio, kolme 880 Hz piippausta, `navigator.audioSession.type =
+    min 1 s); ei, jos jäljelle jäisi alle 1 s (`tickTimers` himmentää miinusnapit); aika välähtää `.tt.bump`. Tauko/jatka = SVG-kuvakkeet `ICO_PAUSE` / `ICO_PLAY`
+    (`.svgi`, `currentColor`; älä käytä ⏸/▶-merkkejä, iOS piirtää ne emojeina); tauolla `.tt`:n perässä `.tpz` (`tickTimers` päivittää `.tt`:n vain
+    tekstin tai tilan muuttuessa, `dataset.v`). Soiva ja näkyvissä → `beep()` 2,5 s välein (Web Audio, kolme 880 Hz piippausta, `navigator.audioSession.type =
     "transient"` jos tuettu, `vibrate` jos tuettu). `audioUnlock()` luo/jatkaa AudioContextin napautuksessa (iOS vaatii); sivun
     latauksen jälkeen ensimmäinen `pointerdown` avaa sen. **Sijainti:** oletus kiinteä alareuna; ≥ 760 px kiinteä oikea alakulma (300 px).
     `placeDock()` (route, resize, `renderDock`, tilan muutos ja **`renderDetail`in lopussa**, koska `#detail`-innerHTML irrottaa palkin) siirtää

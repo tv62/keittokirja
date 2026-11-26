@@ -640,7 +640,12 @@
   .tcard .tl { font-size: .84rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tcard .tbtns { display: flex; gap: 6px; flex: none; }
   .tcard .tbtns button { min-width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: transparent;
-    color: inherit; font-size: 1rem; padding: 0 12px; }
+    color: inherit; font-size: 1rem; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; }
+  .svgi { width: 1em; height: 1em; flex: none; vertical-align: -.125em; }
+  .tcard .tbtns .svgi { width: 15px; height: 15px; }
+  .tcard .tt .tpz { margin-left: 10px; color: var(--muted); }
+  .tcard .tt .tpz .svgi { width: .55em; height: .55em; vertical-align: .1em; }
+  .tsheet .tsgo .svgi { width: .95em; height: .95em; margin-right: 2px; vertical-align: -.12em; }
   .tcard .bar { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--accent); transition: width .5s linear; }
   .tcard.paused .tt { color: var(--muted); }
   .tcard.ring { background: var(--accent); color: var(--accent-ink, #fff); border-color: var(--accent); animation: tring 1.2s ease-in-out infinite; }
@@ -2306,6 +2311,9 @@
   let timers = [];
   try { timers = (JSON.parse(localStorage.getItem(TIMER_KEY) || "[]") || []).filter((t) => t && t.id && t.ms > 0); } catch {}
   let timerSheet = false; // Uusi ajastin -paneeli auki reseptisivulla
+  // Tauko- ja jatka-kuvakkeet piirrettyinä (⏸ ja ▶ näkyvät iOS:ssä emojeina); väri tekstin mukaan kuten ± ja ✕
+  const ICO_PAUSE = `<svg class="svgi" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.6 3.4v9.2M10.4 3.4v9.2" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>`;
+  const ICO_PLAY = `<svg class="svgi" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.2 3.4v9.2l7.4-4.6z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
   const saveTimers = () => { try { localStorage.setItem(TIMER_KEY, JSON.stringify(timers)); } catch {} };
   const timersActive = () => timers.some((t) => t.end);
   const tLeft = (t) => (t.end ? t.end - Date.now() : t.left);
@@ -2351,7 +2359,7 @@
       <div class="tscust"><div class="tsstep">${T_STEP.slice(0, 2).map(step).join("")}
         <label class="tsval"><input id="tMin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" value="${tsMin}" aria-label="Oma aika minuutteina" autocomplete="off" enterkeyhint="go"><span>min</span></label>
         ${T_STEP.slice(2).map(step).join("")}</div>
-        <button type="button" class="primary tsgo" data-act="tstart">▶ Käynnistä <span id="tGoTxt">${fmtDur(tsMin * 60)}</span></button></div></div>`;
+        <button type="button" class="primary tsgo" data-act="tstart">${ICO_PLAY} Käynnistä <span id="tGoTxt">${fmtDur(tsMin * 60)}</span></button></div></div>`;
   }
   function syncSheet() { // oma aika muuttui: −/+ -napit ja Käynnistä-teksti ilman uudelleenpiirtoa
     const el = $("tGoTxt"); if (!el) return;
@@ -2436,7 +2444,8 @@
       ringing = ringing || ring;
       if (adj) for (const b of c.querySelectorAll("[data-tadj]")) b.disabled = +b.dataset.tadj < 0 && left <= -b.dataset.tadj * 1000 + 1000;
       const over = ring ? Math.floor((now - t.end) / 60000) : 0;
-      c.querySelector(".tt").textContent = ring ? (over >= 1 ? `Valmis ${over} min sitten` : "Valmis!") : fmtClock(left) + (state === "pause" ? " ⏸" : "");
+      const tt = c.querySelector(".tt"), txt = ring ? (over >= 1 ? `Valmis ${over} min sitten` : "Valmis!") : fmtClock(left), pz = !ring && !t.end;
+      if (tt.dataset.v !== txt + pz) { tt.dataset.v = txt + pz; tt.innerHTML = txt + (pz ? `<span class="tpz" title="Tauolla">${ICO_PAUSE}</span>` : ""); }
       c.querySelector(".bar").style.width = Math.min(100, Math.max(0, 100 * (1 - left / t.ms))) + "%";
       if (c.dataset.state !== state) {
         c.dataset.state = state;
@@ -2445,7 +2454,7 @@
         c.querySelector(".tadj").classList.toggle("hidden", !adj);
         c.querySelector(".tbtns").innerHTML = ring
           ? `<button type="button" data-tadd="${t.id}">+${t.extra ? fmtDur(Math.round(t.extra / 1000)) : "1 min"}</button><button type="button" data-tdel="${t.id}" aria-label="Kuittaa">✓</button>`
-          : `<button type="button" class="${adj ? "on" : ""}" data-tadjopen="${t.id}" aria-pressed="${adj}" aria-label="Muuta aikaa">±</button><button type="button" data-tpause="${t.id}" aria-label="${paused ? "Jatka" : "Tauko"}">${paused ? "▶" : "⏸"}</button><button type="button" data-tdel="${t.id}" aria-label="Poista ajastin">✕</button>`;
+          : `<button type="button" class="${adj ? "on" : ""}" data-tadjopen="${t.id}" aria-pressed="${adj}" aria-label="Muuta aikaa">±</button><button type="button" data-tpause="${t.id}" aria-label="${paused ? "Jatka" : "Tauko"}">${paused ? ICO_PLAY : ICO_PAUSE}</button><button type="button" data-tdel="${t.id}" aria-label="Poista ajastin">✕</button>`;
         placeDock();
       }
     }
