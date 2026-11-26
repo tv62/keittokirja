@@ -643,6 +643,9 @@
   .tdock.inpage .tcard { box-shadow: 0 4px 14px rgba(0,0,0,.12); }
   .tcard .trow1 { display: flex; align-items: center; gap: 8px; }
   .tcard .tbtns button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .tcard .tbtns .tdelarm { background: var(--danger); border-color: var(--danger); color: #fff; font-weight: 700; padding: 0 16px;
+    white-space: nowrap; overflow: hidden; animation: tdelarm .18s ease-out; }
+  @keyframes tdelarm { from { max-width: 44px; } to { max-width: 140px; } }
   /* Ajan säätö: avautuu ±-napista (ei vahingossa), sulkeutuu ✓:stä tai 8 s kuluttua */
   .tadj { display: flex; align-items: center; gap: 6px; margin: 8px 0 2px 10px; }
   .tadj button { min-width: 44px; height: 40px; padding: 0 8px; border-radius: 20px; border: 1px solid var(--line); background: var(--bg);
@@ -2514,6 +2517,13 @@
     document.body.style.setProperty("--dockh", bottom ? dockEl.offsetHeight + "px" : "0px");
   }
   let adjId = null, adjClose = null; // ajastin, jonka säätörivi on auki
+  // Poiston varmistus (käyttäjän toive 26.11.2026): ✕ laajenee "Lopeta"-napiksi, toinen napautus poistaa. Palaa ✕:ksi 4 s:n kuluttua;
+  // alle 0,4 s:n päästä tuleva toinen napautus ei kelpaa (ettei vahinkotuplanapautus poista).
+  let delArm = null, delArmAt = 0, delArmT = null;
+  function armDel(id) {
+    delArm = id; delArmAt = Date.now(); clearTimeout(delArmT);
+    if (id) delArmT = setTimeout(() => { delArm = null; refreshCards(); }, 4000);
+  }
   const ADJ = [-300, -60, 60, 300];   // sekunteina: −5, −1, +1, +5 min
   function adjTouch(id) { // säätörivi auki ja sulkeutumisaika alusta (8 s)
     adjId = id; clearTimeout(adjClose);
@@ -2537,7 +2547,8 @@
     for (const t of timers) {
       const c = dockEl.querySelector(`[data-tid="${t.id}"]`); if (!c) continue;
       const left = tLeft(t), ring = !!t.end && left <= 0, adj = !ring && adjId === t.id;
-      const state = (ring ? "ring" : t.end ? "run" : "pause") + (adj ? ":adj" : "");
+      const del = !ring && delArm === t.id;
+      const state = (ring ? "ring" : t.end ? "run" : "pause") + (adj ? ":adj" : "") + (del ? ":del" : "");
       ringing = ringing || ring;
       if (adj) for (const b of c.querySelectorAll("[data-tadj]")) b.disabled = +b.dataset.tadj < 0 && left <= -b.dataset.tadj * 1000 + 1000;
       const over = ring ? Math.floor((now - t.end) / 60000) : 0;
@@ -2551,7 +2562,9 @@
         c.querySelector(".tadj").classList.toggle("hidden", !adj);
         c.querySelector(".tbtns").innerHTML = ring
           ? `<button type="button" data-tadd="${t.id}">+${t.extra ? fmtDur(Math.round(t.extra / 1000)) : "1 min"}</button><button type="button" data-tdel="${t.id}" aria-label="Kuittaa">✓</button>`
-          : `<button type="button" class="${adj ? "on" : ""}" data-tadjopen="${t.id}" aria-pressed="${adj}" aria-label="Muuta aikaa">±</button><button type="button" data-tpause="${t.id}" aria-label="${paused ? "Jatka" : "Tauko"}">${paused ? ICO_PLAY : ICO_PAUSE}</button><button type="button" data-tdel="${t.id}" aria-label="Poista ajastin">✕</button>`;
+          : `<button type="button" class="${adj ? "on" : ""}" data-tadjopen="${t.id}" aria-pressed="${adj}" aria-label="Muuta aikaa">±</button><button type="button" data-tpause="${t.id}" aria-label="${paused ? "Jatka" : "Tauko"}">${paused ? ICO_PLAY : ICO_PAUSE}</button>${del
+            ? `<button type="button" class="tdelarm" data-tdel="${t.id}" aria-label="Lopeta ajastin: vahvista">Lopeta</button>`
+            : `<button type="button" data-tdel="${t.id}" aria-label="Poista ajastin">✕</button>`}`;
         placeDock();
       }
     }
@@ -2562,6 +2575,7 @@
     audioUnlock();
     const b = e.target.closest("button"); if (!b) return;
     const card = b.closest(".tcard"), tid = card && card.dataset.tid;
+    if (delArm && !(b.dataset.tdel && delArm === b.dataset.tdel)) armDel(null); // muu napautus perii poiston
     if (b.dataset.tadjopen != null) { adjTouch(adjId === tid ? null : tid); return refreshCards(); }
     if (b.dataset.tadjok != null) { adjTouch(null); return refreshCards(); }
     if (b.dataset.tadj != null) { // aika ± vauhdissa; ei alle 1 s jäljelle
@@ -2574,7 +2588,12 @@
       return;
     }
     const id = b.dataset.tpause || b.dataset.tdel || b.dataset.tadd || b.dataset.topen, t = timers.find((x) => x.id === id); if (!t) return;
-    if (b.dataset.tdel) { if (adjId === id) adjTouch(null); return removeTimer(id); }
+    if (b.dataset.tdel) {
+      const ring = !!t.end && tLeft(t) <= 0;
+      if (!ring && delArm !== id) { armDel(id); return refreshCards(); } // 1. napautus: "Lopeta"
+      if (!ring && Date.now() - delArmAt < 400) return;                 // liian nopea toinen napautus
+      armDel(null); if (adjId === id) adjTouch(null); return removeTimer(id);
+    }
     if (b.dataset.tpause) {
       if (t.end) { t.left = Math.max(0, t.end - Date.now()); t.end = null; } else { t.end = Date.now() + t.left; t.left = null; lockScreen(); }
     } else if (b.dataset.tadd) { // soiva: lisäaika (väliajan loppu kerran, sitten +1 min)

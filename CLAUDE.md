@@ -204,6 +204,9 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
     ja säilyvät sivun päivityksessä (laitekohtaisia). Kortissa jäljellä oleva aika, nimi, ±, tauko/jatka ja ✕; nimen napautus avaa reseptin.
     **Tauko- ja jatka-merkit piirrettyinä** (käyttäjän toive 26.11.2026: samaa tyyliä kuin ± ja ✕; ⏸ ja ▶ näkyivät iOS:ssä emojeina),
     myös tauolla olevan ajan perässä ja Käynnistä-napissa.
+    **Poisto varmistetaan** (käyttäjän toive 26.11.2026: ✕:n sipaisu poisti liian helposti): ✕ laajenee punaiseksi "Lopeta"-napiksi,
+    ja vasta sen napautus poistaa ajastimen; palaa ✕:ksi 4 s:n kuluttua tai kun muuta nappia napautetaan. Soivan ajastimen ✓
+    (kuittaus) toimii yhdellä napautuksella.
     **Ajan säätö vauhdissa** (käyttäjän toive 25.11.2026, ei vahingossa): ± avaa kortin alle rivin −5 / −1 min / +1 / +5 ja ✓; rivi
     sulkeutuu ✓:stä tai 8 s viimeisen napautuksen jälkeen. Toimii käynnissä ja tauolla (ei soidessa); vähennys ei vie alle 1 s:n
     (liian iso miinusnappi himmeänä).
@@ -319,7 +322,7 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
 - Ajastin: `page.clock.install(…)` + `page.clock.run_for(ms)` kuluttaa aikaa; piippaukset voi laskea korvaamalla `window.beep`
   (`page.evaluate("window.__beeps = 0; window.beep = () => __beeps++")`). Tulkinnan voi testata suoraan `timeChips(esc(teksti), 0)`.
   Ajastimet säilyvät `localStorage`n `kk_ajastimet`-avaimessa (uudelleenlataus = sama tila). Kello kulkee napautusten välissä:
-  salli sekunnin heitto ("06:19" tai "06:20"). Oma aika: `page.fill("#tMin", …)` laukaisee input-tapahtuman; napin klikkaus
+  salli sekunnin heitto ("06:19" tai "06:20"). Poisto: `click([data-tdel])` → `.tdelarm`, `page.clock.run_for(600)` ja toinen klikkaus. Oma aika: `page.fill("#tMin", …)` laukaisee input-tapahtuman; napin klikkaus
   laukaisee ensin focusoutin (tyhjä kenttä palautuu `tsMin`:iin). iPadin "liikkuu sivun mukana" -testissä lyhyt resepti ei vieri: aseta
   `document.body.style.minHeight` ennen `scrollTo`. Palkin paikka: `#tdock`:n vanhempi `.dinfo` (reseptisivu ≥ 760 px) tai body.
 - Kuvakkeet: ne ovat `<svg class="ic">`-elementtejä, joten `textContent` ei sisällä kuvaketta (esim. ajastinnappi " 6–8 minuuttia" →
@@ -483,7 +486,9 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
     ± `data-tadjopen` + ⏸ `data-tpause` + ✕ `data-tdel`, tauolla ± + ▶ + ✕, soi (`.ring`) `data-tadd` "+N min" (extra kerran,
     sitten 60 s) + ✓ `data-tdel`. **Säätö:** `adjId` (auki oleva kortti), `adjTouch(id)` (avaa + 8 s sulkuajastin `adjClose` alusta, null = sulje),
     napit `data-tadj` = `ADJ` sekunteina (−300, −60, 60, 300) ja `data-tadjok`; lisäys `end` (käynnissä) tai `left` (tauolla) ja `ms` (palkin pituus,
-    min 1 s); ei, jos jäljelle jäisi alle 1 s (`tickTimers` himmentää miinusnapit); aika välähtää `.tt.bump`. Tauko/jatka = SVG-kuvakkeet `ICO_PAUSE` / `ICO_PLAY`
+    min 1 s); ei, jos jäljelle jäisi alle 1 s (`tickTimers` himmentää miinusnapit); aika välähtää `.tt.bump`. **Poiston varmistus:** `delArm` (kortti,
+    jonka ✕ on "Lopeta"-tilassa, `.tdelarm`, tilassa `:del`), `armDel(id)` (4 s paluuajastin `delArmT`, null = peru); `data-tdel` käynnissä
+    tai tauolla: 1. napautus virittää, toinen poistaa vasta ≥ 400 ms myöhemmin (`delArmAt`); muu napautus palkissa perii virityksen. Tauko/jatka = SVG-kuvakkeet `ICO_PAUSE` / `ICO_PLAY`
     (`.svgi`, `currentColor`; älä käytä ⏸/▶-merkkejä, iOS piirtää ne emojeina); tauolla `.tt`:n perässä `.tpz` (`tickTimers` päivittää `.tt`:n vain
     tekstin tai tilan muuttuessa, `dataset.v`). Soiva ja näkyvissä → `beep()` 2,5 s välein (Web Audio, kolme 880 Hz piippausta, `navigator.audioSession.type =
     "transient"` jos tuettu, `vibrate` jos tuettu). `audioUnlock()` luo/jatkaa AudioContextin napautuksessa (iOS vaatii); sivun
