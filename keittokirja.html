@@ -535,8 +535,13 @@
   .shq { color: var(--muted); } .shq .ic { width: 20px; height: 20px; }
   .shaisle .ic { width: 1.25em; height: 1.25em; vertical-align: -.3em; margin-right: 2px; }
   .vbadge .ic { width: 1.1em; height: 1.1em; vertical-align: -.25em; }
-  /* Kuvitustyylin (D) vaaleat värit tummassa tilassa */
-  @media (prefers-color-scheme: dark) { :root { --ic-cream: #5b4a3d; --ic-glass: #3a322e; --ic-milk: #46505a; --ic-steel: #8a8f95; } }
+  /* Punaiset kuvakkeet (ICON_RED: pata, kalenteri, viinilasi, tuttipullo; 26.11.2026): logon punainen, viinilasissa viininpunainen.
+     Täytetyllä (primary) napilla punainen ei erottuisi → tekstin väri läpikuultavana. */
+  :root { --ic-red: #c8321f; --ic-red2: #a9241a; --ic-wine: #9b1f2c; }
+  .primary .ic .icr { fill: currentColor !important; fill-opacity: .3; }
+  /* Kuvitustyylin (D) vaaleat värit tummassa tilassa; punaiset hieman kirkkaampina */
+  @media (prefers-color-scheme: dark) { :root { --ic-cream: #5b4a3d; --ic-glass: #3a322e; --ic-milk: #46505a; --ic-steel: #8a8f95;
+    --ic-red: #d9442d; --ic-red2: #b8331f; --ic-wine: #b52a3b; } }
   /* Puhelimessa etusivun kortit kahteen sarakkeeseen: kaikki osiot näkyvät ilman vieritystä */
   @media (max-width: 599px) {
     .home { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -1192,7 +1197,10 @@
   // d = pisteet, c = ympyrät. Tyylin vaihto yhdestä kohdasta (käyttäjä halusi säilyttää mahdollisuuden): "A" ohut viiva
   // (käytössä), "B" viiva + lämmin sävy, "D" kuvitus (värit IC_PAL, tumma tila CSS:n --ic-*), "C" = A + viikkosuunnitelman
   // värilaatat (MAIN_BG). Ehdotukset: Claude Design -luonnos "Keittokirjan kuvakkeet – tyyliehdotukset".
-  const ICON_STYLE = "A";
+  // 26.11.2026 iltapäivällä käyttäjä vaihtoi tyyliin B; etusivun pata, kalenteri, viinilasi ja tuttipullo saavat punaiset alueet
+  // täysvärisinä kuten D:ssä (ICON_RED; sävyt CSS:n --ic-red/--ic-red2/--ic-wine, logon punaisen mukaan).
+  const ICON_STYLE = "B";
+  const ICON_RED = new Set(["pata", "viikko", "viini", "vauva"]), IC_REDS = new Set(["red", "red2", "wine"]);
   const ICONS = {
     "viikko":{"p":[["M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v11A2.5 2.5 0 0 1 18.5 21h-13A2.5 2.5 0 0 1 3 18.5Z","cream"],["M3 10V7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5V10Z","red"]],"l":["M8 3v4","M16 3v4"],"d":[[8,14],[12,14],[16,14],[8,17.5],[12,17.5]]},
     "pata":{"p":[["M4.5 12h15v4.5a3.5 3.5 0 0 1-3.5 3.5H8a3.5 3.5 0 0 1-3.5-3.5Z","red"],["M3.8 12c.5-3 3.8-4.6 8.2-4.6s7.7 1.6 8.2 4.6Z","red2"],["M10.6 7.4v-.9a1.4 1.4 0 0 1 2.8 0v.9","steel"]],"l":["M4.5 14H2.8","M19.5 14h1.7"]},
@@ -1258,7 +1266,9 @@
     const d = ICONS[k]; if (!d) return "";
     const st = ICON_STYLE === "C" ? "A" : ICON_STYLE;
     let s = "";
+    const red = st !== "D" && ICON_RED.has(k);
     for (const [p, r] of d.p || []) s += `<path d="${p}"${st === "D" ? ` style="fill:var(--ic-${r},${IC_PAL[r]})"`
+      : red && IC_REDS.has(r) ? ` class="icr" style="fill:var(--ic-${r})"`
       : st === "B" && IC_TINT.has(r) ? ' style="fill:var(--accent)" fill-opacity=".22"' : ""}/>`;
     for (const l of d.l || []) { const [p, r] = typeof l === "string" ? [l] : l; s += `<path d="${p}"${st === "D" && r ? ` style="stroke:var(--ic-${r},${IC_PAL[r]})"` : ""}/>`; }
     for (const [x, y] of d.d || []) s += `<path d="M${x} ${y}h.01" stroke-width="2.3"/>`;

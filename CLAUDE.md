@@ -127,8 +127,10 @@ sovellusta, tietokantaa tai sääntöjä.** Vastaa käyttäjälle suomeksi.
   - **Reseptirivi** (käyttäjän päätös 22.11.2026): ei kuvaa eikä emojia rivin alussa; nimi ja alla aika · tagikuvakkeet, **Top-listan ⭐
     emojirivin viimeisenä**. Oikeassa reunassa menumerkki ja **reseptin oma kuva, jos sellainen on** (56 px). Kaikissa reseptilistoissa
     (kategoriat, etusivun haku, menun reseptit, ruoan lisäys). Menumerkki myös reseptin oikeassa yläkulmassa.
-  - **Kuvakkeet ohuina viivoina, ei emojeja** (käyttäjän valinta A 26.11.2026 Claude Design -luonnoksesta "Keittokirjan kuvakkeet –
-    tyyliehdotukset"; hylätyt nyt: B viiva + lämmin sävy, C värilaatat, D värikäs kuvitus). Omat piirretyt kuvakkeet (56 kpl) tekstin
+  - **Kuvakkeet viivoina, ei emojeja** (Claude Design -luonnos "Keittokirjan kuvakkeet – tyyliehdotukset"; käyttäjä valitsi ensin
+    A = ohut viiva, samana päivänä 26.11.2026 vaihtoi **B:hen = viiva + lämmin terrakottasävy** kuvakkeen sisällä; C värilaatat ja D värikäs
+    kuvitus eivät käytössä). **Etusivun pata, kalenteri, viinilasi ja tuttipullo punaisin alueineen kuten D:ssä** (käyttäjän toive;
+    sävy logon punaisen mukaan, viinilasissa viininpunainen; nämä kuvakkeet ovat punaisia kaikkialla). Omat piirretyt kuvakkeet (56 kpl) tekstin
     värillä kaikkialla: etusivun osiot, tagit, valintasivut, napit, ostoslistan osastot, viinimerkinnät. **Mahdollisuus vaihtaa toiseen
     tyyliin säilytetään** (käyttäjän toive): `ICON_STYLE` = "A"/"B"/"C"/"D" yhdessä kohdassa. Viikkosuunnitelman ruokarivillä viivakuvake
     neutraalilla laatalla (A-esimerkin mukaan). Ilmoitukset, valikot (`<option>`) ja kopioitu ostoslista ovat tekstiä ilman kuvakkeita.
@@ -431,9 +433,11 @@ Jokaisella näkymällä on oma `#/`-osoite, joten iPhonen pyyhkäisy taaksepäin
 - **Kuvakkeet** (26.11.2026, oma osio ennen `CAT_ICON`ia): `ICONS` = { avain: { p: [[polku, väri]], l: [polku | [polku, väri]],
   d: [[x, y]], c: [[x, y, r]] } } 24 px ruudukossa (alueet täyttyvät kuvitustyylissä; avoin polku täyttyy, mutta viiva sulkeutuu vain
   Z:llä). `ico(avain, luokka?)` → inline-`<svg class="ic">` (`stroke: currentColor`, viiva 1,6; tyhjä merkkijono tuntemattomalle).
-  `ICON_STYLE`: "A" ohut viiva (käytössä), "B" alueet `--accent` 22 % (`IC_TINT`-värit), "D" kuvitus (`IC_PAL`, tummassa tilassa CSS:n
+  `ICON_STYLE`: "A" ohut viiva, "B" alueet `--accent` 22 % (`IC_TINT`-värit; **käytössä**), "D" kuvitus (`IC_PAL`, tummassa tilassa CSS:n
   `--ic-cream/glass/milk/steel`), "C" = A + `emoPh` värilaatat (`MAIN_BG`, `.tint`). Kiinteä HTML: `<span class="ici" data-ic="…">`
-  (tai `.e`-span etusivulla) täytetään käynnistyksessä. Koko `.ic` = 1,2em (fontin mukaan); paikkakohtaiset koot CSS:ssä (`.cat .e`,
+  (tai `.e`-span etusivulla) täytetään käynnistyksessä. **Punaiset kuvakkeet** `ICON_RED` (pata, viikko, viini, vauva): roolien
+  `IC_REDS` (red, red2, wine) alueet täysvärisinä `class="icr"` + `fill: var(--ic-red|--ic-red2|--ic-wine)` (CSS `:root`: #c8321f, #a9241a,
+  #9b1f2c; tummassa tilassa kirkkaammat); `.primary`-napissa `.icr` = tekstin väri 30 % (punainen ei erottuisi aksenttinapista). Koko `.ic` = 1,2em (fontin mukaan); paikkakohtaiset koot CSS:ssä (`.cat .e`,
   `.subcard .e`, `.chip.ico`, `.ticons`, `.pth.emo` 26 px, `.shaisle`, `.vbadge`, `header .gear`), tekstin ja kuvakkeen väli chipissä
   `.chip:not(.ico) > .ic`. Vakiot sisältävät kuvakeavaimia: `CAT_ICON`, `SECTIONS`, `TAG_ICON`, `PRIM_ICON`, `GRID`-ryhmät, `AISLES`
   ([avain, nimi, kuvake]), `VALUE_ICON`, `READY_ICON`. Kuvakkeet: viikko (kalenteri), pata, kuohu, menu, viini, vauva, kana, nauta,
